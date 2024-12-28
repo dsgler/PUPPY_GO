@@ -10,6 +10,7 @@ import {
   Image,
   StyleProp,
   TextStyle,
+  ImageSourcePropType,
 } from "react-native";
 import {
   Text,
@@ -21,10 +22,12 @@ import {
 } from "react-native-paper";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import React, { useState } from "react";
+import React, { createRef, useState } from "react";
 
 import sports, { sportItemType } from "../data/sportType";
 import BackIcon from "@/assets/images/addPage/back";
+import Svg from "react-native-svg";
+import Line from "@/assets/images/addPage/line";
 
 const styles = StyleSheet.create({
   bg_container: {
@@ -53,6 +56,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderStyle: "dashed",
   },
+  dogImg: { width: 64, height: 37, top: -10 },
 });
 
 const MoodType = {
@@ -62,59 +66,46 @@ const MoodType = {
   angry: 3,
 };
 
-const MoodObj: { [key: number]: { icon: string; descirption: string } } = {
-  0: { icon: "emoticon-happy", descirption: "开心" },
-  1: { icon: "emoticon-sad", descirption: "伤心" },
-  2: { icon: "emoticon-wink", descirption: "得意" },
-  3: { icon: "emoticon-angry", descirption: "生气" },
+const MoodObj: {
+  [key: number]: {
+    unPic: () => ImageSourcePropType;
+    pic: () => ImageSourcePropType;
+    descirption: string;
+  };
+} = {
+  0: {
+    unPic: () => require("../assets/images/addPage/happy_un.png"),
+    pic: () => require("../assets/images/addPage/happy.png"),
+    descirption: "开心",
+  },
+  1: {
+    unPic: () => require("../assets/images/addPage/sad_un.png"),
+    pic: () => require("../assets/images/addPage/sad.png"),
+    descirption: "伤心",
+  },
+  2: {
+    unPic: () => require("../assets/images/addPage/wink_un.png"),
+    pic: () => require("../assets/images/addPage/wink.png"),
+    descirption: "得意",
+  },
+  3: {
+    unPic: () => require("../assets/images/addPage/angry_un.png"),
+    pic: () => require("../assets/images/addPage/angry.png"),
+    descirption: "生气",
+  },
 };
+
+function getRunningDog() {
+  return require("../assets/images/addPage/runningDog.png");
+}
 
 export default function addPage() {
   const [chosenSportId, setChosenSportId] = useState(-1);
   const [exTime, setExTime] = useState("60");
   const [moodId, setMoodId] = useState(-1);
   const [effort, setEffort] = useState(0);
-
-  /* function SportChooseContainer(item: sportItemType) {
-    if (chosenSportId !== item.id) {
-      return (
-        <TouchableRipple
-          onPress={() => setChosenSportId(item.id)}
-          style={{ marginHorizontal: 5 }}
-        >
-          <View
-            style={[
-              styles.sport_container,
-              {
-                borderWidth: 1,
-                borderLeftColor: item.color,
-                borderRightColor: item.color,
-                borderTopColor: item.color,
-                borderBottomColor: item.color,
-              },
-            ]}
-          >
-            <Text style={{ color: item.color }}>{item.sportName}</Text>
-          </View>
-        </TouchableRipple>
-      );
-    } else {
-      return (
-        <TouchableRipple onPress={() => {}} style={{ marginHorizontal: 5 }}>
-          <View
-            style={[
-              styles.sport_container,
-              {
-                backgroundColor: item.color,
-              },
-            ]}
-          >
-            <Text style={{ color: "black" }}>{item.sportName}</Text>
-          </View>
-        </TouchableRipple>
-      );
-    }
-  } */
+  const [contentWidth, setContentWidth] = useState(0);
+  let title, intext: string;
 
   function MoodContainer({ ImoodId }: { ImoodId: number }) {
     return (
@@ -122,24 +113,31 @@ export default function addPage() {
         <Pressable onPress={() => setMoodId(ImoodId)}>
           <View
             style={{
-              width: 50,
-              height: 50,
-              flex: 1,
+              height: 85,
               justifyContent: "center",
               alignItems: "center",
             }}
           >
-            <Icon
-              size={ImoodId === moodId ? 50 : 40}
-              source={
-                ImoodId === moodId
-                  ? MoodObj[ImoodId].icon
-                  : MoodObj[ImoodId].icon + "-outline"
+            {(() => {
+              if (moodId === ImoodId) {
+                return (
+                  <Image
+                    source={MoodObj[ImoodId].pic()}
+                    style={{ height: 85, aspectRatio: 1 }}
+                  />
+                );
+              } else {
+                return (
+                  <Image
+                    source={MoodObj[ImoodId].unPic()}
+                    style={{ height: 70, aspectRatio: 1 }}
+                  />
+                );
               }
-            ></Icon>
+            })()}
           </View>
         </Pressable>
-        <Text style={{ textAlign: "center" }}>
+        <Text style={{ textAlign: "center", fontSize: 15 }}>
           {MoodObj[ImoodId].descirption}
         </Text>
       </View>
@@ -233,7 +231,6 @@ export default function addPage() {
                   width: 90,
                   fontSize: 50,
                   color: "#ffa356",
-                  // lineHeight: 30,
                   padding: 0,
                   textAlign: "right",
                 }}
@@ -260,54 +257,66 @@ export default function addPage() {
             <MoodContainer ImoodId={3}></MoodContainer>
           </View>
           <MainText>耗力</MainText>
-          <View>
+          <View
+            onLayout={(e) => {
+              setContentWidth(e.nativeEvent.layout.width);
+            }}
+            style={{ marginTop: 15, height: 20 }}
+          >
             <View
               style={{
                 flex: 1,
                 flexDirection: "row",
-                borderTopLeftRadius: 15,
-                borderTopRightRadius: 15,
-                borderBottomLeftRadius: 15,
-                borderBottomRightRadius: 15,
+                borderRadius: 7.5,
                 overflow: "hidden",
               }}
             >
               <View
                 style={{
-                  width: Dimensions.get("window").width / 4,
+                  width: contentWidth / 4,
                   backgroundColor: "#ffd0a9",
-                  height: 30,
+                  height: 15,
                 }}
               ></View>
               <View
                 style={{
-                  width: Dimensions.get("window").width / 4,
+                  width: contentWidth / 4,
                   backgroundColor: "#ffa772",
-                  height: 30,
+                  height: 15,
                 }}
               ></View>
               <View
                 style={{
-                  width: Dimensions.get("window").width / 4,
+                  width: contentWidth / 4,
                   backgroundColor: "#f17527",
-                  height: 30,
+                  height: 15,
                 }}
               ></View>
               <View
                 style={{
-                  width: Dimensions.get("window").width / 4,
+                  width: contentWidth / 4,
                   backgroundColor: "#d25203",
-                  height: 30,
+                  height: 15,
                 }}
               ></View>
             </View>
-            <CreateCircleButton N={1} />
-            <CreateCircleButton N={2} />
-            <CreateCircleButton N={3} />
-            <CreateCircleButton N={4} isEnd={true} />
+            <CreateCircleButton N={1} Position={contentWidth / 4 - 7.5} />
+            <CreateCircleButton N={2} Position={(contentWidth / 4) * 2 - 7.5} />
+            <CreateCircleButton N={3} Position={(contentWidth / 4) * 3 - 7.5} />
+            <CreateCircleButton N={4} Position={(contentWidth / 4) * 4 - 15} />
+            <Image
+              source={getRunningDog()}
+              style={[
+                styles.dogImg,
+                {
+                  position: "absolute",
+                  left: -10,
+                  display: effort === 0 ? "flex" : "none",
+                },
+              ]}
+            />
           </View>
-          <MainText isCenter={true}>点击进度条记录运动耗力</MainText>
-          <HintText isCenter={true}>小狗我要开始奔跑啦</HintText>
+          <EffortHint Effort={effort} />
           <MainText>关键词</MainText>
           <HintText>用几个简单的关键词概况一下本次运动吧</HintText>
           <View style={{ flex: 1, flexDirection: "row" }}>
@@ -317,7 +326,7 @@ export default function addPage() {
               isChosen={false}
             ></ColorfulTag>
           </View>
-          <MainText>运动日记</MainText>
+          <MainText style={{ marginVertical: 10 }}>运动日记</MainText>
           <View
             style={{
               borderTopLeftRadius: 15,
@@ -330,8 +339,21 @@ export default function addPage() {
             }}
           >
             <TextInput
+              placeholder="标题"
+              onEndEditing={(e) => {
+                title = e.nativeEvent.text;
+              }}
+            />
+            <View style={{ alignSelf: "center" }}>
+              <Line length={contentWidth - 60} />
+            </View>
+            <TextInput
               multiline={true}
+              placeholder="用一段话描述一下今天的辛苦付出吧！"
               style={{ minHeight: 100, textAlignVertical: "top" }}
+              onEndEditing={(e) => {
+                intext = e.nativeEvent.text;
+              }}
             ></TextInput>
           </View>
         </ScrollView>
@@ -341,33 +363,37 @@ export default function addPage() {
 
   function CreateCircleButton({
     N: n,
-    isEnd = false,
+    Position: p,
   }: {
     N: number;
-    isEnd?: boolean;
+    Position: number;
   }) {
-    let size = effort === n ? 30 : 24;
-
-    return (
-      <View
-        style={[
-          {
-            position: "absolute",
-            top: (30 - size) / 2,
-          },
-          {
-            left: isEnd
-              ? undefined
-              : (Dimensions.get("window").width / 4) * n - size / 2,
-            right: isEnd ? 0 : undefined,
-          },
-        ]}
-      >
-        <Pressable onPress={() => setEffort(n)}>
-          <Icon source="circle" size={size} color="white"></Icon>
-        </Pressable>
-      </View>
-    );
+    if (effort === n) {
+      return (
+        <Image
+          source={getRunningDog()}
+          style={[styles.dogImg, { top: -25, left: p - 20 }]}
+        />
+      );
+    } else {
+      return (
+        <View
+          style={[
+            {
+              position: "absolute",
+              top: 0,
+            },
+            {
+              left: p,
+            },
+          ]}
+        >
+          <Pressable onPress={() => setEffort(n)}>
+            <Icon source="circle" size={15} color="white"></Icon>
+          </Pressable>
+        </View>
+      );
+    }
   }
 }
 
@@ -464,4 +490,36 @@ function ColorfulTag({
       </TouchableRipple>
     );
   }
+}
+
+function EffortHint({ Effort: Effort }: { Effort: number }) {
+  let s1, s2: string;
+  switch (Effort) {
+    case 1:
+      s1 = "毫不费力";
+      s2 = "小小运动，轻松拿下";
+      break;
+    case 2:
+      s1 = "比较轻松";
+      s2 = "努努力，这点运动量简直轻轻松松";
+      break;
+    case 3:
+      s1 = "有点费力";
+      s2 = "呼哧带喘，只能用大拇指竖起来表示赞赏";
+      break;
+    case 4:
+      s1 = "太费力啦";
+      s2 = "今天的运动量太超标啦";
+      break;
+    default:
+      s1 = "点击进度条记录运动耗力";
+      s2 = "小狗我要开始奔跑啦";
+      break;
+  }
+  return (
+    <>
+      <MainText isCenter={true}>{s1}</MainText>
+      <HintText isCenter={true}>{s2}</HintText>
+    </>
+  );
 }
