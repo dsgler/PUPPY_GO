@@ -7,13 +7,13 @@ import {
   ViewStyle,
 } from "react-native";
 import { Link, router } from "expo-router";
-import Footer from "@/components/footer";
 import React from "react";
 import { LinearGradient } from "expo-linear-gradient";
 import { SafeAreaView } from "react-native-safe-area-context";
 import CalIcon from "@/assets/images/index/calendar";
 import { Pressable } from "react-native";
-import { BrandColor } from "@/consts/tabs";
+import { BrandColor, unChoseColor } from "@/consts/tabs";
+import AiPlan from "./AiPlan";
 
 export default function Index() {
   return (
@@ -29,11 +29,12 @@ export default function Index() {
         }}
       />
       <SafeAreaView style={{ flex: 1 }}>
+        <EmptyDog />
         <View style={{ flex: 1, paddingHorizontal: 15 }}>
           <Header />
           <WeekCalendar />
+          <AiPlan />
         </View>
-        <EmptyDog />
       </SafeAreaView>
     </View>
   );
@@ -114,12 +115,12 @@ const dayArr = [1, 2, 3, 4, 5, 6, 0];
 function WeekCalendar() {
   let d = new Date();
   let dateArr: number[] = Array.from({ length: 7 });
-  let off = -d.getDay() + 1;
+  let t = d.getDay();
+  let off = t === 0 ? -6 : -t + 1;
   for (let i = 0; i < 7; i++) {
-    console.log(off + i);
     dateArr[i] = AddDays(d, off + i).getDate();
   }
-  console.log(dateArr);
+  let isAfter = false;
 
   return (
     <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
@@ -128,7 +129,15 @@ function WeekCalendar() {
           key={index}
           date={date}
           day={dayArr[index]}
-          isChosen={d.getDate() === date}
+          isAfter={isAfter}
+          isChosen={(() => {
+            if (d.getDate() === date) {
+              isAfter = true;
+              return true;
+            } else {
+              return false;
+            }
+          })()}
         />
       ))}
     </View>
@@ -139,11 +148,14 @@ function WeekCalendarCap({
   date,
   day,
   isChosen = false,
+  isAfter,
 }: {
   date: number;
   day: number;
   isChosen?: boolean;
+  isAfter: boolean;
 }) {
+  console.log(isChosen, isAfter);
   let str: string;
   switch (day) {
     case 0:
@@ -187,7 +199,7 @@ function WeekCalendarCap({
     >
       <Text
         style={{
-          color: isChosen ? BrandColor : "#828287",
+          color: isChosen ? BrandColor : unChoseColor,
           fontSize: 12,
           textAlign: "center",
         }}
@@ -198,13 +210,19 @@ function WeekCalendarCap({
         style={{
           height: 30,
           aspectRatio: 1,
-          backgroundColor: isChosen ? "#FFCC8E" : "#FFF7EE",
+          backgroundColor: isChosen
+            ? "#FFCC8E"
+            : isAfter
+            ? "#F2F2F6"
+            : "#FFF7EE",
           borderRadius: 15,
           justifyContent: "center",
           alignItems: "center",
         }}
       >
-        <Text style={{ color: "#FF960B" }}>{date}</Text>
+        <Text style={{ color: isAfter ? unChoseColor : "#FF960B" }}>
+          {date}
+        </Text>
       </View>
     </View>
   );
