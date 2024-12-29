@@ -4418,6 +4418,13 @@ expo-dev-menu@6.0.14:
   dependencies:
     expo-dev-menu-interface "1.9.2"
 
+expo-drizzle-studio-plugin@^0.1.1:
+  version "0.1.1"
+  resolved "https://mirrors.huaweicloud.com/repository/npm/expo-drizzle-studio-plugin/-/expo-drizzle-studio-plugin-0.1.1.tgz#991c01414f9a6e15df2d495c6ef3f9834f7c0f78"
+  integrity sha512-OfV79+crmAIMK0jlwmVOMRXdss5rEHtA8vDALPLkjisDSAVEwElzx4OEGuUG/Pf8QlTGUEr7kK3WtCoQvWzo8g==
+  dependencies:
+    expo-sqlite "^15.0.3"
+
 expo-file-system@~18.0.6:
   version "18.0.6"
   resolved "https://mirrors.huaweicloud.com/repository/npm/expo-file-system/-/expo-file-system-18.0.6.tgz#43f7718530d0e2aa1f49bca7ccb721007acabf2c"
@@ -4515,7 +4522,7 @@ expo-splash-screen@~0.29.18:
   dependencies:
     "@expo/prebuild-config" "^8.0.23"
 
-expo-sqlite@~15.0.4:
+expo-sqlite@^15.0.3, expo-sqlite@~15.0.4:
   version "15.0.4"
   resolved "https://registry.yarnpkg.com/expo-sqlite/-/expo-sqlite-15.0.4.tgz#ebf9f788c8ed08969b7177d4012bfce0ddbb7c0f"
   integrity sha512-RIzkFmVtK71EKdeBEiKts+sVneCrb0X83fpIRsSmuPGbGnHc8tWVibx5jh9erz+m7ZJalmaQfP1jeghiXkLi7g==

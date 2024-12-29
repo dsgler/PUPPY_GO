@@ -7,7 +7,7 @@ import {
   ViewStyle,
 } from "react-native";
 import { Link, router } from "expo-router";
-import React from "react";
+import React, { useState } from "react";
 import { LinearGradient } from "expo-linear-gradient";
 import { SafeAreaView } from "react-native-safe-area-context";
 import CalIcon from "@/assets/images/index/calendar";
@@ -15,7 +15,20 @@ import { Pressable } from "react-native";
 import { BrandColor, unChoseColor } from "@/consts/tabs";
 import AiPlan from "./AiPlan";
 
+import { addDataType, GetDataByDate, getDB } from "./sql";
+
 export default function Index() {
+  // let set: React.Dispatch<React.SetStateAction<React.JSX.Element | undefined>>
+  function DataView() {
+    const [dataFace, setDataFace] = useState<React.JSX.Element>();
+    // set=setDataFace
+    if (dataFace === undefined) {
+      console.log("渲染");
+      showData(setDataFace);
+    }
+    return dataFace;
+  }
+
   return (
     <View style={{ flex: 1 }}>
       <LinearGradient
@@ -29,7 +42,7 @@ export default function Index() {
         }}
       />
       <SafeAreaView style={{ flex: 1 }}>
-        <EmptyDog />
+        {DataView()}
         <View style={{ flex: 1, paddingHorizontal: 15 }}>
           <Header />
           <WeekCalendar />
@@ -155,7 +168,6 @@ function WeekCalendarCap({
   isChosen?: boolean;
   isAfter: boolean;
 }) {
-  console.log(isChosen, isAfter);
   let str: string;
   switch (day) {
     case 0:
@@ -226,4 +238,24 @@ function WeekCalendarCap({
       </View>
     </View>
   );
+}
+
+async function showData(
+  setDataFace: React.Dispatch<
+    React.SetStateAction<React.JSX.Element | undefined>
+  >
+) {
+  const db = await getDB();
+  console.log("获得DB");
+  let d = new Date();
+  const ret = await GetDataByDate(
+    db,
+    `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`
+  );
+  console.log("获得ret");
+  if (ret.length === 0) {
+    setDataFace(<EmptyDog />);
+  } else {
+    console.log(ret);
+  }
 }

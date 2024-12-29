@@ -105,7 +105,7 @@ export default function addPage() {
   const [moodId, setMoodId] = useState(-1);
   const [effort, setEffort] = useState(0);
   const [contentWidth, setContentWidth] = useState(0);
-  let title, intext: string;
+  let title, content: string;
 
   function MoodContainer({ ImoodId }: { ImoodId: number }) {
     return (
@@ -352,7 +352,7 @@ export default function addPage() {
               placeholder="用一段话描述一下今天的辛苦付出吧！"
               style={{ minHeight: 100, textAlignVertical: "top" }}
               onEndEditing={(e) => {
-                intext = e.nativeEvent.text;
+                content = e.nativeEvent.text;
               }}
             ></TextInput>
           </View>
