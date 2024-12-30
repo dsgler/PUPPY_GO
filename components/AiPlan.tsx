@@ -2,7 +2,7 @@ import { unChoseColor } from "@/consts/tabs";
 import { View, Image, Text } from "react-native";
 import { TouchableRipple, Icon } from "react-native-paper";
 
-export default function () {
+export default function AiPlan() {
   return (
     <View
       style={{

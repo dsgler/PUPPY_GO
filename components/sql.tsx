@@ -1,10 +1,9 @@
 import * as SQLite from "expo-sqlite";
-import { useDrizzleStudio } from "expo-drizzle-studio-plugin";
 
 export type addDataType = {
   date: string;
-  timestart: string;
-  timeend: string;
+  timestart: number;
+  timeend: number;
   sportId: number;
   moodId: number;
   effort: number;
@@ -13,6 +12,28 @@ export type addDataType = {
   content: string;
   reply: string;
 };
+
+export function getmulti(Minutes: number) {
+  let d = new Date();
+  // month 从0开始多少有点逆天
+  // let startd = new Date(d.getTime() - 60 * 1000 * Minutes);
+  let obj = {
+    date: `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`,
+    timeend: d.getTime(),
+    timestart: d.getTime() - 60 * 1000 * Minutes,
+  };
+  return obj;
+}
+
+export function getTime() {
+  let d = new Date();
+  return `${d.getHours()}:${d.getSeconds()}`;
+}
+
+export function getDate() {
+  let d = new Date();
+  return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+}
 
 export async function getDB() {
   const db = SQLite.openDatabaseAsync("myDatabase.db");
@@ -24,8 +45,8 @@ export async function createTable(db: SQLite.SQLiteDatabase) {
     `CREATE TABLE IF NOT EXISTS myTable (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         date CHARACTER(20) NOT NULL,
-        timestart CHARACTER(20) NOT NULL,
-        timeend CHARACTER(20) NOT NULL,
+        timestart INTEGER  NOT NULL,
+        timeend INTEGER  NOT NULL,
         sportId INTEGER NOT NULL,
         moodId INTEGER NOT NULL,
         effort INTEGER NOT NULL,

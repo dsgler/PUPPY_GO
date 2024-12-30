@@ -6,28 +6,27 @@ import {
   StyleProp,
   ViewStyle,
 } from "react-native";
-import { Link, router } from "expo-router";
-import React, { useState } from "react";
+import { router, useFocusEffect } from "expo-router";
+import React, { useState, useEffect, useRef } from "react";
 import { LinearGradient } from "expo-linear-gradient";
 import { SafeAreaView } from "react-native-safe-area-context";
 import CalIcon from "@/assets/images/index/calendar";
-import { Pressable } from "react-native";
 import { BrandColor, unChoseColor } from "@/consts/tabs";
 import AiPlan from "./AiPlan";
 
-import { addDataType, GetDataByDate, getDB } from "./sql";
+import { addDataType, GetDataByDate, getDB, getDate } from "./sql";
+import { TouchableRipple } from "react-native-paper";
 
 export default function Index() {
-  // let set: React.Dispatch<React.SetStateAction<React.JSX.Element | undefined>>
-  function DataView() {
-    const [dataFace, setDataFace] = useState<React.JSX.Element>();
-    // set=setDataFace
-    if (dataFace === undefined) {
-      console.log("渲染");
-      showData(setDataFace);
+  let set = useRef<
+    React.Dispatch<React.SetStateAction<React.JSX.Element | undefined>>
+  >(() => {});
+
+  useFocusEffect(() => {
+    if (set.current) {
+      showData(set.current);
     }
-    return dataFace;
-  }
+  });
 
   return (
     <View style={{ flex: 1 }}>
@@ -42,7 +41,7 @@ export default function Index() {
         }}
       />
       <SafeAreaView style={{ flex: 1 }}>
-        {DataView()}
+        <DataView set={set} />
         <View style={{ flex: 1, paddingHorizontal: 15 }}>
           <Header />
           <WeekCalendar />
@@ -75,22 +74,24 @@ function EmptyDog() {
       <Text style={{ textAlign: "center", color: "#828287" }}>
         小狗会一直等着你的
       </Text>
-      <Pressable onPress={() => router.push("/addPage")}>
+      <TouchableRipple
+        borderless={true}
+        onPress={() => router.push("/addPage")}
+        style={{ borderRadius: 15, marginTop: 10, overflow: "hidden" }}
+      >
         <View
           style={{
             width: 80,
             height: 32,
-            borderRadius: 15,
             backgroundColor: "#FF960B",
             justifyContent: "center",
-            marginTop: 10,
           }}
         >
           <Text style={{ fontSize: 16, textAlign: "center", color: "white" }}>
             去记录
           </Text>
         </View>
-      </Pressable>
+      </TouchableRipple>
     </View>
   );
 }
@@ -247,15 +248,28 @@ async function showData(
 ) {
   const db = await getDB();
   console.log("获得DB");
-  let d = new Date();
-  const ret = await GetDataByDate(
-    db,
-    `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`
-  );
+  const ret = await GetDataByDate(db, getDate());
   console.log("获得ret");
   if (ret.length === 0) {
     setDataFace(<EmptyDog />);
   } else {
     console.log(ret);
+    setDataFace(undefined);
   }
+}
+
+function DataView({
+  set,
+}: {
+  set: React.MutableRefObject<
+    React.Dispatch<React.SetStateAction<React.JSX.Element | undefined>>
+  >;
+}) {
+  const [dataFace, setDataFace] = useState<React.JSX.Element>();
+  set.current = setDataFace;
+  // useEffect(() => {
+  //   console.log("focus");
+  //   showData(setDataFace);
+  // }, []);
+  return dataFace;
 }

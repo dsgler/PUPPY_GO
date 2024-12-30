@@ -5,29 +5,22 @@ import {
   FlatList,
   Pressable,
   TextInput,
-  Dimensions,
   GestureResponderEvent,
   Image,
   StyleProp,
   TextStyle,
   ImageSourcePropType,
 } from "react-native";
-import {
-  Text,
-  IconButton,
-  MD3Colors,
-  Button,
-  TouchableRipple,
-  Icon,
-} from "react-native-paper";
+import { Text, TouchableRipple, Icon } from "react-native-paper";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import React, { createRef, useState } from "react";
+import React, { useState, useRef } from "react";
 
 import sports, { sportItemType } from "../data/sportType";
 import BackIcon from "@/assets/images/addPage/back";
-import Svg from "react-native-svg";
 import Line from "@/assets/images/addPage/line";
+
+import { insertData, addDataType, getmulti, getDB } from "./sql";
 
 const styles = StyleSheet.create({
   bg_container: {
@@ -57,6 +50,13 @@ const styles = StyleSheet.create({
     borderStyle: "dashed",
   },
   dogImg: { width: 64, height: 37, top: -10 },
+  submit: {
+    borderTopLeftRadius: 15,
+    borderTopRightRadius: 15,
+    borderBottomLeftRadius: 15,
+    borderBottomRightRadius: 15,
+    overflow: "hidden",
+  },
 });
 
 const MoodType = {
@@ -99,13 +99,14 @@ function getRunningDog() {
   return require("../assets/images/addPage/runningDog.png");
 }
 
-export default function addPage() {
+export default function AddPage() {
   const [chosenSportId, setChosenSportId] = useState(-1);
   const [exTime, setExTime] = useState("60");
   const [moodId, setMoodId] = useState(-1);
   const [effort, setEffort] = useState(0);
   const [contentWidth, setContentWidth] = useState(0);
-  let title, content: string;
+  let title = "",
+    content = "";
 
   function MoodContainer({ ImoodId }: { ImoodId: number }) {
     return (
@@ -171,14 +172,19 @@ export default function addPage() {
             style={{ flex: 1, flexDirection: "row-reverse", paddingRight: 15 }}
           >
             <TouchableRipple
-              onPress={() => {}}
-              style={{
-                borderTopLeftRadius: 15,
-                borderTopRightRadius: 15,
-                borderBottomLeftRadius: 15,
-                borderBottomRightRadius: 15,
-                overflow: "hidden",
+              onPress={() => {
+                handleSubmit({
+                  ...getmulti(Number(exTime)),
+                  sportId: chosenSportId,
+                  moodId,
+                  effort,
+                  Tags: [],
+                  title,
+                  content,
+                  reply: "这是一个reply",
+                });
               }}
+              style={styles.submit}
               borderless={true}
             >
               <View
@@ -265,10 +271,10 @@ export default function addPage() {
           >
             <View
               style={{
-                flex: 1,
                 flexDirection: "row",
                 borderRadius: 7.5,
                 overflow: "hidden",
+                height: 15,
               }}
             >
               <View
@@ -459,13 +465,16 @@ function ColorfulTag({
     return (
       <TouchableRipple
         onPress={onPressF}
-        style={{ marginHorizontal: 8 }}
+        style={{ marginHorizontal: 8, borderRadius: 5, overflow: "hidden" }}
         borderless={true}
       >
         <View
           style={[
-            styles.sport_container_un,
             {
+              padding: 5,
+              borderRadius: 5,
+              borderWidth: 1,
+              borderStyle: "dashed",
               borderColor: Color,
             },
           ]}
@@ -476,15 +485,12 @@ function ColorfulTag({
     );
   } else {
     return (
-      <TouchableRipple onPress={() => {}} style={{ marginHorizontal: 8 }}>
-        <View
-          style={[
-            styles.sport_container,
-            {
-              backgroundColor: Color,
-            },
-          ]}
-        >
+      <TouchableRipple
+        onPress={() => {}}
+        style={{ marginHorizontal: 8, borderRadius: 5 }}
+        borderless={true}
+      >
+        <View style={{ padding: 5, backgroundColor: Color, borderRadius: 5 }}>
           <Text style={{ color: "black" }}>{Message}</Text>
         </View>
       </TouchableRipple>
@@ -492,7 +498,7 @@ function ColorfulTag({
   }
 }
 
-function EffortHint({ Effort: Effort }: { Effort: number }) {
+function EffortHint({ Effort }: { Effort: number }) {
   let s1, s2: string;
   switch (Effort) {
     case 1:
@@ -522,4 +528,11 @@ function EffortHint({ Effort: Effort }: { Effort: number }) {
       <HintText isCenter={true}>{s2}</HintText>
     </>
   );
+}
+
+async function handleSubmit(data: addDataType) {
+  let db = await getDB();
+  await insertData(db, data);
+  console.log("插入成功");
+  router.back();
 }
