@@ -15,7 +15,14 @@ import CalIcon from "@/assets/images/index/calendar";
 import { BrandColor, unChoseColor } from "@/consts/tabs";
 import AiPlan from "./AiPlan";
 
-import { addDataType, GetDataByDate, getDB, getDate, getTime } from "./sql";
+import {
+  addDataType,
+  GetDataByDate,
+  getDB,
+  getDate,
+  getTime,
+  getGapTime,
+} from "./sql";
 import { Icon, TouchableRipple } from "react-native-paper";
 import Svg, { Line } from "react-native-svg";
 
@@ -420,7 +427,7 @@ function SportBlockRight({
           >
             <Icon source={MoodObj[data.moodId].icon} size={20} />
             <Text style={{ fontSize: 22, fontWeight: 500, color: "#131315" }}>
-              {" " + getTime(data.timeend - data.timestart) + " "}
+              {" " + getGapTime(data.timeend - data.timestart) + " "}
             </Text>
             <Text style={{ fontSize: 15, color: "#131315" }}>时长</Text>
           </View>
@@ -432,14 +439,40 @@ function SportBlockRight({
                 height: 10,
                 borderRadius: 5,
                 overflow: "hidden",
-                width: (contentWidth - 115) / 4,
+                width: ((contentWidth - 125) / 4) * (data.effort + 1),
+                flexDirection: "row",
               }}
             >
               <View
                 style={{
                   height: 10,
-                  width: (contentWidth - 115) / 4,
+                  width: (contentWidth - 125) / 4,
                   backgroundColor: "#FFD0A9",
+                  display: data.effort >= 0 ? "flex" : "none",
+                }}
+              ></View>
+              <View
+                style={{
+                  height: 10,
+                  width: (contentWidth - 125) / 4,
+                  backgroundColor: "#FFA772",
+                  display: data.effort >= 1 ? "flex" : "none",
+                }}
+              ></View>
+              <View
+                style={{
+                  height: 10,
+                  width: (contentWidth - 125) / 4,
+                  backgroundColor: "#F27527",
+                  display: data.effort >= 2 ? "flex" : "none",
+                }}
+              ></View>
+              <View
+                style={{
+                  height: 10,
+                  width: (contentWidth - 125) / 4,
+                  backgroundColor: "#D25203",
+                  display: data.effort >= 3 ? "flex" : "none",
                 }}
               ></View>
             </View>
@@ -448,7 +481,7 @@ function SportBlockRight({
                 position: "absolute",
                 height: 20,
                 top: 0,
-                left: (contentWidth - 115) / 4 - 20,
+                left: ((contentWidth - 125) / 4) * (data.effort + 1) - 20,
                 alignItems: "center",
               }}
             >

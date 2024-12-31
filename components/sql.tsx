@@ -27,7 +27,16 @@ export function getmulti(Minutes: number) {
 
 export function getTime(t: number) {
   let d = new Date(t);
-  return `${d.getHours()}:${d.getSeconds()}`;
+  let hours = d.getHours().toString();
+  let minutes = d.getMinutes().toString().padStart(2, "0");
+  return `${hours}:${minutes}`;
+}
+
+export function getGapTime(t: number) {
+  let totalMinutes = Math.floor(t / 60000); // 将毫秒转换为分钟
+  let hours = Math.floor(totalMinutes / 60).toString(); // 计算小时数并补零
+  let minutes = (totalMinutes % 60).toString().padStart(2, "0"); // 计算剩余分钟数并补零
+  return `${hours}:${minutes}`;
 }
 
 export function getDate() {
