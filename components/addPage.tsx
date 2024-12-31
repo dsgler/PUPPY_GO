@@ -21,6 +21,7 @@ import BackIcon from "@/assets/images/addPage/back";
 import Line from "@/assets/images/addPage/line";
 
 import { insertData, addDataType, getmulti, getDB } from "./sql";
+import { effortArr, MoodObj } from "@/consts";
 
 const styles = StyleSheet.create({
   bg_container: {
@@ -64,35 +65,6 @@ const MoodType = {
   sad: 1,
   wink: 2,
   angry: 3,
-};
-
-const MoodObj: {
-  [key: number]: {
-    unPic: () => ImageSourcePropType;
-    pic: () => ImageSourcePropType;
-    descirption: string;
-  };
-} = {
-  0: {
-    unPic: () => require("../assets/images/addPage/happy_un.png"),
-    pic: () => require("../assets/images/addPage/happy.png"),
-    descirption: "开心",
-  },
-  1: {
-    unPic: () => require("../assets/images/addPage/sad_un.png"),
-    pic: () => require("../assets/images/addPage/sad.png"),
-    descirption: "伤心",
-  },
-  2: {
-    unPic: () => require("../assets/images/addPage/wink_un.png"),
-    pic: () => require("../assets/images/addPage/wink.png"),
-    descirption: "得意",
-  },
-  3: {
-    unPic: () => require("../assets/images/addPage/angry_un.png"),
-    pic: () => require("../assets/images/addPage/angry.png"),
-    descirption: "生气",
-  },
 };
 
 function getRunningDog() {
@@ -206,7 +178,7 @@ export default function AddPage() {
             style={{ paddingVertical: 10 }}
             horizontal={true}
             data={sports}
-            renderItem={({ item }) => (
+            renderItem={({ item, index }) => (
               <ColorfulTag
                 Message={item.sportName}
                 Color={item.color}
@@ -499,33 +471,10 @@ function ColorfulTag({
 }
 
 function EffortHint({ Effort }: { Effort: number }) {
-  let s1, s2: string;
-  switch (Effort) {
-    case 1:
-      s1 = "毫不费力";
-      s2 = "小小运动，轻松拿下";
-      break;
-    case 2:
-      s1 = "比较轻松";
-      s2 = "努努力，这点运动量简直轻轻松松";
-      break;
-    case 3:
-      s1 = "有点费力";
-      s2 = "呼哧带喘，只能用大拇指竖起来表示赞赏";
-      break;
-    case 4:
-      s1 = "太费力啦";
-      s2 = "今天的运动量太超标啦";
-      break;
-    default:
-      s1 = "点击进度条记录运动耗力";
-      s2 = "小狗我要开始奔跑啦";
-      break;
-  }
   return (
     <>
-      <MainText isCenter={true}>{s1}</MainText>
-      <HintText isCenter={true}>{s2}</HintText>
+      <MainText isCenter={true}>{effortArr[Effort].s1}</MainText>
+      <HintText isCenter={true}>{effortArr[Effort].s2}</HintText>
     </>
   );
 }

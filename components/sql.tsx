@@ -25,8 +25,8 @@ export function getmulti(Minutes: number) {
   return obj;
 }
 
-export function getTime() {
-  let d = new Date();
+export function getTime(t: number) {
+  let d = new Date(t);
   return `${d.getHours()}:${d.getSeconds()}`;
 }
 

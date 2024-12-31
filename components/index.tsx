@@ -5,18 +5,22 @@ import {
   Image,
   StyleProp,
   ViewStyle,
+  ScrollView,
 } from "react-native";
 import { router, useFocusEffect } from "expo-router";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef } from "react";
 import { LinearGradient } from "expo-linear-gradient";
 import { SafeAreaView } from "react-native-safe-area-context";
 import CalIcon from "@/assets/images/index/calendar";
 import { BrandColor, unChoseColor } from "@/consts/tabs";
 import AiPlan from "./AiPlan";
 
-import { addDataType, GetDataByDate, getDB, getDate } from "./sql";
+import { addDataType, GetDataByDate, getDB, getDate, getTime } from "./sql";
 import { Icon, TouchableRipple } from "react-native-paper";
-import Svg, { Line, Path } from "react-native-svg";
+import Svg, { Line } from "react-native-svg";
+
+import sportArr from "@/data/sportType";
+import { effortArr, MoodObj } from "@/consts";
 
 export default function Index() {
   console.log("index渲染");
@@ -46,12 +50,14 @@ export default function Index() {
         }}
       />
       <SafeAreaView style={{ flex: 1 }}>
-        <View style={{ paddingHorizontal: 15 }}>
-          <Header />
-          <WeekCalendar />
-          <AiPlan />
+        <View style={{ flex: 1 }}>
+          <View style={{ paddingHorizontal: 15 }}>
+            <Header />
+            <WeekCalendar />
+            <AiPlan />
+          </View>
+          <DataView set={set} />
         </View>
-        <DataView set={set} />
       </SafeAreaView>
     </View>
   );
@@ -259,7 +265,7 @@ async function showData(
     setDataFace(<EmptyDog />);
   } else {
     console.log(ret);
-    setDataFace(<SportBlock />);
+    setDataFace(<SportList sportArr={ret} />);
   }
 }
 
@@ -275,13 +281,53 @@ function DataView({
   return dataFace;
 }
 
-function SportBlock() {
+function SportList({ sportArr }: { sportArr: addDataType[] }) {
+  const [height, setHeight] = useState(500);
+  return (
+    <View
+      style={{
+        position: "absolute",
+        // flex: 1,
+        top: 0,
+        left: 0,
+        bottom: 0,
+        right: 0,
+      }}
+      onLayout={(e) => setHeight(e.nativeEvent.layout.height)}
+    >
+      <ScrollView
+        style={{
+          flex: 1,
+        }}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={{ height: 260 }}></View>
+        <View
+          style={{
+            paddingTop: 10,
+            minHeight: height - 260,
+            flex: 1,
+            backgroundColor: "white",
+            borderTopRightRadius: 20,
+            borderTopLeftRadius: 20,
+          }}
+        >
+          {sportArr.map((v, k) => (
+            <SportBlock data={v} key={k} />
+          ))}
+        </View>
+      </ScrollView>
+    </View>
+  );
+}
+
+function SportBlock({ data }: { data: addDataType }) {
   const [contentHeight, setContentHeight] = useState(50);
   return (
     <View
       style={{
-        marginTop: 20,
-        paddingVertical: 20,
+        marginTop: 10,
+        paddingVertical: 10,
         backgroundColor: "white",
         borderRadius: 20,
         paddingRight: 15,
@@ -290,13 +336,19 @@ function SportBlock() {
         alignItems: "flex-start",
       }}
     >
-      <SportBlockLeft height={contentHeight} />
-      <SportBlockRight setHeight={setContentHeight} />
+      <SportBlockLeft height={contentHeight} data={data} />
+      <SportBlockRight setHeight={setContentHeight} data={data} />
     </View>
   );
 }
 
-function SportBlockLeft({ height }: { height: number }) {
+function SportBlockLeft({
+  height,
+  data,
+}: {
+  height: number;
+  data: addDataType;
+}) {
   console.log(height);
   return (
     <View
@@ -307,7 +359,9 @@ function SportBlockLeft({ height }: { height: number }) {
         marginLeft: 10,
       }}
     >
-      <Text style={{ color: "#FF9B0B", fontSize: 15 }}>10:40</Text>
+      <Text style={{ color: "#FF9B0B", fontSize: 15 }}>
+        {getTime(data.timestart)}
+      </Text>
       <Svg width={1} height={height}>
         <Line
           x1={0}
@@ -319,15 +373,19 @@ function SportBlockLeft({ height }: { height: number }) {
           strokeDasharray={"5,5"}
         />
       </Svg>
-      <Text style={{ color: "#FF9B0B", fontSize: 15 }}>11:40</Text>
+      <Text style={{ color: "#FF9B0B", fontSize: 15 }}>
+        {getTime(data.timeend)}
+      </Text>
     </View>
   );
 }
 
 function SportBlockRight({
   setHeight,
+  data,
 }: {
   setHeight: React.Dispatch<React.SetStateAction<number>>;
+  data: addDataType;
 }) {
   const [contentWidth, setContentWidth] = useState<number>(0);
   return (
@@ -349,7 +407,9 @@ function SportBlockRight({
             padding: 5,
           }}
         >
-          <Text style={{ color: "#131315", fontSize: 16 }}>🎾网球</Text>
+          <Text style={{ color: "#131315", fontSize: 16 }}>
+            {sportArr[data.sportId].sportName}
+          </Text>
           <View
             style={{
               flexDirection: "row",
@@ -358,9 +418,9 @@ function SportBlockRight({
               marginTop: 5,
             }}
           >
-            <Icon source={"emoticon-happy-outline"} size={20} />
+            <Icon source={MoodObj[data.moodId].icon} size={20} />
             <Text style={{ fontSize: 22, fontWeight: 500, color: "#131315" }}>
-              {" 2:04 "}
+              {" " + getTime(data.timeend - data.timestart) + " "}
             </Text>
             <Text style={{ fontSize: 15, color: "#131315" }}>时长</Text>
           </View>
@@ -411,7 +471,7 @@ function SportBlockRight({
                     lineHeight: 20,
                   }}
                 >
-                  毫不费力
+                  {effortArr[data.effort].s1}
                 </Text>
               </View>
               <View
@@ -448,11 +508,9 @@ function SportBlockRight({
             marginBottom: 5,
           }}
         >
-          练习的第一天
+          {data.title}
         </Text>
-        <Text style={{ color: "#131315", fontSize: 15 }}>
-          今天去打羽毛球，状态不错。和球友们尽情挥拍，享受运动的快乐。虽有失误，但也有精彩的扣杀。每次击球都能感受到自己的进步，也体会到坚持练习的重要性。期待下次能有更好的表现，继续在球场上挥洒汗水……
-        </Text>
+        <Text style={{ color: "#131315", fontSize: 15 }}>{data.content}</Text>
       </View>
       <View style={{ flexDirection: "row", marginTop: 15 }}>
         <View
@@ -466,9 +524,7 @@ function SportBlockRight({
             marginRight: 5,
           }}
         >
-          <Text>
-            汪汪汪！你去打网球啦，好棒哦！你在球场上跑来跑去击球的样子肯定超帅的。不过，我觉得你下次打球的时候，可以多跳一跳去接球，就像我跳起来扑小玩偶一样，说不定能接到更多球呢。还有哦，打完球要记得多喝水，就像我喝完水才能更有精力玩耍！
-          </Text>
+          <Text>{data.reply}</Text>
         </View>
         <Image
           source={require("@/assets/images/index/doghead.png")}
