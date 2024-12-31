@@ -9,7 +9,6 @@ import {
   Image,
   StyleProp,
   TextStyle,
-  ImageSourcePropType,
 } from "react-native";
 import {
   Text,
@@ -20,6 +19,7 @@ import {
   Button,
   ThemeProvider,
   MD3LightTheme,
+  IconButton,
 } from "react-native-paper";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -90,6 +90,9 @@ export default function AddPage() {
   const [content, setContent] = useState("");
   const [dialogV, setDialogV] = useState(false);
   const [dialogC, setDialogC] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
+
+  console.log("add渲染");
 
   function MoodContainer({ ImoodId }: { ImoodId: number }) {
     return (
@@ -156,7 +159,7 @@ export default function AddPage() {
               style={{
                 flex: 1,
                 flexDirection: "row-reverse",
-                paddingRight: 15,
+                paddingRight: 5,
               }}
             >
               <TouchableRipple
@@ -184,157 +187,183 @@ export default function AddPage() {
                     width: 80,
                     height: 35,
                     backgroundColor: "#ffa356",
-
+                    flexDirection: "row",
                     justifyContent: "center",
                     alignItems: "center",
                   }}
                 >
-                  <Text style={{ fontSize: 16, color: "white" }}>完成</Text>
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      color: "white",
+                      padding: 0,
+                      lineHeight: 35,
+                    }}
+                  >
+                    完成
+                  </Text>
                 </View>
               </TouchableRipple>
             </View>
-            <MainText>请选择运动的类型</MainText>
-            <FlatList
-              style={{ paddingVertical: 10 }}
-              horizontal={true}
-              data={sports}
-              renderItem={({ item, index }) => (
-                <ColorfulTag
-                  Message={item.sportName}
-                  Color={item.color}
-                  isChosen={chosenSportId === item.id}
-                  onPressF={() => setChosenSportId(item.id)}
-                />
-              )}
-              showsHorizontalScrollIndicator={false}
-            />
-            <MainText>请选择运动的时长</MainText>
-            <View
-              style={{
-                flex: 1,
-                justifyContent: "center",
-              }}
-            >
-              <Text
+            <View style={{ display: isEditing ? "none" : "flex" }}>
+              <MainText>请选择运动的类型</MainText>
+              <FlatList
+                style={{ paddingVertical: 10 }}
+                horizontal={true}
+                data={sports}
+                renderItem={({ item, index }) => (
+                  <ColorfulTag
+                    Message={item.sportName}
+                    Color={item.color}
+                    isChosen={chosenSportId === item.id}
+                    onPressF={() => setChosenSportId(item.id)}
+                  />
+                )}
+                showsHorizontalScrollIndicator={false}
+              />
+              <MainText>请选择运动的时长</MainText>
+              <View
+                style={{
+                  flex: 1,
+                  justifyContent: "center",
+                }}
+              >
+                <Text
+                  style={{
+                    flex: 1,
+                    flexDirection: "row",
+                    justifyContent: "flex-start",
+                    alignItems: "center",
+                    textAlign: "center",
+                  }}
+                >
+                  <TextInput
+                    style={{
+                      width: 90,
+                      fontSize: 50,
+                      color: "#ffa356",
+                      padding: 0,
+                      textAlign: "right",
+                    }}
+                    placeholder="0"
+                    value={exTime}
+                    onChangeText={setExTime}
+                    keyboardType="numeric"
+                  ></TextInput>
+                  <Text>分钟</Text>
+                </Text>
+              </View>
+              <MainText>请选择运动心情</MainText>
+              <View
                 style={{
                   flex: 1,
                   flexDirection: "row",
-                  justifyContent: "flex-start",
-                  alignItems: "center",
-                  textAlign: "center",
+                  marginTop: 15,
+                  paddingBottom: 30,
+                  // justifyContent: "space-between",
                 }}
               >
-                <TextInput
+                <MoodContainer ImoodId={0}></MoodContainer>
+                <MoodContainer ImoodId={1}></MoodContainer>
+                <MoodContainer ImoodId={2}></MoodContainer>
+                <MoodContainer ImoodId={3}></MoodContainer>
+              </View>
+              <MainText>耗力</MainText>
+              <View
+                onLayout={(e) => {
+                  setContentWidth(e.nativeEvent.layout.width);
+                }}
+                style={{ marginTop: 15, height: 20 }}
+              >
+                <View
                   style={{
-                    width: 90,
-                    fontSize: 50,
-                    color: "#ffa356",
-                    padding: 0,
-                    textAlign: "right",
+                    flexDirection: "row",
+                    borderRadius: 7.5,
+                    overflow: "hidden",
+                    height: 15,
                   }}
-                  placeholder="0"
-                  value={exTime}
-                  onChangeText={setExTime}
-                  keyboardType="numeric"
-                ></TextInput>
-                <Text>分钟</Text>
-              </Text>
+                >
+                  <View
+                    style={{
+                      width: contentWidth / 4,
+                      backgroundColor: "#ffd0a9",
+                      height: 15,
+                    }}
+                  ></View>
+                  <View
+                    style={{
+                      width: contentWidth / 4,
+                      backgroundColor: "#ffa772",
+                      height: 15,
+                    }}
+                  ></View>
+                  <View
+                    style={{
+                      width: contentWidth / 4,
+                      backgroundColor: "#f17527",
+                      height: 15,
+                    }}
+                  ></View>
+                  <View
+                    style={{
+                      width: contentWidth / 4,
+                      backgroundColor: "#d25203",
+                      height: 15,
+                    }}
+                  ></View>
+                </View>
+                <CreateCircleButton N={1} Position={contentWidth / 4 - 7.5} />
+                <CreateCircleButton
+                  N={2}
+                  Position={(contentWidth / 4) * 2 - 7.5}
+                />
+                <CreateCircleButton
+                  N={3}
+                  Position={(contentWidth / 4) * 3 - 7.5}
+                />
+                <CreateCircleButton
+                  N={4}
+                  Position={(contentWidth / 4) * 4 - 15}
+                />
+                <Image
+                  source={getRunningDog()}
+                  style={[
+                    styles.dogImg,
+                    {
+                      position: "absolute",
+                      left: -10,
+                      display: effort === 0 ? "flex" : "none",
+                    },
+                  ]}
+                />
+              </View>
+              <EffortHint Effort={effort} />
+              <MainText>关键词</MainText>
+              <HintText>用几个简单的关键词概况一下本次运动吧</HintText>
+              <View style={{ flex: 1, flexDirection: "row" }}>
+                <ColorfulTag
+                  Message="点击填写状态词"
+                  Color="#ff960b"
+                  isChosen={false}
+                ></ColorfulTag>
+              </View>
             </View>
-            <MainText>请选择运动心情</MainText>
             <View
               style={{
-                flex: 1,
                 flexDirection: "row",
-                marginTop: 15,
-                paddingBottom: 30,
-                // justifyContent: "space-between",
+                justifyContent: "space-between",
+                alignItems: "center",
               }}
             >
-              <MoodContainer ImoodId={0}></MoodContainer>
-              <MoodContainer ImoodId={1}></MoodContainer>
-              <MoodContainer ImoodId={2}></MoodContainer>
-              <MoodContainer ImoodId={3}></MoodContainer>
-            </View>
-            <MainText>耗力</MainText>
-            <View
-              onLayout={(e) => {
-                setContentWidth(e.nativeEvent.layout.width);
-              }}
-              style={{ marginTop: 15, height: 20 }}
-            >
-              <View
-                style={{
-                  flexDirection: "row",
-                  borderRadius: 7.5,
-                  overflow: "hidden",
-                  height: 15,
-                }}
-              >
-                <View
-                  style={{
-                    width: contentWidth / 4,
-                    backgroundColor: "#ffd0a9",
-                    height: 15,
-                  }}
-                ></View>
-                <View
-                  style={{
-                    width: contentWidth / 4,
-                    backgroundColor: "#ffa772",
-                    height: 15,
-                  }}
-                ></View>
-                <View
-                  style={{
-                    width: contentWidth / 4,
-                    backgroundColor: "#f17527",
-                    height: 15,
-                  }}
-                ></View>
-                <View
-                  style={{
-                    width: contentWidth / 4,
-                    backgroundColor: "#d25203",
-                    height: 15,
-                  }}
-                ></View>
+              <MainText style={{ marginVertical: 10 }}>运动日记</MainText>
+              <View style={{ display: isEditing ? "flex" : "none" }}>
+                <IconButton
+                  icon={"chevron-down"}
+                  size={20}
+                  onPress={() => setIsEditing(false)}
+                />
               </View>
-              <CreateCircleButton N={1} Position={contentWidth / 4 - 7.5} />
-              <CreateCircleButton
-                N={2}
-                Position={(contentWidth / 4) * 2 - 7.5}
-              />
-              <CreateCircleButton
-                N={3}
-                Position={(contentWidth / 4) * 3 - 7.5}
-              />
-              <CreateCircleButton
-                N={4}
-                Position={(contentWidth / 4) * 4 - 15}
-              />
-              <Image
-                source={getRunningDog()}
-                style={[
-                  styles.dogImg,
-                  {
-                    position: "absolute",
-                    left: -10,
-                    display: effort === 0 ? "flex" : "none",
-                  },
-                ]}
-              />
             </View>
-            <EffortHint Effort={effort} />
-            <MainText>关键词</MainText>
-            <HintText>用几个简单的关键词概况一下本次运动吧</HintText>
-            <View style={{ flex: 1, flexDirection: "row" }}>
-              <ColorfulTag
-                Message="点击填写状态词"
-                Color="#ff960b"
-                isChosen={false}
-              ></ColorfulTag>
-            </View>
-            <MainText style={{ marginVertical: 10 }}>运动日记</MainText>
             <View
               style={{
                 borderTopLeftRadius: 15,
@@ -342,90 +371,58 @@ export default function AddPage() {
                 borderBottomLeftRadius: 15,
                 borderBottomRightRadius: 15,
                 backgroundColor: "#f5f5f5",
-                marginHorizontal: 15,
+                marginHorizontal: 10,
                 paddingHorizontal: 10,
+                paddingVertical: 5,
+                marginBottom: 20,
               }}
             >
               <TextInput
                 placeholder="标题"
                 value={title}
-                onChange={(e) => setTitle(e.nativeEvent.text)}
+                onChangeText={(t) => setTitle(t)}
+                style={{
+                  fontSize: 22,
+                  paddingVertical: 5,
+                  fontWeight: 600,
+                  display: isEditing ? "none" : "flex",
+                }}
               />
-              <View style={{ alignSelf: "center" }}>
-                <Line length={contentWidth - 60} />
+              <View
+                style={{
+                  alignSelf: "center",
+                  display: isEditing ? "none" : "flex",
+                }}
+              >
+                <Line length={contentWidth - 50} />
               </View>
               <TextInput
                 multiline={true}
                 placeholder="用一段话描述一下今天的辛苦付出吧！"
-                style={{ minHeight: 100, textAlignVertical: "top" }}
+                style={{
+                  minHeight: isEditing ? 400 : 100,
+                  // flex: 1,
+                  textAlignVertical: "top",
+                  fontSize: 15,
+                  marginTop: 10,
+                }}
                 value={content}
-                onChange={(e) => setContent(e.nativeEvent.text)}
+                onChangeText={(t) => setContent(t)}
+                onFocus={() => setIsEditing(true)}
               ></TextInput>
             </View>
           </ScrollView>
         </SafeAreaView>
       </View>
       <Portal>
-        <ThemeProvider
-          theme={{
-            ...MD3LightTheme,
-            colors: {
-              primary: "rgb(132, 84, 0)",
-              onPrimary: "rgb(255, 255, 255)",
-              primaryContainer: "rgb(255, 221, 183)",
-              onPrimaryContainer: "rgb(42, 23, 0)",
-              secondary: "rgb(120, 90, 0)",
-              onSecondary: "rgb(255, 255, 255)",
-              secondaryContainer: "rgb(255, 223, 156)",
-              onSecondaryContainer: "rgb(37, 26, 0)",
-              tertiary: "rgb(105, 95, 0)",
-              onTertiary: "rgb(255, 255, 255)",
-              tertiaryContainer: "rgb(245, 229, 104)",
-              onTertiaryContainer: "rgb(32, 28, 0)",
-              error: "rgb(186, 26, 26)",
-              onError: "rgb(255, 255, 255)",
-              errorContainer: "rgb(255, 218, 214)",
-              onErrorContainer: "rgb(65, 0, 2)",
-              background: "rgb(255, 251, 255)",
-              onBackground: "rgb(31, 27, 22)",
-              surface: "rgb(255, 251, 255)",
-              onSurface: "rgb(31, 27, 22)",
-              surfaceVariant: "rgb(240, 224, 208)",
-              onSurfaceVariant: "rgb(80, 69, 57)",
-              outline: "rgb(130, 117, 104)",
-              outlineVariant: "rgb(212, 196, 180)",
-              shadow: "rgb(0, 0, 0)",
-              scrim: "rgb(0, 0, 0)",
-              inverseSurface: "rgb(53, 47, 42)",
-              inverseOnSurface: "rgb(249, 239, 231)",
-              inversePrimary: "rgb(255, 185, 91)",
-              elevation: {
-                level0: "transparent",
-                level1: "rgb(249, 243, 242)",
-                level2: "rgb(245, 238, 235)",
-                level3: "rgb(242, 233, 227)",
-                level4: "rgb(240, 231, 224)",
-                level5: "rgb(238, 228, 219)",
-              },
-              surfaceDisabled: "rgba(31, 27, 22, 0.12)",
-              onSurfaceDisabled: "rgba(31, 27, 22, 0.38)",
-              backdrop: "rgba(56, 47, 36, 0.4)",
-            },
-          }}
-        >
-          <Dialog
-            visible={dialogV}
-            dismissable={false}
-            onDismiss={() => setDialogV(false)}
-          >
-            <Dialog.Content>
-              <Text>{dialogC}</Text>
-            </Dialog.Content>
-            <Dialog.Actions>
-              <Button onPress={() => setDialogV(false)}>ok</Button>
-            </Dialog.Actions>
-          </Dialog>
-        </ThemeProvider>
+        <Dialog visible={dialogV} onDismiss={() => setDialogV(false)}>
+          <Dialog.Content>
+            <Text>{dialogC}</Text>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={() => setDialogV(false)}>ok</Button>
+          </Dialog.Actions>
+        </Dialog>
       </Portal>
     </View>
   );
@@ -441,7 +438,7 @@ export default function AddPage() {
       return (
         <Image
           source={getRunningDog()}
-          style={[styles.dogImg, { top: -25, left: p - 20 }]}
+          style={[styles.dogImg, { top: -28, left: p - 22 }]}
         />
       );
     } else {
@@ -534,15 +531,26 @@ function ColorfulTag({
         <View
           style={[
             {
-              padding: 5,
+              paddingVertical: 0,
+              paddingHorizontal: 5,
               borderRadius: 5,
               borderWidth: 1,
               borderStyle: "dashed",
               borderColor: Color,
+              height: 30,
+              justifyContent: "center",
             },
           ]}
         >
-          <Text style={{ color: Color }}>{Message}</Text>
+          <Text
+            style={{
+              color: Color,
+              fontSize: 14,
+              textAlignVertical: "center",
+            }}
+          >
+            {Message}
+          </Text>
         </View>
       </TouchableRipple>
     );
@@ -550,11 +558,27 @@ function ColorfulTag({
     return (
       <TouchableRipple
         onPress={() => {}}
-        style={{ marginHorizontal: 8, borderRadius: 5 }}
+        style={{ marginHorizontal: 8, borderRadius: 5, overflow: "hidden" }}
         borderless={true}
       >
-        <View style={{ padding: 5, backgroundColor: Color, borderRadius: 5 }}>
-          <Text style={{ color: "black" }}>{Message}</Text>
+        <View
+          style={{
+            paddingVertical: 0,
+            paddingHorizontal: 5,
+            backgroundColor: Color,
+            borderRadius: 5,
+            height: 30,
+            justifyContent: "center",
+          }}
+        >
+          <Text
+            style={{
+              color: "black",
+              textAlignVertical: "center",
+            }}
+          >
+            {Message}
+          </Text>
         </View>
       </TouchableRipple>
     );

@@ -41,6 +41,10 @@ type effortType = {
 
 export const effortArr: effortType[] = [
   {
+    s1: "点击进度条记录运动耗力",
+    s2: "小狗我要开始奔跑啦",
+  },
+  {
     s1: "毫不费力",
     s2: "小小运动，轻松拿下",
   },
@@ -55,9 +59,5 @@ export const effortArr: effortType[] = [
   {
     s1: "太费力啦",
     s2: "今天的运动量太超标啦",
-  },
-  {
-    s1: "点击进度条记录运动耗力",
-    s2: "小狗我要开始奔跑啦",
   },
 ];
