@@ -1,7 +1,9 @@
 import React, { useEffect, useRef } from "react";
 import Animated, {
+  clamp,
   useAnimatedStyle,
   useSharedValue,
+  withDecay,
 } from "react-native-reanimated";
 import {
   Gesture,
@@ -14,22 +16,22 @@ export default function MyScrollView({
   children,
   style,
   marginTop,
+  bounce = 10,
 }: {
   children: React.ReactNode;
   style: StyleProp<ViewStyle>;
   marginTop: number;
+  bounce?: number;
 }) {
   console.log("渲染scroll" + marginTop);
-  const ViewHeight = useRef(0);
-  const contentHeight = useRef(0);
+  const ViewHeight = useSharedValue(0);
+  const contentHeight = useSharedValue(0);
 
-  let startMargin = useSharedValue(0);
   let startTranslate = useSharedValue(0);
   const RootMarginTop = useSharedValue(marginTop);
   const InnerTranslate = useSharedValue(0);
 
   const RootAnimatedStyle = useAnimatedStyle(() => {
-    console.log(RootMarginTop.value);
     return {
       marginTop: RootMarginTop.value,
     };
@@ -42,57 +44,67 @@ export default function MyScrollView({
   const gestureHandler = Gesture.Pan()
     .onStart((e) => {
       console.log("开始滑动" + RootMarginTop.value);
-      if (RootMarginTop.value > 0) {
-        startMargin.value = RootMarginTop.value;
-        startTranslate.value = InnerTranslate.value;
-      } else {
-        startTranslate.value = InnerTranslate.value;
-        startMargin.value = RootMarginTop.value;
-      }
+      startTranslate.value = InnerTranslate.value;
     })
     .onUpdate((e) => {
-      //   console.log(RootMarginTop.value);
-      if (RootMarginTop.value > 0) {
-        let nextMargin = startMargin.value + e.translationY;
-        console.log("nextMargin" + nextMargin);
-        if (nextMargin <= 0) {
-          startMargin.value = 0;
-          startTranslate.value = nextMargin;
-          RootMarginTop.value = 0;
-          InnerTranslate.value = nextMargin;
-        } else {
-          RootMarginTop.value = nextMargin;
-        }
-      } else {
-        let nextTranslate = startTranslate.value + e.translationY;
-        if (nextTranslate > 0) {
-          startTranslate.value = 0;
-          startMargin.value = nextTranslate;
-          RootMarginTop.value = nextTranslate;
-          InnerTranslate.value = 0;
-        } else {
-          InnerTranslate.value = nextTranslate;
-        }
+      let nextTranslate = startTranslate.value + e.translationY;
+      console.log(555, nextTranslate);
+      if (
+        nextTranslate > marginTop - RootMarginTop.value + bounce ||
+        nextTranslate + RootMarginTop.value <
+          -marginTop - contentHeight.value + ViewHeight.value - bounce
+      ) {
+        console.log(444, InnerTranslate.value);
+        return;
       }
+
+      InnerTranslate.value = nextTranslate;
     })
     .onEnd((e) => {
-      if (RootMarginTop.value <= 0) {
-      }
+      InnerTranslate.value = withDecay(
+        {
+          velocity: e.velocityY,
+          clamp: [
+            -marginTop -
+              contentHeight.value +
+              ViewHeight.value -
+              RootMarginTop.value,
+            marginTop - RootMarginTop.value,
+          ],
+        },
+        () => {
+          InnerTranslate.value = clamp(
+            InnerTranslate.value,
+            -marginTop -
+              contentHeight.value +
+              ViewHeight.value -
+              RootMarginTop.value,
+            marginTop - RootMarginTop.value
+          );
+          const off = InnerTranslate.value + RootMarginTop.value;
+          if (off >= 0 && off < marginTop) {
+            console.log(999, off);
+            RootMarginTop.value = off;
+            InnerTranslate.value = 0;
+          }
+        }
+      );
     });
 
   return (
     <Animated.View
       onLayout={(e) => {
-        ViewHeight.current = e.nativeEvent.layout.height + marginTop;
+        ViewHeight.value = e.nativeEvent.layout.height + marginTop;
       }}
       style={[style, RootAnimatedStyle]}
     >
       <GestureHandlerRootView style={{ flex: 1 }}>
         <GestureDetector gesture={gestureHandler}>
           <Animated.View
-            style={[{ flex: 1 }, InnerAnimatedStyle]}
+            style={[InnerAnimatedStyle]}
             onLayout={(e) => {
-              contentHeight.current = e.nativeEvent.layout.height;
+              console.log(777, e.nativeEvent.layout.height);
+              contentHeight.value = e.nativeEvent.layout.height;
             }}
           >
             {children}

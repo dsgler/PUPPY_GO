@@ -493,13 +493,13 @@ function SportBlockRight({
                 position: "absolute",
                 height: 20,
                 top: 0,
-                left: ((contentWidth - 125) / 4) * data.effort - 20,
+                left: ((contentWidth - 125) / 4) * data.effort - 22,
                 alignItems: "center",
               }}
             >
               <View
                 style={{
-                  width: 50,
+                  width: 46,
                   height: 20,
                   justifyContent: "center",
                   alignItems: "center",
@@ -511,7 +511,7 @@ function SportBlockRight({
                   style={{
                     textAlign: "center",
                     color: "#131315",
-                    fontSize: 10,
+                    fontSize: 9,
                     textAlignVertical: "center",
                     lineHeight: 20,
                   }}
