@@ -129,7 +129,7 @@ function Header({ style }: { style?: StyleProp<ViewStyle> }) {
       ]}
     >
       <Text style={{ fontWeight: 700, fontSize: 20 }}>
-        {d.getFullYear()}年{d.getMonth()}月
+        {d.getFullYear()}年{d.getMonth() + 1}月
       </Text>
       <CalIcon />
     </View>
@@ -290,6 +290,7 @@ function DataView({
 
 function SportList({ sportArr }: { sportArr: addDataType[] }) {
   const [height, setHeight] = useState(500);
+  const [offset, setOffset] = useState(260);
   return (
     <View
       style={{
@@ -301,16 +302,25 @@ function SportList({ sportArr }: { sportArr: addDataType[] }) {
         right: 0,
       }}
       onLayout={(e) => setHeight(e.nativeEvent.layout.height)}
+      pointerEvents="box-none"
     >
       <ScrollView
         style={{
           flex: 1,
+          marginTop: offset,
         }}
         showsVerticalScrollIndicator={false}
+        onScroll={(e) => {
+          // if (offset>0){
+          //   e.nativeEvent.
+          // }
+        }}
+        // onscroll
       >
-        <View style={{ height: 260 }}></View>
+        {/* <View style={{ height: 260 }}></View> */}
         <View
           style={{
+            // marginTop: 260,
             paddingTop: 10,
             minHeight: height - 260,
             flex: 1,
@@ -330,6 +340,7 @@ function SportList({ sportArr }: { sportArr: addDataType[] }) {
 
 function SportBlock({ data }: { data: addDataType }) {
   const [contentHeight, setContentHeight] = useState(50);
+  console.log("height" + contentHeight);
   return (
     <View
       style={{
@@ -395,6 +406,7 @@ function SportBlockRight({
   data: addDataType;
 }) {
   const [contentWidth, setContentWidth] = useState<number>(0);
+  console.log("width" + contentWidth);
   return (
     <View
       onLayout={(e) => {
@@ -439,7 +451,7 @@ function SportBlockRight({
                 height: 10,
                 borderRadius: 5,
                 overflow: "hidden",
-                width: ((contentWidth - 125) / 4) * (data.effort + 1),
+                width: ((contentWidth - 125) / 4) * data.effort,
                 flexDirection: "row",
               }}
             >
@@ -481,7 +493,7 @@ function SportBlockRight({
                 position: "absolute",
                 height: 20,
                 top: 0,
-                left: ((contentWidth - 125) / 4) * (data.effort + 1) - 20,
+                left: ((contentWidth - 125) / 4) * data.effort - 20,
                 alignItems: "center",
               }}
             >
@@ -539,6 +551,7 @@ function SportBlockRight({
             fontWeight: 600,
             fontSize: 20,
             marginBottom: 5,
+            paddingBottom: 2,
           }}
         >
           {data.title}

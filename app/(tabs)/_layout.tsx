@@ -4,7 +4,7 @@ import { Slot } from "expo-router";
 import React from "react";
 import { activePageType, indexPageId } from "@/consts/tabs";
 
-export default function () {
+export default function Layout() {
   const [activePage, setActivePage] = useState<activePageType>(indexPageId);
 
   return (
