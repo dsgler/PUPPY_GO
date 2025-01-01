@@ -28,6 +28,7 @@ import Svg, { Line } from "react-native-svg";
 
 import sportArr from "@/data/sportType";
 import { effortArr, MoodObj } from "@/consts";
+import MyScrollView from "./myScrollView";
 
 export default function Index() {
   console.log("index渲染");
@@ -295,35 +296,19 @@ function SportList({ sportArr }: { sportArr: addDataType[] }) {
     <View
       style={{
         position: "absolute",
-        // flex: 1,
         top: 0,
         left: 0,
         bottom: 0,
         right: 0,
       }}
       onLayout={(e) => setHeight(e.nativeEvent.layout.height)}
-      pointerEvents="box-none"
     >
-      <ScrollView
-        style={{
-          flex: 1,
-          marginTop: offset,
-        }}
-        showsVerticalScrollIndicator={false}
-        onScroll={(e) => {
-          // if (offset>0){
-          //   e.nativeEvent.
-          // }
-        }}
-        // onscroll
-      >
-        {/* <View style={{ height: 260 }}></View> */}
+      <MyScrollView marginTop={260} style={{ flex: 1 }}>
         <View
           style={{
-            // marginTop: 260,
             paddingTop: 10,
             minHeight: height - 260,
-            flex: 1,
+            // flex: 1,
             backgroundColor: "white",
             borderTopRightRadius: 20,
             borderTopLeftRadius: 20,
@@ -333,7 +318,7 @@ function SportList({ sportArr }: { sportArr: addDataType[] }) {
             <SportBlock data={v} key={k} />
           ))}
         </View>
-      </ScrollView>
+      </MyScrollView>
     </View>
   );
 }
@@ -349,7 +334,6 @@ function SportBlock({ data }: { data: addDataType }) {
         backgroundColor: "white",
         borderRadius: 20,
         paddingRight: 15,
-        flex: 1,
         flexDirection: "row",
         alignItems: "flex-start",
       }}

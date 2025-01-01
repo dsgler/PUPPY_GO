@@ -52,7 +52,7 @@ export default function MyScrollView({
       if (
         nextTranslate > marginTop - RootMarginTop.value + bounce ||
         nextTranslate + RootMarginTop.value <
-          -marginTop - contentHeight.value + ViewHeight.value - bounce
+          -contentHeight.value + ViewHeight.value - bounce
       ) {
         console.log(444, InnerTranslate.value);
         return;
@@ -65,24 +65,18 @@ export default function MyScrollView({
         {
           velocity: e.velocityY,
           clamp: [
-            -marginTop -
-              contentHeight.value +
-              ViewHeight.value -
-              RootMarginTop.value,
+            -contentHeight.value + ViewHeight.value - RootMarginTop.value,
             marginTop - RootMarginTop.value,
           ],
         },
         () => {
           InnerTranslate.value = clamp(
             InnerTranslate.value,
-            -marginTop -
-              contentHeight.value +
-              ViewHeight.value -
-              RootMarginTop.value,
+            -contentHeight.value + ViewHeight.value - RootMarginTop.value,
             marginTop - RootMarginTop.value
           );
           const off = InnerTranslate.value + RootMarginTop.value;
-          if (off >= 0 && off < marginTop) {
+          if (off >= 0 && off <= marginTop) {
             console.log(999, off);
             RootMarginTop.value = off;
             InnerTranslate.value = 0;
