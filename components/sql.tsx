@@ -39,8 +39,8 @@ export function getGapTime(t: number) {
   return `${hours}:${minutes}`;
 }
 
-export function getDate() {
-  let d = new Date();
+export function getDate(t: number | Date) {
+  let d = new Date(t);
   return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
 }
 

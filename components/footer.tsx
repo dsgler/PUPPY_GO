@@ -8,7 +8,7 @@ import RighIcon from "@/assets/images/Footer/right";
 import RighedIcon from "@/assets/images/Footer/righted";
 import * as R from "@/consts/tabs";
 
-export default function ({
+export default function Footer({
   activePage,
   setActivePage,
 }: {
@@ -26,7 +26,8 @@ export default function ({
           <Pressable
             onPress={() => {
               setActivePage(R.indexPageId);
-              router.replace("/(tabs)");
+              router.dismissTo("/(tabs)");
+              // router.
             }}
           >
             {activePage === R.indexPageId ? <LeftedIcon /> : <LeftIcon />}
@@ -50,7 +51,7 @@ export default function ({
           <Pressable
             onPress={() => {
               setActivePage(R.targetPageId);
-              router.push("/(tabs)/targetPage");
+              router.dismissTo("/(tabs)/targetPage");
             }}
           >
             {activePage === R.targetPageId ? <RighedIcon /> : <RighIcon />}

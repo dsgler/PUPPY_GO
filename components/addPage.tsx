@@ -599,6 +599,11 @@ async function handleSubmit(
   setDialogV: React.Dispatch<React.SetStateAction<boolean>>,
   setDialogC: React.Dispatch<React.SetStateAction<string>>
 ) {
+  if (isNaN(data.timestart) || data.timestart >= data.timeend) {
+    setDialogC("请输入合理数字");
+    setDialogV(true);
+    return;
+  }
   if (data.sportId === -1) {
     setDialogC("请选择运动类型");
     setDialogV(true);
@@ -628,5 +633,5 @@ async function handleSubmit(
   let db = await getDB();
   await insertData(db, data);
   console.log("插入成功");
-  router.back();
+  router.dismissTo("/(tabs)");
 }

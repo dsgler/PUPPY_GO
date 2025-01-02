@@ -27,6 +27,9 @@
         <data android:scheme="myapp"/>
         <data android:scheme="com.dsgler.rnexpotest"/>
         <data android:scheme="exp+rnexpotest"/>
+        <data android:scheme="puppygo"/>
+        <data android:scheme="com.dsgler.puppygo"/>
+        <data android:scheme="exp+puppygo"/>
       </intent-filter>
     </activity>
   </application>

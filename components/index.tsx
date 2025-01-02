@@ -5,7 +5,7 @@ import {
   Image,
   StyleProp,
   ViewStyle,
-  ScrollView,
+  Pressable,
 } from "react-native";
 import { router, useFocusEffect } from "expo-router";
 import React, { useState, useRef } from "react";
@@ -37,11 +37,13 @@ export default function Index() {
     React.Dispatch<React.SetStateAction<React.JSX.Element | undefined>>
   >(() => {});
 
+  const [showT, setShowT] = useState(Date.now());
+
   // 每次获得 focus 的时候都会刷新
   useFocusEffect(() => {
     console.log("focus渲染");
     if (set.current) {
-      showData(set.current);
+      showData(set.current, showT);
     }
   });
 
@@ -61,7 +63,7 @@ export default function Index() {
         <View style={{ flex: 1 }}>
           <View style={{ paddingHorizontal: 15 }}>
             <Header />
-            <WeekCalendar />
+            <WeekCalendar showT={showT} setShowT={setShowT} />
             <AiPlan />
           </View>
           <DataView set={set} />
@@ -76,8 +78,10 @@ function EmptyDog() {
       style={{
         position: "absolute",
         flex: 1,
-        height: Dimensions.get("screen").height,
-        width: Dimensions.get("screen").width,
+        top: 100,
+        left: 0,
+        bottom: 0,
+        right: 0,
         alignItems: "center",
         justifyContent: "center",
       }}
@@ -137,137 +141,123 @@ function Header({ style }: { style?: StyleProp<ViewStyle> }) {
   );
 }
 
+const oneDay = 24 * 60 * 60 * 1000; // 一天的毫秒数
 function AddDays(date: Date, days: number) {
-  var result = new Date(date); // 创建日期的副本以避免修改原始日期
-  var oneDay = 24 * 60 * 60 * 1000; // 一天的毫秒数
+  const result = new Date(date); // 创建日期的副本以避免修改原始日期
   result.setTime(result.getTime() + days * oneDay); // 减去指定天数的毫秒数
   return result;
 }
 
+// 让周日在最后
 const dayArr = [1, 2, 3, 4, 5, 6, 0];
-function WeekCalendar() {
+function WeekCalendar({
+  showT,
+  setShowT,
+}: {
+  showT: number;
+  setShowT: React.Dispatch<React.SetStateAction<number>>;
+}) {
   let d = new Date();
-  let dateArr: number[] = Array.from({ length: 7 });
+  let dateArr: Date[] = Array.from({ length: 7 });
   let t = d.getDay();
   let off = t === 0 ? -6 : -t + 1;
   for (let i = 0; i < 7; i++) {
-    dateArr[i] = AddDays(d, off + i).getDate();
+    dateArr[i] = AddDays(d, off + i);
   }
-  let isAfter = false;
+  // let isAfter = false;
 
   return (
     <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
       {dateArr.map((date, index) => (
         <WeekCalendarCap
           key={index}
-          date={date}
-          day={dayArr[index]}
-          isAfter={isAfter}
-          isChosen={(() => {
-            if (d.getDate() === date) {
-              isAfter = true;
-              return true;
-            } else {
-              return false;
-            }
-          })()}
+          // date={date.getDate()}
+          // day={dayArr[index]}
+          d={date}
+          isAfter={getDate(date) !== getDate(d) && date.getTime() > d.getTime()}
+          isChosen={getDate(date) === getDate(showT)}
+          setShowT={setShowT}
         />
       ))}
     </View>
   );
 }
 
+const dayDescription = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
 function WeekCalendarCap({
-  date,
-  day,
+  d,
   isChosen = false,
   isAfter,
+  setShowT,
 }: {
-  date: number;
-  day: number;
+  d: Date;
   isChosen?: boolean;
   isAfter: boolean;
+  setShowT: React.Dispatch<React.SetStateAction<number>>;
 }) {
-  let str: string;
-  switch (day) {
-    case 0:
-      str = "周日";
-      break;
-    case 1:
-      str = "周一";
-      break;
-    case 2:
-      str = "周二";
-      break;
-    case 3:
-      str = "周三";
-      break;
-    case 4:
-      str = "周四";
-      break;
-    case 5:
-      str = "周五";
-      break;
-    case 6:
-      str = "周六";
-      break;
-    default:
-      str = "未知";
-      break;
-  }
-
   return (
-    <View
-      style={{
-        height: 60,
-        width: 34,
-        backgroundColor: isChosen ? "#FFF7EE" : undefined,
-        borderRadius: 17,
-        justifyContent: "space-between",
-        alignItems: "center",
-        paddingTop: 5,
-        paddingBottom: 3,
+    <Pressable
+      onPress={() => {
+        setShowT(d.getTime());
       }}
+      style={{ borderRadius: 17 }}
+      disabled={isAfter}
+      // borderless={true}
+      // rippleColor={"#ffce93"}
     >
-      <Text
-        style={{
-          color: isChosen ? BrandColor : unChoseColor,
-          fontSize: 12,
-          textAlign: "center",
-        }}
-      >
-        {str}
-      </Text>
       <View
         style={{
-          height: 30,
-          aspectRatio: 1,
-          backgroundColor: isChosen
-            ? "#FFCC8E"
-            : isAfter
-            ? "#F2F2F6"
-            : "#FFF7EE",
-          borderRadius: 15,
-          justifyContent: "center",
+          height: 60,
+          width: 34,
+          backgroundColor: isChosen ? "#FFF7EE" : undefined,
+          borderRadius: 17,
+          justifyContent: "space-between",
           alignItems: "center",
+          paddingTop: 5,
+          paddingBottom: 3,
         }}
       >
-        <Text style={{ color: isAfter ? unChoseColor : "#FF960B" }}>
-          {date}
+        <Text
+          style={{
+            color: isChosen ? BrandColor : unChoseColor,
+            fontSize: 12,
+            textAlign: "center",
+          }}
+        >
+          {dayDescription[d.getDay()]}
         </Text>
+        <View
+          style={{
+            height: 30,
+            aspectRatio: 1,
+            backgroundColor: isChosen
+              ? "#FFCC8E"
+              : isAfter
+              ? "#F2F2F6"
+              : "#FFF7EE",
+            borderRadius: 15,
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <Text style={{ color: isAfter ? unChoseColor : "#FF960B" }}>
+            {d.getDate()}
+          </Text>
+        </View>
       </View>
-    </View>
+    </Pressable>
   );
 }
 
 async function showData(
   setDataFace: React.Dispatch<
     React.SetStateAction<React.JSX.Element | undefined>
-  >
+  >,
+  t: number
 ) {
   const db = await getDB();
   console.log("获得DB");
-  const ret = await GetDataByDate(db, getDate());
+  const ret = await GetDataByDate(db, getDate(t));
   console.log("获得ret");
   if (ret.length === 0) {
     setDataFace(<EmptyDog />);
@@ -291,7 +281,6 @@ function DataView({
 
 function SportList({ sportArr }: { sportArr: addDataType[] }) {
   const [height, setHeight] = useState(500);
-  const [offset, setOffset] = useState(260);
   return (
     <View
       style={{
