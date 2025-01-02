@@ -69,14 +69,7 @@ const styles = StyleSheet.create({
   },
 });
 
-const MoodType = {
-  happy: 0,
-  sad: 1,
-  wink: 2,
-  angry: 3,
-};
-
-function getRunningDog() {
+function requireRunningDog() {
   return require("../assets/images/addPage/runningDog.png");
 }
 
@@ -93,43 +86,6 @@ export default function AddPage() {
   const [isEditing, setIsEditing] = useState(false);
 
   console.log("add渲染");
-
-  function MoodContainer({ ImoodId }: { ImoodId: number }) {
-    return (
-      <View style={{ flex: 1, alignItems: "center" }}>
-        <Pressable onPress={() => setMoodId(ImoodId)}>
-          <View
-            style={{
-              height: 85,
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
-            {(() => {
-              if (moodId === ImoodId) {
-                return (
-                  <Image
-                    source={MoodObj[ImoodId].pic()}
-                    style={{ height: 85, aspectRatio: 1 }}
-                  />
-                );
-              } else {
-                return (
-                  <Image
-                    source={MoodObj[ImoodId].unPic()}
-                    style={{ height: 70, aspectRatio: 1 }}
-                  />
-                );
-              }
-            })()}
-          </View>
-        </Pressable>
-        <Text style={{ textAlign: "center", fontSize: 15 }}>
-          {MoodObj[ImoodId].descirption}
-        </Text>
-      </View>
-    );
-  }
 
   return (
     <View style={{ flex: 1 }}>
@@ -263,10 +219,26 @@ export default function AddPage() {
                   // justifyContent: "space-between",
                 }}
               >
-                <MoodContainer ImoodId={0}></MoodContainer>
-                <MoodContainer ImoodId={1}></MoodContainer>
-                <MoodContainer ImoodId={2}></MoodContainer>
-                <MoodContainer ImoodId={3}></MoodContainer>
+                <MoodContainer
+                  ImoodId={0}
+                  currentMoodId={moodId}
+                  setMoodId={setMoodId}
+                ></MoodContainer>
+                <MoodContainer
+                  ImoodId={1}
+                  currentMoodId={moodId}
+                  setMoodId={setMoodId}
+                ></MoodContainer>
+                <MoodContainer
+                  ImoodId={2}
+                  currentMoodId={moodId}
+                  setMoodId={setMoodId}
+                ></MoodContainer>
+                <MoodContainer
+                  ImoodId={3}
+                  currentMoodId={moodId}
+                  setMoodId={setMoodId}
+                ></MoodContainer>
               </View>
               <MainText>耗力</MainText>
               <View
@@ -326,7 +298,7 @@ export default function AddPage() {
                   Position={(contentWidth / 4) * 4 - 15}
                 />
                 <Image
-                  source={getRunningDog()}
+                  source={requireRunningDog()}
                   style={[
                     styles.dogImg,
                     {
@@ -437,7 +409,7 @@ export default function AddPage() {
     if (effort === n) {
       return (
         <Image
-          source={getRunningDog()}
+          source={requireRunningDog()}
           style={[styles.dogImg, { top: -28, left: p - 22 }]}
         />
       );
@@ -507,6 +479,51 @@ function HintText({
     >
       {children}
     </Text>
+  );
+}
+
+function MoodContainer({
+  currentMoodId,
+  ImoodId,
+  setMoodId,
+}: {
+  ImoodId: number;
+  currentMoodId: number;
+  setMoodId: React.Dispatch<React.SetStateAction<number>>;
+}) {
+  return (
+    <View style={{ flex: 1, alignItems: "center" }}>
+      <Pressable onPress={() => setMoodId(ImoodId)}>
+        <View
+          style={{
+            height: 85,
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          {(() => {
+            if (currentMoodId === ImoodId) {
+              return (
+                <Image
+                  source={MoodObj[ImoodId].pic()}
+                  style={{ height: 85, aspectRatio: 1 }}
+                />
+              );
+            } else {
+              return (
+                <Image
+                  source={MoodObj[ImoodId].unPic()}
+                  style={{ height: 70, aspectRatio: 1 }}
+                />
+              );
+            }
+          })()}
+        </View>
+      </Pressable>
+      <Text style={{ textAlign: "center", fontSize: 15 }}>
+        {MoodObj[ImoodId].descirption}
+      </Text>
+    </View>
   );
 }
 

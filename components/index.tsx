@@ -8,7 +8,7 @@ import {
   Pressable,
 } from "react-native";
 import { router, useFocusEffect } from "expo-router";
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useCallback } from "react";
 import { LinearGradient } from "expo-linear-gradient";
 import { SafeAreaView } from "react-native-safe-area-context";
 import CalIcon from "@/assets/images/index/calendar";
@@ -30,12 +30,15 @@ import sportArr from "@/data/sportType";
 import { effortArr, MoodObj } from "@/consts";
 import MyScrollView from "./myScrollView";
 
+const emptyFunction = () => {};
+
 export default function Index() {
   console.log("index渲染");
   // 用于存储设置
-  let set = useRef<
-    React.Dispatch<React.SetStateAction<React.JSX.Element | undefined>>
-  >(() => {});
+  let set =
+    useRef<React.Dispatch<React.SetStateAction<React.JSX.Element | undefined>>>(
+      emptyFunction
+    );
 
   const [showT, setShowT] = useState(Date.now());
 
@@ -56,7 +59,7 @@ export default function Index() {
           top: 0,
           left: 0,
           right: 0,
-          height: Dimensions.get("screen").height,
+          bottom: 0,
         }}
       />
       <SafeAreaView style={{ flex: 1 }}>
@@ -99,7 +102,7 @@ function EmptyDog() {
       </Text>
       <TouchableRipple
         borderless={true}
-        onPress={() => router.push("/addPage")}
+        onPress={useCallback(() => router.push("/addPage"), [])}
         style={{ borderRadius: 15, marginTop: 10, overflow: "hidden" }}
       >
         <View
@@ -164,15 +167,12 @@ function WeekCalendar({
   for (let i = 0; i < 7; i++) {
     dateArr[i] = AddDays(d, off + i);
   }
-  // let isAfter = false;
 
   return (
     <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
       {dateArr.map((date, index) => (
         <WeekCalendarCap
           key={index}
-          // date={date.getDate()}
-          // day={dayArr[index]}
           d={date}
           isAfter={getDate(date) !== getDate(d) && date.getTime() > d.getTime()}
           isChosen={getDate(date) === getDate(showT)}
@@ -202,8 +202,6 @@ function WeekCalendarCap({
       }}
       style={{ borderRadius: 17 }}
       disabled={isAfter}
-      // borderless={true}
-      // rippleColor={"#ffce93"}
     >
       <View
         style={{
@@ -262,7 +260,7 @@ async function showData(
   if (ret.length === 0) {
     setDataFace(<EmptyDog />);
   } else {
-    console.log(ret);
+    // console.log(ret);
     setDataFace(<SportList sportArr={ret} />);
   }
 }
@@ -281,6 +279,7 @@ function DataView({
 
 function SportList({ sportArr }: { sportArr: addDataType[] }) {
   const [height, setHeight] = useState(500);
+  const marginTop = 260;
   return (
     <View
       style={{
@@ -292,11 +291,11 @@ function SportList({ sportArr }: { sportArr: addDataType[] }) {
       }}
       onLayout={(e) => setHeight(e.nativeEvent.layout.height)}
     >
-      <MyScrollView marginTop={260} style={{ flex: 1 }}>
+      <MyScrollView marginTop={marginTop} style={{ flex: 1 }}>
         <View
           style={{
             paddingTop: 10,
-            minHeight: height - 260,
+            minHeight: height - marginTop,
             // flex: 1,
             backgroundColor: "white",
             borderTopRightRadius: 20,
