@@ -1,7 +1,6 @@
 import {
   Text,
   View,
-  Dimensions,
   Image,
   StyleProp,
   ViewStyle,
@@ -43,12 +42,14 @@ export default function Index() {
   const [showT, setShowT] = useState(Date.now());
 
   // 每次获得 focus 的时候都会刷新
-  useFocusEffect(() => {
-    console.log("focus渲染");
-    if (set.current) {
-      showData(set.current, showT);
-    }
-  });
+  useFocusEffect(
+    useCallback(() => {
+      console.log("focus渲染");
+      if (set.current) {
+        showData(set.current, showT);
+      }
+    }, [showT])
+  );
 
   return (
     <View style={{ flex: 1 }}>
@@ -313,7 +314,7 @@ function SportList({ sportArr }: { sportArr: addDataType[] }) {
 
 function SportBlock({ data }: { data: addDataType }) {
   const [contentHeight, setContentHeight] = useState(50);
-  console.log("height" + contentHeight);
+  // console.log("height" + contentHeight);
   return (
     <View
       style={{
@@ -339,7 +340,7 @@ function SportBlockLeft({
   height: number;
   data: addDataType;
 }) {
-  console.log(height);
+  // console.log(height);
   return (
     <View
       style={{
@@ -378,7 +379,7 @@ function SportBlockRight({
   data: addDataType;
 }) {
   const [contentWidth, setContentWidth] = useState<number>(0);
-  console.log("width" + contentWidth);
+  // console.log("width" + contentWidth);
   return (
     <View
       onLayout={(e) => {

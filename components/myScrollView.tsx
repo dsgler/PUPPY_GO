@@ -106,7 +106,7 @@ export default function MyScrollView({
 
               // 调整margin
               if (off >= 0 && off <= marginTop) {
-                console.log(999, off);
+                // console.log(999, off);
                 RootMarginTop.value = off;
                 InnerTranslate.value = 0;
               } else {
@@ -122,7 +122,7 @@ export default function MyScrollView({
   return (
     <Animated.View
       onLayout={(e) => {
-        console.log(111, e.nativeEvent.layout.height);
+        // console.log(111, e.nativeEvent.layout.height);
         if (ViewHeight.value !== 0) {
           return;
         }
@@ -135,7 +135,7 @@ export default function MyScrollView({
           <Animated.View
             style={[InnerAnimatedStyle]}
             onLayout={(e) => {
-              console.log(777, e.nativeEvent.layout.height);
+              // console.log(777, e.nativeEvent.layout.height);
               // if (contentHeight.value !== 0) {
               //   return;
               // }
