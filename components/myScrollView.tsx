@@ -3,10 +3,8 @@ import Animated, {
   clamp,
   useAnimatedStyle,
   useSharedValue,
-  withClamp,
   withDecay,
   withSpring,
-  withTiming,
 } from "react-native-reanimated";
 import {
   Gesture,
@@ -15,6 +13,12 @@ import {
 } from "react-native-gesture-handler";
 import { StyleProp, ViewStyle } from "react-native";
 
+/**
+ * @describe 一个marginTop可变的ScrollView，滑动时改变translate，停止时才改变marginTop
+ * @param marginTop 上边距
+ * @param bounce 弹动范围
+ * @returns
+ */
 export default function MyScrollView({
   children,
   style,
@@ -26,11 +30,16 @@ export default function MyScrollView({
   marginTop: number;
   bounce?: number;
 }) {
-  console.log("渲染scroll" + marginTop);
+  console.log("开始渲染ScrollView");
+
+  // 用于计算高度，contentHeight 可能多次设置才是最终值
   const ViewHeight = useSharedValue(0);
   const contentHeight = useSharedValue(0);
 
-  let startTranslate = useSharedValue(0);
+  // 通过开始时translate和offest计算最终translate
+  const startTranslate = useSharedValue(0);
+
+  // 用于设置Style
   const RootMarginTop = useSharedValue(marginTop);
   const InnerTranslate = useSharedValue(0);
 
@@ -44,54 +53,58 @@ export default function MyScrollView({
       transform: [{ translateY: InnerTranslate.value }],
     };
   });
+
   const gestureHandler = Gesture.Pan()
     .onStart((e) => {
-      console.log("开始滑动" + RootMarginTop.value);
+      // console.log("开始滑动" + RootMarginTop.value);
       startTranslate.value = InnerTranslate.value;
     })
     .onUpdate((e) => {
-      let nextTranslate = startTranslate.value + e.translationY;
-      console.log(555, nextTranslate);
-      if (
-        nextTranslate > marginTop - RootMarginTop.value + bounce ||
-        nextTranslate <
-          -contentHeight.value + ViewHeight.value - RootMarginTop.value - bounce
-      ) {
-        console.log(444, InnerTranslate.value);
-        console.log(
-          888,
-          nextTranslate,
-          contentHeight.value,
-          ViewHeight.value,
-          RootMarginTop.value
-        );
+      const RMT = RootMarginTop.value;
+      const upBoundary = marginTop - RMT + bounce;
+      const buttomBoundary =
+        -contentHeight.value + ViewHeight.value - RMT - bounce;
+
+      const nextTranslate = startTranslate.value + e.translationY;
+
+      // 越界处理
+      if (nextTranslate > upBoundary) {
+        InnerTranslate.value = upBoundary;
+        return;
+      }
+      if (nextTranslate < buttomBoundary) {
+        InnerTranslate.value = buttomBoundary;
         return;
       }
 
       InnerTranslate.value = nextTranslate;
     })
     .onEnd((e) => {
+      // 缓停动画
+      const RMT = RootMarginTop.value;
       InnerTranslate.value = withDecay(
         {
           velocity: e.velocityY,
           clamp: [
-            -contentHeight.value +
-              ViewHeight.value -
-              RootMarginTop.value -
-              bounce,
-            marginTop - RootMarginTop.value + bounce,
+            -contentHeight.value + ViewHeight.value - RMT - bounce,
+            marginTop - RMT + bounce,
           ],
         },
         () => {
+          // 回弹动画，时上一个动画执行完后的回调
           InnerTranslate.value = withSpring(
             clamp(
               InnerTranslate.value,
-              -contentHeight.value + ViewHeight.value - RootMarginTop.value,
-              marginTop - RootMarginTop.value
+              -contentHeight.value + ViewHeight.value - RMT,
+              marginTop - RMT
             ),
             { duration: 500 },
+            // 还是回调
             () => {
-              const off = InnerTranslate.value + RootMarginTop.value;
+              // margin和translate偏移之和
+              const off = InnerTranslate.value + RMT;
+
+              // 调整margin
               if (off >= 0 && off <= marginTop) {
                 console.log(999, off);
                 RootMarginTop.value = off;
