@@ -7,7 +7,7 @@ import {
   Pressable,
 } from "react-native";
 import { router, useFocusEffect } from "expo-router";
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import { LinearGradient } from "expo-linear-gradient";
 import { SafeAreaView } from "react-native-safe-area-context";
 import CalIcon from "@/assets/images/index/calendar";
@@ -29,25 +29,18 @@ import sportArr from "@/data/sportType";
 import { effortArr, MoodObj } from "@/consts";
 import MyScrollView from "./myScrollView";
 
-const emptyFunction = () => {};
-
 export default function Index() {
   console.log("index渲染");
   // 用于存储设置
-  let set =
-    useRef<React.Dispatch<React.SetStateAction<React.JSX.Element | undefined>>>(
-      emptyFunction
-    );
 
   const [showT, setShowT] = useState(Date.now());
+  const [dataFace, setDataFace] = useState<React.JSX.Element>();
 
   // 每次获得 focus 的时候都会刷新
   useFocusEffect(
     useCallback(() => {
       console.log("focus渲染");
-      if (set.current) {
-        showData(set.current, showT);
-      }
+      showData(setDataFace, showT);
     }, [showT])
   );
 
@@ -70,7 +63,7 @@ export default function Index() {
             <WeekCalendar showT={showT} setShowT={setShowT} />
             <AiPlan />
           </View>
-          <DataView set={set} />
+          {dataFace}
         </View>
       </SafeAreaView>
     </View>
@@ -153,7 +146,7 @@ function AddDays(date: Date, days: number) {
 }
 
 // 让周日在最后
-const dayArr = [1, 2, 3, 4, 5, 6, 0];
+// const dayArr = [1, 2, 3, 4, 5, 6, 0];
 function WeekCalendar({
   showT,
   setShowT,
@@ -266,18 +259,6 @@ async function showData(
   }
 }
 
-function DataView({
-  set,
-}: {
-  set: React.MutableRefObject<
-    React.Dispatch<React.SetStateAction<React.JSX.Element | undefined>>
-  >;
-}) {
-  const [dataFace, setDataFace] = useState<React.JSX.Element>();
-  set.current = setDataFace;
-  return dataFace;
-}
-
 function SportList({ sportArr }: { sportArr: addDataType[] }) {
   const [height, setHeight] = useState(500);
   const marginTop = 260;
@@ -292,12 +273,11 @@ function SportList({ sportArr }: { sportArr: addDataType[] }) {
       }}
       onLayout={(e) => setHeight(e.nativeEvent.layout.height)}
     >
-      <MyScrollView marginTop={marginTop} style={{ flex: 1 }}>
+      <MyScrollView marginTop={marginTop} style={{ flex: 1 }} bounce={20}>
         <View
           style={{
             paddingTop: 10,
             minHeight: height - marginTop,
-            // flex: 1,
             backgroundColor: "white",
             borderTopRightRadius: 20,
             borderTopLeftRadius: 20,
