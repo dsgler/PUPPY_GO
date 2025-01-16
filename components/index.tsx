@@ -5,9 +5,10 @@ import {
   StyleProp,
   ViewStyle,
   Pressable,
+  FlatList,
 } from "react-native";
 import { router, useFocusEffect } from "expo-router";
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import { LinearGradient } from "expo-linear-gradient";
 import { SafeAreaView } from "react-native-safe-area-context";
 import CalIcon from "@/assets/images/index/calendar";
@@ -34,13 +35,13 @@ export default function Index() {
   // 用于存储设置
 
   const [showT, setShowT] = useState(Date.now());
-  const [dataFace, setDataFace] = useState<React.JSX.Element>();
+  const [dataComponent, setDataComponent] = useState<React.JSX.Element>();
 
   // 每次获得 focus 的时候都会刷新
   useFocusEffect(
     useCallback(() => {
       console.log("focus渲染");
-      showData(setDataFace, showT);
+      showData(setDataComponent, showT);
     }, [showT])
   );
 
@@ -53,7 +54,7 @@ export default function Index() {
             <WeekCalendar showT={showT} setShowT={setShowT} />
             <AiPlan />
           </View>
-          {dataFace}
+          {dataComponent}
         </View>
       </SafeAreaView>
     </View>
@@ -349,7 +350,8 @@ function SportBlockRight({
   data: addDataType;
 }) {
   const [contentWidth, setContentWidth] = useState<number>(0);
-  // console.log("width" + contentWidth);
+  const tags: string[] = useMemo(() => JSON.parse(data.Tags), [data]);
+
   return (
     <View
       onLayout={(e) => {
@@ -474,7 +476,14 @@ function SportBlockRight({
             </View>
           </View>
           <View style={{ height: 30, flexDirection: "row", paddingTop: 7 }}>
-            <SolidTag text={"＃尝试＃"} />
+            <FlatList
+              data={tags}
+              horizontal={true}
+              showsHorizontalScrollIndicator={false}
+              renderItem={({ item, index }) => (
+                <SolidTag text={item} key={index} style={{ marginRight: 5 }} />
+              )}
+            />
           </View>
         </View>
       </View>
@@ -524,18 +533,27 @@ function SportBlockRight({
   );
 }
 
-function SolidTag({ text }: { text: String }) {
+function SolidTag({
+  text,
+  style,
+}: {
+  text: String;
+  style?: StyleProp<ViewStyle>;
+}) {
   return (
     <View
-      style={{
-        height: 23,
-        borderWidth: 1,
-        borderColor: "#FFCC8E",
-        borderRadius: 5,
-        justifyContent: "center",
-        alignItems: "center",
-        padding: 2,
-      }}
+      style={[
+        {
+          height: 23,
+          borderWidth: 1,
+          borderColor: "#FFCC8E",
+          borderRadius: 5,
+          justifyContent: "center",
+          alignItems: "center",
+          padding: 2,
+        },
+        style,
+      ]}
     >
       <Text
         style={{

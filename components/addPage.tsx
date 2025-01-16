@@ -18,13 +18,11 @@ import {
   Portal,
   Dialog,
   Button,
-  ThemeProvider,
-  MD3LightTheme,
   IconButton,
 } from "react-native-paper";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 
 import sports, { sportItemType } from "../consts/sportType";
 import BackIcon from "@/assets/images/addPage/back";
@@ -33,6 +31,8 @@ import Line from "@/assets/images/addPage/line";
 import { insertData, addDataType, getmulti, getDB } from "./sql";
 import { effortArr, MoodObj } from "@/consts";
 import { useImmer } from "use-immer";
+import { isNumber } from "lodash";
+import Toast from "react-native-toast-message";
 
 const EmptyF = () => {};
 
@@ -97,6 +97,12 @@ export default function AddPage() {
 
   console.log("add渲染");
 
+  // 这个useCallback好像意义不大
+  const myAlert = useCallback((message: string) => {
+    setDialogC(message);
+    setDialogV(true);
+  }, []);
+
   return (
     <View style={{ flex: 1 }}>
       <View style={[styles.bg_container, { flexDirection: "column" }]}>
@@ -130,19 +136,28 @@ export default function AddPage() {
             >
               <TouchableRipple
                 onPress={() => {
+                  if (isNaN(Number(exTime)) || Number(exTime) < 0) {
+                    myAlert("请输入合理的运动时间");
+                    return;
+                  }
+
+                  if (tagContent !== "") {
+                    myAlert("还有tag未保存");
+                    return;
+                  }
+
                   handleSubmit(
                     {
                       ...getmulti(Number(exTime)),
                       sportId: chosenSportId,
                       moodId,
                       effort,
-                      Tags: tags,
+                      Tags: JSON.stringify(tags),
                       title: title.trim(),
                       content: content.trim(),
                       reply: "这是一个reply",
                     },
-                    setDialogV,
-                    setDialogC
+                    myAlert
                   );
                 }}
                 style={styles.submit}
@@ -213,7 +228,16 @@ export default function AddPage() {
                     }}
                     placeholder="0"
                     value={exTime}
-                    onChangeText={setExTime}
+                    onChangeText={(text) => {
+                      if (isNaN(Number(text)) || text.length > 3) {
+                        Toast.show({
+                          type: "error",
+                          text1: "请输入合理的运动时间",
+                        });
+                        return;
+                      }
+                      setExTime(text);
+                    }}
                     keyboardType="numeric"
                   ></TextInput>
                   <Text>分钟</Text>
@@ -389,7 +413,9 @@ export default function AddPage() {
                   );
                 })}
                 <ColorfulTag
-                  Message="点击填写状态词"
+                  Message={
+                    pageState === TAG ? "点击添加状态词" : "点击填写状态词"
+                  }
                   Color="#ff960b"
                   isChosen={false}
                   onPressF={() => {
@@ -506,6 +532,7 @@ export default function AddPage() {
           </Dialog.Actions>
         </Dialog>
       </Portal>
+      <Toast />
     </View>
   );
 
@@ -733,37 +760,30 @@ function EffortHint({ Effort }: { Effort: number }) {
 
 async function handleSubmit(
   data: addDataType,
-  setDialogV: React.Dispatch<React.SetStateAction<boolean>>,
-  setDialogC: React.Dispatch<React.SetStateAction<string>>
+  myAlert: (message: string) => void
 ) {
   if (isNaN(data.timestart) || data.timestart >= data.timeend) {
-    setDialogC("请输入合理数字");
-    setDialogV(true);
+    myAlert("请输入合理的运动时间");
     return;
   }
   if (data.sportId === -1) {
-    setDialogC("请选择运动类型");
-    setDialogV(true);
+    myAlert("请选择运动类型");
     return;
   }
   if (data.moodId === -1) {
-    setDialogC("请选择心情");
-    setDialogV(true);
+    myAlert("请选择心情");
     return;
   }
   if (data.effort === 0) {
-    setDialogC("请选择耗力");
-    setDialogV(true);
+    myAlert("请选择耗力");
     return;
   }
   if (data.title === "") {
-    setDialogC("请输入标题");
-    setDialogV(true);
+    myAlert("请输入标题");
     return;
   }
   if (data.content === "") {
-    setDialogC("请输入标题");
-    setDialogV(true);
+    myAlert("请输入标题");
     return;
   }
 

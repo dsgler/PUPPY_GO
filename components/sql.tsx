@@ -7,7 +7,8 @@ export type addDataType = {
   sportId: number;
   moodId: number;
   effort: number;
-  Tags: string[];
+  // json序列化的
+  Tags: string;
   title: string;
   content: string;
   reply: string;
