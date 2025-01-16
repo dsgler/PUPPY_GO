@@ -9,6 +9,7 @@ import {
   Image,
   StyleProp,
   TextStyle,
+  ViewStyle,
 } from "react-native";
 import {
   Text,
@@ -23,14 +24,17 @@ import {
 } from "react-native-paper";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 
-import sports, { sportItemType } from "../data/sportType";
+import sports, { sportItemType } from "../consts/sportType";
 import BackIcon from "@/assets/images/addPage/back";
 import Line from "@/assets/images/addPage/line";
 
 import { insertData, addDataType, getmulti, getDB } from "./sql";
 import { effortArr, MoodObj } from "@/consts";
+import { useImmer } from "use-immer";
+
+const EmptyF = () => {};
 
 const styles = StyleSheet.create({
   bg_container: {
@@ -73,17 +77,23 @@ function requireRunningDog() {
   return require("../assets/images/addPage/runningDog.png");
 }
 
+const MAIN = 0;
+const CONTENT = 1;
+const TAG = 2;
+
 export default function AddPage() {
   const [chosenSportId, setChosenSportId] = useState(-1);
   const [exTime, setExTime] = useState("60");
   const [moodId, setMoodId] = useState(-1);
   const [effort, setEffort] = useState(0);
   const [contentWidth, setContentWidth] = useState(0);
+  const [tags, updateTags] = useImmer<string[]>([]);
+  const [tagContent, setTagContent] = useState("");
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [dialogV, setDialogV] = useState(false);
   const [dialogC, setDialogC] = useState("");
-  const [isEditing, setIsEditing] = useState(false);
+  const [pageState, setPageState] = useState(MAIN);
 
   console.log("add渲染");
 
@@ -126,7 +136,7 @@ export default function AddPage() {
                       sportId: chosenSportId,
                       moodId,
                       effort,
-                      Tags: [],
+                      Tags: tags,
                       title: title.trim(),
                       content: content.trim(),
                       reply: "这是一个reply",
@@ -161,7 +171,7 @@ export default function AddPage() {
                 </View>
               </TouchableRipple>
             </View>
-            <View style={{ display: isEditing ? "none" : "flex" }}>
+            <View style={{ display: pageState === MAIN ? "flex" : "none" }}>
               <MainText>请选择运动的类型</MainText>
               <FlatList
                 style={{ paddingVertical: 10 }}
@@ -310,15 +320,6 @@ export default function AddPage() {
                 />
               </View>
               <EffortHint Effort={effort} />
-              <MainText>关键词</MainText>
-              <HintText>用几个简单的关键词概况一下本次运动吧</HintText>
-              <View style={{ flex: 1, flexDirection: "row" }}>
-                <ColorfulTag
-                  Message="点击填写状态词"
-                  Color="#ff960b"
-                  isChosen={false}
-                ></ColorfulTag>
-              </View>
             </View>
             <View
               style={{
@@ -327,12 +328,115 @@ export default function AddPage() {
                 alignItems: "center",
               }}
             >
-              <MainText style={{ marginVertical: 10 }}>运动日记</MainText>
-              <View style={{ display: isEditing ? "flex" : "none" }}>
+              <MainText
+                style={{
+                  display:
+                    pageState === MAIN || pageState === TAG ? "flex" : "none",
+                }}
+              >
+                关键词
+              </MainText>
+              <View style={{ display: pageState === TAG ? "flex" : "none" }}>
                 <IconButton
                   icon={"chevron-down"}
                   size={20}
-                  onPress={() => setIsEditing(false)}
+                  onPress={() => setPageState(MAIN)}
+                />
+              </View>
+            </View>
+            <Pressable
+              onPress={() => {
+                setPageState(TAG);
+              }}
+            >
+              <HintText
+                style={{ display: pageState === MAIN ? "flex" : "none" }}
+              >
+                用几个简单的关键词概况一下本次运动吧
+              </HintText>
+            </Pressable>
+            {pageState === TAG ? (
+              <TextInput
+                style={{
+                  display: pageState === TAG ? "flex" : "none",
+                  fontSize: 15,
+                }}
+                placeholder="用几个简单的关键词概况一下本次运动吧"
+                value={tagContent}
+                onChangeText={setTagContent}
+                autoFocus={true}
+              ></TextInput>
+            ) : undefined}
+            <View style={{ flex: 1, flexDirection: "row" }}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  flexWrap: "wrap",
+                  display:
+                    pageState === MAIN || pageState === TAG ? "flex" : "none",
+                }}
+              >
+                {tags.map((v, k) => {
+                  return (
+                    <ColorfulTag
+                      Message={v}
+                      Color="#ff960b"
+                      isChosen={false}
+                      key={k}
+                      onPressF={EmptyF}
+                      style={{ marginVertical: 3 }}
+                    />
+                  );
+                })}
+                <ColorfulTag
+                  Message="点击填写状态词"
+                  Color="#ff960b"
+                  isChosen={false}
+                  onPressF={() => {
+                    if (pageState === MAIN) {
+                      setPageState(TAG);
+                    } else {
+                      if (tagContent === "") {
+                        setDialogC("请输入Tag");
+                        setDialogV(true);
+                        return;
+                      }
+                      updateTags((tags) => {
+                        tags.unshift(tagContent);
+                      });
+                      setTagContent("");
+                    }
+                  }}
+                  style={{ marginVertical: 3 }}
+                ></ColorfulTag>
+              </View>
+            </View>
+
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <MainText
+                style={{
+                  marginVertical: 10,
+                  display:
+                    pageState === MAIN || pageState === CONTENT
+                      ? "flex"
+                      : "none",
+                }}
+              >
+                运动日记
+              </MainText>
+              <View
+                style={{ display: pageState === CONTENT ? "flex" : "none" }}
+              >
+                <IconButton
+                  icon={"chevron-down"}
+                  size={20}
+                  onPress={() => setPageState(MAIN)}
                 />
               </View>
             </View>
@@ -347,6 +451,8 @@ export default function AddPage() {
                 paddingHorizontal: 10,
                 paddingVertical: 5,
                 marginBottom: 20,
+                display:
+                  pageState === MAIN || pageState === CONTENT ? "flex" : "none",
               }}
             >
               <TextInput
@@ -357,13 +463,13 @@ export default function AddPage() {
                   fontSize: 22,
                   paddingVertical: 5,
                   fontWeight: 600,
-                  display: isEditing ? "none" : "flex",
+                  display: pageState === MAIN ? "flex" : "none",
                 }}
               />
               <View
                 style={{
                   alignSelf: "center",
-                  display: isEditing ? "none" : "flex",
+                  display: pageState === MAIN ? "flex" : "none",
                 }}
               >
                 <Line length={contentWidth - 50} />
@@ -372,15 +478,19 @@ export default function AddPage() {
                 multiline={true}
                 placeholder="用一段话描述一下今天的辛苦付出吧！"
                 style={{
-                  minHeight: isEditing ? 400 : 100,
+                  minHeight: pageState === CONTENT ? 400 : 100,
                   // flex: 1,
                   textAlignVertical: "top",
                   fontSize: 15,
                   marginTop: 10,
+                  display:
+                    pageState === MAIN || pageState === CONTENT
+                      ? "flex"
+                      : "none",
                 }}
                 value={content}
                 onChangeText={(t) => setContent(t)}
-                onFocus={() => setIsEditing(true)}
+                onFocus={() => setPageState(CONTENT)}
               ></TextInput>
             </View>
           </ScrollView>
@@ -464,18 +574,23 @@ function MainText({
 function HintText({
   children,
   isCenter = false,
+  style,
 }: {
   children: React.ReactNode;
   isCenter?: boolean;
+  style?: StyleProp<TextStyle>;
 }) {
   return (
     <Text
-      style={{
-        fontSize: 15,
-        color: "grey",
-        textAlign: isCenter ? "center" : undefined,
-        marginVertical: 5,
-      }}
+      style={[
+        {
+          fontSize: 15,
+          color: "grey",
+          textAlign: isCenter ? "center" : undefined,
+          marginVertical: 5,
+        },
+        style,
+      ]}
     >
       {children}
     </Text>
@@ -532,17 +647,22 @@ function ColorfulTag({
   Color,
   isChosen,
   onPressF,
+  style,
 }: {
   Message: string;
   Color: string;
   isChosen: boolean;
   onPressF?: (event: GestureResponderEvent) => void;
+  style?: StyleProp<ViewStyle>;
 }) {
   if (!isChosen) {
     return (
       <TouchableRipple
         onPress={onPressF}
-        style={{ marginHorizontal: 8, borderRadius: 5, overflow: "hidden" }}
+        style={[
+          { marginHorizontal: 8, borderRadius: 5, overflow: "hidden" },
+          style,
+        ]}
         borderless={true}
       >
         <View

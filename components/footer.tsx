@@ -27,7 +27,6 @@ export default function Footer({
             onPress={() => {
               setActivePage(R.indexPageId);
               router.dismissTo("/(tabs)");
-              // router.
             }}
           >
             {activePage === R.indexPageId ? <LeftedIcon /> : <LeftIcon />}

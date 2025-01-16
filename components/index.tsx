@@ -25,7 +25,7 @@ import {
 import { Icon, TouchableRipple } from "react-native-paper";
 import Svg, { Line } from "react-native-svg";
 
-import sportArr from "@/data/sportType";
+import sportArr from "@/consts/sportType";
 import { effortArr, MoodObj } from "@/consts";
 import MyScrollView from "./myScrollView";
 
@@ -46,16 +46,6 @@ export default function Index() {
 
   return (
     <View style={{ flex: 1 }}>
-      <LinearGradient
-        colors={["#FFCC8E", "#FFF0DE"]}
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-        }}
-      />
       <SafeAreaView style={{ flex: 1 }}>
         <View style={{ flex: 1 }}>
           <View style={{ paddingHorizontal: 15 }}>
@@ -380,7 +370,7 @@ function SportBlockRight({
           }}
         >
           <Text style={{ color: "#131315", fontSize: 16 }}>
-            {sportArr[data.sportId].sportName}
+            {sportArr[data.sportId].emoji + sportArr[data.sportId].sportName}
           </Text>
           <View
             style={{
