@@ -1,7 +1,7 @@
 import * as SQLite from "expo-sqlite";
 
 export type addDataType = {
-  date: string;
+  date: number;
   timestart: number;
   timeend: number;
   sportId: number;
@@ -19,7 +19,7 @@ export function getmulti(Minutes: number) {
   // month 从0开始多少有点逆天
   // let startd = new Date(d.getTime() - 60 * 1000 * Minutes);
   let obj = {
-    date: `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`,
+    date: d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate(),
     timeend: d.getTime(),
     timestart: d.getTime() - 60 * 1000 * Minutes,
   };
@@ -42,7 +42,7 @@ export function getGapTime(t: number) {
 
 export function getDate(t: number | Date) {
   let d = new Date(t);
-  return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+  return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
 }
 
 export async function getDB() {
@@ -54,7 +54,7 @@ export async function createTable(db: SQLite.SQLiteDatabase) {
   return db.execAsync(
     `CREATE TABLE IF NOT EXISTS myTable (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        date CHARACTER(20) NOT NULL,
+        date INTEGER NOT NULL,
         timestart INTEGER  NOT NULL,
         timeend INTEGER  NOT NULL,
         sportId INTEGER NOT NULL,
@@ -94,7 +94,7 @@ export async function insertData(db: SQLite.SQLiteDatabase, data: addDataType) {
       sportId,
       moodId,
       effort,
-      JSON.stringify(Tags),
+      Tags,
       title,
       content,
       reply,
@@ -108,7 +108,7 @@ export async function insertData(db: SQLite.SQLiteDatabase, data: addDataType) {
 
 export async function GetDataByDate(
   db: SQLite.SQLiteDatabase,
-  date: string
+  date: number
 ): Promise<addDataType[]> {
   console.log(date);
   await createTable(db);

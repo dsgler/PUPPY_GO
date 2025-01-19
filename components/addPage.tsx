@@ -19,6 +19,7 @@ import {
   Dialog,
   Button,
   IconButton,
+  Snackbar,
 } from "react-native-paper";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -28,11 +29,10 @@ import sports, { sportItemType } from "../consts/sportType";
 import BackIcon from "@/assets/images/addPage/back";
 import Line from "@/assets/images/addPage/line";
 
-import { insertData, addDataType, getmulti, getDB } from "./sql";
+import { insertData, addDataType, getmulti, getDB } from "./indexSql";
 import { effortArr, MoodObj } from "@/consts";
 import { useImmer } from "use-immer";
-import { isNumber } from "lodash";
-import Toast from "react-native-toast-message";
+// import Toast from "react-native-toast-message";
 
 const EmptyF = () => {};
 
@@ -91,8 +91,11 @@ export default function AddPage() {
   const [tagContent, setTagContent] = useState("");
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+
   const [dialogV, setDialogV] = useState(false);
   const [dialogC, setDialogC] = useState("");
+  const [SnackbarV, setSnackbarV] = useState(false);
+
   const [pageState, setPageState] = useState(MAIN);
 
   console.log("add渲染");
@@ -136,6 +139,7 @@ export default function AddPage() {
             >
               <TouchableRipple
                 onPress={() => {
+                  console.log(tags, JSON.stringify(tags));
                   if (isNaN(Number(exTime)) || Number(exTime) < 0) {
                     myAlert("请输入合理的运动时间");
                     return;
@@ -230,10 +234,7 @@ export default function AddPage() {
                     value={exTime}
                     onChangeText={(text) => {
                       if (isNaN(Number(text)) || text.length > 3) {
-                        Toast.show({
-                          type: "error",
-                          text1: "请输入合理的运动时间",
-                        });
+                        setSnackbarV(true);
                         return;
                       }
                       setExTime(text);
@@ -531,8 +532,23 @@ export default function AddPage() {
             <Button onPress={() => setDialogV(false)}>ok</Button>
           </Dialog.Actions>
         </Dialog>
+        <Snackbar
+          visible={SnackbarV}
+          onDismiss={() => {
+            setSnackbarV(false);
+          }}
+          action={{
+            label: "确定",
+            onPress: () => {
+              // Do something
+              setSnackbarV(false);
+            },
+          }}
+          duration={1000}
+        >
+          请输入合理的运动时间
+        </Snackbar>
       </Portal>
-      <Toast />
     </View>
   );
 

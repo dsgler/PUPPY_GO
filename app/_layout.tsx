@@ -65,6 +65,7 @@ export default function RootLayout() {
           </Stack>
         </ThemeProvider>
       </PaperProvider>
+      {/* eslint-disable-next-line react/style-prop-object */}
       <StatusBar style="auto" />
     </>
   );

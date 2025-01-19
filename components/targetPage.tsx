@@ -7,6 +7,7 @@ import {
   Pressable,
   StyleProp,
   ViewStyle,
+  TextInput,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AntIcon from "react-native-vector-icons/AntDesign";
@@ -28,21 +29,87 @@ import Animated, {
   Easing,
 } from "react-native-reanimated";
 import { useEffect, useState } from "react";
+import { Modal, Portal, TouchableRipple } from "react-native-paper";
+import PressableText from "./PressableText";
 
 export default function Page() {
+  console.log("渲染targetPage");
+
+  const [insertModalV, setInsertModalV] = useState(true);
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaView>
         <ScrollView style={{ paddingHorizontal: 20 }}>
           <TopBar />
           <Tip />
-          <AddTarget />
+          <AddTarget setInsertModalV={setInsertModalV} />
           <TaskRow message="增强机体免疫力" />
           <TaskRow message="锻炼肌肉" />
           <View style={{ height: 10 }} />
           <ItemRow message="你好" />
         </ScrollView>
       </SafeAreaView>
+      <Portal>
+        <Modal
+          visible={insertModalV}
+          // onDismiss={() => {
+          //   setInsertModalV(false);
+          // }}
+          style={{
+            flexDirection: "column-reverse",
+            justifyContent: "flex-start",
+          }}
+          dismissable={false}
+        >
+          <View
+            style={{
+              height: 150,
+              backgroundColor: "#F4F4F4",
+              borderTopLeftRadius: 12,
+              borderTopRightRadius: 12,
+              paddingHorizontal: 20,
+            }}
+          >
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "baseline",
+                marginTop: 20,
+              }}
+            >
+              <PressableText
+                message="取消"
+                color={BrandColor}
+                highlightColor="#ffd399"
+                TextStyle={{ fontSize: 16 }}
+                onPress={() => {
+                  setInsertModalV(false);
+                }}
+              />
+              <Text style={{ color: textColor, fontSize: 18 }}>创建目标</Text>
+              <PressableText
+                message="保存"
+                color={BrandColor}
+                highlightColor="#ffd399"
+                TextStyle={{ fontSize: 16 }}
+              />
+            </View>
+            <View
+              style={{
+                borderRadius: 15,
+                backgroundColor: "white",
+                marginTop: 20,
+                paddingHorizontal: 10,
+                paddingVertical: 3,
+              }}
+            >
+              <TextInput cursorColor={BrandColor} autoFocus={true} />
+            </View>
+          </View>
+        </Modal>
+      </Portal>
     </GestureHandlerRootView>
   );
 }
@@ -135,13 +202,21 @@ function Tip() {
   );
 }
 
-function AddTarget() {
+function AddTarget({
+  setInsertModalV,
+}: {
+  setInsertModalV: React.Dispatch<React.SetStateAction<boolean>>;
+}) {
   return (
-    <Pressable
+    <TouchableRipple
       style={{
         marginTop: 20,
         borderRadius: 10,
         overflow: "hidden",
+      }}
+      borderless={true}
+      onPress={() => {
+        setInsertModalV(true);
       }}
     >
       <View
@@ -157,7 +232,7 @@ function AddTarget() {
         </View>
         <Text style={{ color: textColor, fontSize: 14 }}>创建一个目标</Text>
       </View>
-    </Pressable>
+    </TouchableRipple>
   );
 }
 

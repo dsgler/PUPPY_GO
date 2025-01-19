@@ -22,7 +22,7 @@ import {
   getDate,
   getTime,
   getGapTime,
-} from "./sql";
+} from "./indexSql";
 import { Icon, TouchableRipple } from "react-native-paper";
 import Svg, { Line } from "react-native-svg";
 
@@ -245,7 +245,7 @@ async function showData(
   if (ret.length === 0) {
     setDataFace(<EmptyDog />);
   } else {
-    // console.log(ret);
+    console.log(ret);
     setDataFace(<SportList sportArr={ret} />);
   }
 }
