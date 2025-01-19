@@ -1,27 +1,12 @@
-import { useState } from "react";
 import Footer from "@/components/footer";
-import { Slot } from "expo-router";
 import React from "react";
-import { activePageType, indexPageId } from "@/consts/tabs";
-import { LinearGradient } from "expo-linear-gradient";
+import { Tabs } from "expo-router";
 
 export default function Layout() {
-  const [activePage, setActivePage] = useState<activePageType>(indexPageId);
-
   return (
-    <>
-      <LinearGradient
-        colors={["#FFCC8E", "#FFF0DE"]}
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-        }}
-      />
-      <Slot screenOptions={{ headerShown: false }} />
-      <Footer activePage={activePage} setActivePage={setActivePage} />
-    </>
+    <Tabs
+      screenOptions={{ headerShown: false }}
+      tabBar={(props) => <Footer props={props} />}
+    ></Tabs>
   );
 }

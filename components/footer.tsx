@@ -1,20 +1,19 @@
 import { router } from "expo-router";
-import { View, Text, Image, Pressable } from "react-native";
+import { View, Pressable } from "react-native";
 import { Surface } from "react-native-paper";
 import AddIcon from "@/assets/images/Footer/add";
 import LeftIcon from "@/assets/images/Footer/left";
 import LeftedIcon from "@/assets/images/Footer/lefted";
 import RighIcon from "@/assets/images/Footer/right";
 import RighedIcon from "@/assets/images/Footer/righted";
-import * as R from "@/consts/tabs";
+import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 
-export default function Footer({
-  activePage,
-  setActivePage,
-}: {
-  activePage: R.activePageType;
-  setActivePage: React.Dispatch<React.SetStateAction<R.activePageType>>;
-}) {
+export default function Footer({ props }: { props: BottomTabBarProps }) {
+  let indexMap = new Map<string, number>();
+  for (let i = 0; i < props.state.routes.length; i++) {
+    indexMap.set(props.state.routes[i].name, i);
+  }
+
   return (
     <Surface elevation={5}>
       <View
@@ -25,11 +24,14 @@ export default function Footer({
         >
           <Pressable
             onPress={() => {
-              setActivePage(R.indexPageId);
-              router.dismissTo("/(tabs)");
+              props.navigation.navigate("index");
             }}
           >
-            {activePage === R.indexPageId ? <LeftedIcon /> : <LeftIcon />}
+            {props.state.index === indexMap.get("index") ? (
+              <LeftedIcon />
+            ) : (
+              <LeftIcon />
+            )}
           </Pressable>
         </View>
 
@@ -49,11 +51,14 @@ export default function Footer({
         >
           <Pressable
             onPress={() => {
-              setActivePage(R.targetPageId);
-              router.dismissTo("/(tabs)/targetPage");
+              props.navigation.navigate("targetPage");
             }}
           >
-            {activePage === R.targetPageId ? <RighedIcon /> : <RighIcon />}
+            {props.state.index === indexMap.get("targetPage") ? (
+              <RighedIcon />
+            ) : (
+              <RighIcon />
+            )}
           </Pressable>
         </View>
       </View>

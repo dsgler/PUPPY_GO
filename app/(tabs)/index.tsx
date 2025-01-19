@@ -1,11 +1,21 @@
-import { Text, View, Dimensions, Image } from "react-native";
-import { Link } from "expo-router";
-import Footer from "@/components/footer";
-import React, { StrictMode } from "react";
+import React from "react";
 import { LinearGradient } from "expo-linear-gradient";
-import { SafeAreaView } from "react-native-safe-area-context";
-import AIndex from "@/components/index";
+import Index from "@/components/index";
 
-export default function Index() {
-  return <AIndex />;
+export default function App() {
+  return (
+    <>
+      <LinearGradient
+        colors={["#FFCC8E", "#FFF0DE"]}
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+        }}
+      />
+      <Index />
+    </>
+  );
 }
