@@ -8,13 +8,13 @@ import {
   StyleProp,
   ViewStyle,
   TextInput,
+  StyleSheet,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AntIcon from "react-native-vector-icons/AntDesign";
 import FeaIcon from "react-native-vector-icons/Feather";
 
 import Pencil from "@/assets/images/targetPage/pencil";
-import RightArrow from "@/assets/images/targetPage/right";
 import AddIcon from "@/assets/images/targetPage/add";
 
 import {
@@ -28,34 +28,78 @@ import Animated, {
   useAnimatedStyle,
   Easing,
 } from "react-native-reanimated";
-import { useEffect, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import { Modal, Portal, TouchableRipple } from "react-native-paper";
 import PressableText from "./PressableText";
+import { useFocusEffect } from "expo-router";
+
+import {
+  DAYLY,
+  MONTHLY,
+  YEARLY,
+  __setType,
+  getTargetNamesByDurationTypeId,
+  getTargetIdsByDurationTypeId,
+  getTypenamesByIDs,
+  getFinishsByIds,
+  setTargetState,
+  addTypenameByDurationTypeId,
+  deleteTypeIdByDurationTypeId,
+} from "./targetSql";
+import { getDB, getDate } from "./indexSql";
+
+const RefreshFn = createContext<() => Promise<void>>(() => Promise.resolve());
+const DateContext = createContext<[number, number]>([0, 0]);
 
 export default function Page() {
   console.log("渲染targetPage");
 
-  const [insertModalV, setInsertModalV] = useState(true);
+  const [insertModalV, setInsertModalV] = useState(false);
+  const [durationType, setDurationType] = useState(DAYLY);
+  const [dataComponent, setDataComponent] = useState<
+    React.JSX.Element[] | undefined
+  >();
+  const [newTargetContent, setNewTargetContent] = useState("");
+
+  const date = getSpecificDate(getDate(new Date()), durationType);
+
+  const refreshData = useCallback(async () => {
+    await showData(durationType, date, setDataComponent);
+  }, [durationType, date, setDataComponent]);
+
+  // __setType();
+
+  useEffect(() => {
+    refreshData();
+  }, [refreshData]);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaView>
         <ScrollView style={{ paddingHorizontal: 20 }}>
-          <TopBar />
+          <TopBar
+            durationType={durationType}
+            setDurationType={setDurationType}
+          />
           <Tip />
           <AddTarget setInsertModalV={setInsertModalV} />
-          <TaskRow message="增强机体免疫力" />
-          <TaskRow message="锻炼肌肉" />
           <View style={{ height: 10 }} />
-          <ItemRow message="你好" />
+          <RefreshFn.Provider value={refreshData}>
+            <DateContext.Provider value={[date, durationType]}>
+              {dataComponent}
+            </DateContext.Provider>
+          </RefreshFn.Provider>
         </ScrollView>
       </SafeAreaView>
       <Portal>
         <Modal
           visible={insertModalV}
-          // onDismiss={() => {
-          //   setInsertModalV(false);
-          // }}
           style={{
             flexDirection: "column-reverse",
             justifyContent: "flex-start",
@@ -94,6 +138,14 @@ export default function Page() {
                 color={BrandColor}
                 highlightColor="#ffd399"
                 TextStyle={{ fontSize: 16 }}
+                onPress={() => {
+                  addTypenameByDurationTypeId(durationType, newTargetContent)
+                    .then(refreshData)
+                    .then(() => {
+                      setNewTargetContent("");
+                      setInsertModalV(false);
+                    });
+                }}
               />
             </View>
             <View
@@ -105,7 +157,12 @@ export default function Page() {
                 paddingVertical: 3,
               }}
             >
-              <TextInput cursorColor={BrandColor} autoFocus={true} />
+              <TextInput
+                cursorColor={BrandColor}
+                autoFocus={true}
+                value={newTargetContent}
+                onChangeText={setNewTargetContent}
+              />
             </View>
           </View>
         </Modal>
@@ -114,59 +171,125 @@ export default function Page() {
   );
 }
 
-function TopBar() {
+const TopBarStyle = StyleSheet.create({
+  container: {
+    backgroundColor: "white",
+    flexDirection: "row",
+    borderRadius: 25,
+    alignItems: "center",
+    boxShadow:
+      "0 6 30 rgba(0,0,0,0.05),0 16 24 rgba(0,0,0,0.04),0 8 10 rgba(0,0,0,0.08)",
+    marginTop: 10,
+    marginBottom: 30,
+  },
+  left: {
+    height: 40,
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    marginLeft: 10,
+    marginRight: 5,
+    marginVertical: 5,
+    borderRadius: 20,
+  },
+  middle: {
+    height: 40,
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    marginHorizontal: 5,
+    marginVertical: 5,
+    borderRadius: 20,
+  },
+  right: {
+    height: 40,
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 10,
+    marginLeft: 5,
+    marginVertical: 5,
+    borderRadius: 20,
+  },
+  chosen: {
+    backgroundColor: "#FFE7CA",
+    borderRadius: 20,
+  },
+  chosenText: { fontSize: 16, textAlign: "center", color: BrandColor },
+  unchosen: {},
+  unchosenText: { fontSize: 16, textAlign: "center" },
+  TouchableRipple: { flex: 1, borderRadius: 20 },
+});
+
+function TopBar({
+  durationType,
+  setDurationType,
+}: {
+  durationType: number;
+  setDurationType: React.Dispatch<React.SetStateAction<number>>;
+}) {
   return (
-    <View
-      style={{
-        backgroundColor: "white",
-        flexDirection: "row",
-        borderRadius: 25,
-        alignItems: "center",
-        boxShadow:
-          "0 6 30 rgba(0,0,0,0.05),0 16 24 rgba(0,0,0,0.04),0 8 10 rgba(0,0,0,0.08)",
-        marginTop: 10,
-        marginBottom: 30,
-      }}
-    >
-      <View
-        style={{
-          height: 40,
-          flex: 1,
-          justifyContent: "center",
-          alignItems: "center",
-          backgroundColor: "#FFE7CA",
-          borderRadius: 20,
-          marginLeft: 10,
-          marginRight: 5,
-          marginVertical: 5,
+    <View style={TopBarStyle.container}>
+      <TouchableRipple
+        onPress={() => {
+          setDurationType(DAYLY);
         }}
+        style={[
+          TopBarStyle.left,
+          durationType === DAYLY ? TopBarStyle.chosen : TopBarStyle.unchosen,
+        ]}
+        borderless={true}
       >
-        <Text style={{ fontSize: 16, textAlign: "center", color: BrandColor }}>
+        <Text
+          style={
+            durationType === DAYLY
+              ? TopBarStyle.chosenText
+              : TopBarStyle.unchosenText
+          }
+        >
           日
         </Text>
-      </View>
-      <View
-        style={{
-          height: 40,
-          flex: 1,
-          justifyContent: "center",
-          alignItems: "center",
-          marginHorizontal: 5,
+      </TouchableRipple>
+      <TouchableRipple
+        onPress={() => {
+          setDurationType(MONTHLY);
         }}
+        style={[
+          TopBarStyle.middle,
+          durationType === MONTHLY ? TopBarStyle.chosen : TopBarStyle.unchosen,
+        ]}
+        borderless={true}
       >
-        <Text style={{ fontSize: 16, textAlign: "center" }}>月</Text>
-      </View>
-      <View
-        style={{
-          height: 40,
-          flex: 1,
-          justifyContent: "center",
-          alignItems: "center",
-          marginHorizontal: 5,
+        <Text
+          style={
+            durationType === MONTHLY
+              ? TopBarStyle.chosenText
+              : TopBarStyle.unchosenText
+          }
+        >
+          月
+        </Text>
+      </TouchableRipple>
+      <TouchableRipple
+        onPress={() => {
+          setDurationType(YEARLY);
         }}
+        style={[
+          TopBarStyle.right,
+          durationType === YEARLY ? TopBarStyle.chosen : TopBarStyle.unchosen,
+        ]}
+        borderless={true}
       >
-        <Text style={{ fontSize: 16, textAlign: "center" }}>年</Text>
-      </View>
+        <Text
+          style={
+            durationType === YEARLY
+              ? TopBarStyle.chosenText
+              : TopBarStyle.unchosenText
+          }
+        >
+          年
+        </Text>
+      </TouchableRipple>
     </View>
   );
 }
@@ -236,7 +359,7 @@ function AddTarget({
   );
 }
 
-function TaskRow({
+function GroupTaskRow({
   message,
   style,
 }: {
@@ -276,12 +399,17 @@ function TaskRow({
   );
 }
 
-function ItemRow({
-  message,
+function TaskItemRow({
+  typeName: message,
   style,
+  isFinished,
+  typeId,
 }: {
-  message: string;
+  typeName: string;
   style?: StyleProp<ViewStyle>;
+  isFinished: boolean;
+  setTargetState?: (isFinished: boolean, typeId: number) => Promise<void>;
+  typeId: number;
 }) {
   const SWIPE_DISTANCE = 30;
   const swapConfig = {
@@ -304,6 +432,9 @@ function ItemRow({
     transform: [{ translateX: cardTransform.value }],
   }));
 
+  const refreshData = useContext(RefreshFn);
+  const [date, durationType] = useContext(DateContext);
+
   return (
     <View>
       <GestureDetector gesture={panGesture}>
@@ -324,13 +455,28 @@ function ItemRow({
           ]}
         >
           <View style={{ marginHorizontal: 16 }}>
-            <Pressable>
-              {/* @ts-ignore */}
-              <FeaIcon name="circle" size={24} color={"#DCDCDC"} />
+            <Pressable
+              onPress={() => {
+                setTargetState(!isFinished, typeId, date).then(refreshData);
+              }}
+            >
+              {isFinished ? (
+                /* @ts-ignore */
+                <AntIcon name="checkcircle" size={24} color="#B5C7FF" />
+              ) : (
+                /* @ts-ignore */
+                <FeaIcon name="circle" size={24} color={"#DCDCDC"} />
+              )}
             </Pressable>
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={{ color: textColor, fontSize: 16, lineHeight: 60 }}>
+            <Text
+              style={{
+                color: isFinished ? "rgba(0,0,0,0.25)" : textColor,
+                fontSize: 16,
+                lineHeight: 60,
+              }}
+            >
               {message}
             </Text>
           </View>
@@ -357,11 +503,64 @@ function ItemRow({
           zIndex: -1,
         }}
       >
-        <Pressable style={{ marginRight: 16 }}>
+        <Pressable
+          style={{ marginRight: 16 }}
+          onPress={() => {
+            deleteTypeIdByDurationTypeId(durationType, typeId).then(
+              refreshData
+            );
+          }}
+        >
           {/* @ts-ignore */}
           <FeaIcon name="trash-2" size={24} color={"white"} />
         </Pressable>
       </View>
     </View>
   );
+}
+
+async function showData(
+  durationType: number,
+  date: number,
+  setDataComponent: React.Dispatch<
+    React.SetStateAction<React.JSX.Element[] | undefined>
+  >
+) {
+  const db = await getDB();
+  const ids = await getTargetIdsByDurationTypeId(durationType);
+  const names = await getTypenamesByIDs(db, ids);
+  const finishs = await getFinishsByIds(db, ids, date);
+
+  if (ids.length !== names.length) {
+    throw Error("ids.length!==names.length");
+  }
+
+  const ret = Array.from({ length: ids.length }) as React.JSX.Element[];
+  for (let i = 0; i < ids.length; i++) {
+    ret[i] = (
+      <TaskItemRow
+        typeName={names[i]}
+        typeId={ids[i]}
+        isFinished={finishs[i]}
+        key={i}
+      />
+    );
+    setDataComponent(ret);
+  }
+}
+
+function getSpecificDate(date: number, durationType: number) {
+  switch (durationType) {
+    case DAYLY:
+      break;
+    case MONTHLY:
+      date = Math.floor(date / 100);
+      break;
+    case YEARLY:
+      date = Math.floor(date / 10000);
+      break;
+    default:
+      throw Error("未知的durationType:" + durationType);
+  }
+  return date;
 }

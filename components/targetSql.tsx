@@ -44,7 +44,7 @@ async function _queryTypeId(
   type: string
 ): Promise<number> {
   let statement = await db.prepareAsync(
-    `SELECT * FROM typeRelation WHERE type="?";`
+    `SELECT * FROM typeRelation WHERE type=?;`
   );
   let rows: typeRelationRow[];
   try {
@@ -87,7 +87,7 @@ export async function getTypenamesByIDs(
   typeIds: number[]
 ): Promise<string[]> {
   let statement = await db.prepareAsync(
-    `SELECT * FROM typeRelation WHERE typeId="?";`
+    `SELECT * FROM typeRelation WHERE typeId=?;`
   );
   let ans: string[] = Array.from({ length: typeIds.length });
   try {
@@ -108,21 +108,38 @@ export async function getTypenamesByIDs(
   return ans;
 }
 
-const DAYLY = 0;
-const MONTHLY = 1;
-const YEARLY = 2;
+export const DAYLY = 0;
+export const MONTHLY = 1;
+export const YEARLY = 2;
 
-export async function addTargetIntoDurationTypeId(
-  db: SQLite.SQLiteDatabase,
+export async function addTypenameByDurationTypeId(
   durationTypeId: number,
   typeDescription: string
 ) {
+  const db = await getDB();
   let typeId = await getIdByTypename(db, typeDescription);
   let key = "durationTypeId_" + durationTypeId;
   let ret = await Storage.getItemAsync(key);
   let arr: number[] = ret ? JSON.parse(ret) : [];
+  for (let ele of arr) {
+    if (ele === typeId) {
+      return;
+    }
+  }
   arr.push(typeId);
   await Storage.setItemAsync(key, JSON.stringify(arr));
+}
+
+export async function deleteTypeIdByDurationTypeId(
+  durationTypeId: number,
+  typeId: number
+) {
+  let key = "durationTypeId_" + durationTypeId;
+  let ret = await Storage.getItemAsync(key);
+  let arr: number[] = ret ? JSON.parse(ret) : [];
+  arr = arr.filter((v) => v !== typeId);
+  await Storage.setItemAsync(key, JSON.stringify(arr));
+  console.log(JSON.stringify(arr));
 }
 
 export async function getTargetIdsByDurationTypeId(
@@ -145,4 +162,68 @@ export async function getTargetNamesByDurationTypeId(
   let TargetIds = await getTargetIdsByDurationTypeId(durationTypeId);
   let TargetNames: string[] = await getTypenamesByIDs(db, TargetIds);
   return TargetNames;
+}
+
+export async function __setType() {
+  // let typeId = await getIdByTypename(db, typeDescription);
+  for (let durationTypeId of [0, 1, 2]) {
+    let key = "durationTypeId_" + durationTypeId;
+    // let ret = await Storage.getItemAsync(key);
+    let arr: number[] = [[3, 2], [3], [3, 2, 1]][durationTypeId];
+    // arr.push(typeId);
+    await Storage.setItemAsync(key, JSON.stringify(arr));
+  }
+}
+
+export async function getFinishsByIds(
+  db: SQLite.SQLiteDatabase,
+  ids: number[],
+  date: number
+): Promise<boolean[]> {
+  const statement = await db.prepareAsync(
+    `SELECT * FROM targetCheck WHERE date=?;`
+  );
+  let rows: targetCheckRow[];
+  try {
+    let ret = await statement.executeAsync([date]);
+    rows = (await ret.getAllAsync()) as targetCheckRow[];
+  } catch (e) {
+    throw e;
+  } finally {
+    await statement.finalizeAsync();
+  }
+  let se = new Set();
+  for (let ele of rows) {
+    se.add(ele.typeId);
+  }
+  return ids.map((v) => se.has(v));
+}
+
+export async function setTargetState(
+  isFinished: boolean,
+  typeId: number,
+  date: number
+) {
+  const db = await getDB();
+  if (isFinished) {
+    const statement = await db.prepareAsync(`INSERT INTO
+  targetCheck (DATE, typeId)
+VALUES
+  (?, ?);`);
+    try {
+      await statement.executeAsync([date, typeId]);
+    } finally {
+      await statement.finalizeAsync();
+    }
+  } else {
+    const statement = await db.prepareAsync(`DELETE FROM targetCheck
+WHERE
+  DATE = ?
+  AND typeId = ?;`);
+    try {
+      statement.executeAsync([date, typeId]);
+    } finally {
+      await statement.finalizeAsync();
+    }
+  }
 }
