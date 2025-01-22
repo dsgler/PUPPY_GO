@@ -44,21 +44,31 @@ import {
   MONTHLY,
   YEARLY,
   __setType,
-  getTargetNamesByDurationTypeId,
   getTargetIdsByDurationTypeId,
   getTypenamesByIDs,
   getFinishsByIds,
   setTargetState,
   addTypenameByDurationTypeId,
   deleteTypeIdByDurationTypeId,
+  daylyRowType,
+  monothlyRowType,
+  flatten,
+  deflatten,
+  NestedIterable,
 } from "./targetSql";
 import { getDB, getDate } from "./indexSql";
+
+// type daylyRowType = string;
+type structedRowType = { description: string; children: string[] };
+type structedIsfinishedType = { description: boolean; children: boolean[] };
+// type yearlyRowType = { description: string; children: string[] };
 
 const RefreshFn = createContext<() => Promise<void>>(() => Promise.resolve());
 const DateContext = createContext<[number, number]>([0, 0]);
 
 export default function Page() {
   console.log("渲染targetPage");
+  __setType();
 
   const [insertModalV, setInsertModalV] = useState(false);
   const [durationType, setDurationType] = useState(DAYLY);
@@ -75,9 +85,9 @@ export default function Page() {
 
   // __setType();
 
-  useEffect(() => {
-    refreshData();
-  }, [refreshData]);
+  // useEffect(() => {
+  //   refreshData();
+  // }, [refreshData]);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -360,11 +370,15 @@ function AddTarget({
 }
 
 function GroupTaskRow({
+  groupId,
   message,
   style,
+  childrenProps,
 }: {
+  groupId: number;
   message: string;
   style?: StyleProp<ViewStyle>;
+  childrenProps: TaskItemRowProps[];
 }) {
   return (
     <View style={style}>
@@ -382,7 +396,6 @@ function GroupTaskRow({
           <Text>{message}</Text>
         </View>
         <View>
-          {/* <RightArrow /> */}
           {/* @ts-ignore */}
           <AntIcon name="rightcircleo" size={24} color={"black"} />
         </View>
@@ -395,22 +408,33 @@ function GroupTaskRow({
           marginTop: 3,
         }}
       ></View>
+      {childrenProps.map((v) => (
+        <TaskItemRow
+          typeName={v.typeName}
+          isFinished={v.isFinished}
+          typeId={v.typeId}
+          groupId={groupId}
+        />
+      ))}
     </View>
   );
 }
 
-function TaskItemRow({
-  typeName: message,
-  style,
-  isFinished,
-  typeId,
-}: {
+type TaskItemRowProps = {
   typeName: string;
   style?: StyleProp<ViewStyle>;
   isFinished: boolean;
-  setTargetState?: (isFinished: boolean, typeId: number) => Promise<void>;
+  // setTargetState?: (isFinished: boolean, typeId: number) => Promise<void>;
   typeId: number;
-}) {
+  groupId?: number;
+};
+
+function TaskItemRow({
+  typeName,
+  style,
+  isFinished,
+  typeId,
+}: TaskItemRowProps) {
   const SWIPE_DISTANCE = 30;
   const swapConfig = {
     duration: 80,
@@ -477,7 +501,7 @@ function TaskItemRow({
                 lineHeight: 60,
               }}
             >
-              {message}
+              {typeName}
             </Text>
           </View>
           <View style={{ marginRight: 26 }}>
@@ -527,26 +551,60 @@ async function showData(
   >
 ) {
   const db = await getDB();
-  const ids = await getTargetIdsByDurationTypeId(durationType);
-  const names = await getTypenamesByIDs(db, ids);
-  const finishs = await getFinishsByIds(db, ids, date);
+  const rows = await getTargetIdsByDurationTypeId(durationType);
+  let ret: React.JSX.Element[];
+  if (durationType === DAYLY) {
+    const ids = rows as unknown as daylyRowType[];
+    const names = await getTypenamesByIDs(db, ids);
+    const finishs = await getFinishsByIds(db, ids, date);
 
-  if (ids.length !== names.length) {
-    throw Error("ids.length!==names.length");
-  }
+    if (ids.length !== names.length) {
+      throw Error("ids.length!==names.length");
+    }
 
-  const ret = Array.from({ length: ids.length }) as React.JSX.Element[];
-  for (let i = 0; i < ids.length; i++) {
-    ret[i] = (
-      <TaskItemRow
-        typeName={names[i]}
-        typeId={ids[i]}
-        isFinished={finishs[i]}
-        key={i}
-      />
+    ret = Array.from({ length: ids.length }) as React.JSX.Element[];
+    for (let i = 0; i < ids.length; i++) {
+      ret[i] = (
+        <TaskItemRow
+          typeName={names[i]}
+          typeId={ids[i]}
+          isFinished={finishs[i]}
+          key={i}
+        />
+      );
+    }
+  } else if (durationType === MONTHLY || durationType === YEARLY) {
+    const ids = rows as unknown as monothlyRowType[];
+    const ids_flattened = flatten(ids as NestedIterable<number>);
+    const names: structedRowType[] = deflatten(
+      await getTypenamesByIDs(db, ids_flattened),
+      ids
     );
-    setDataComponent(ret);
+    const finishs: structedIsfinishedType[] = deflatten(
+      await getFinishsByIds(db, ids_flattened, date),
+      ids
+    );
+    ret = ids.map((v, k) => {
+      const cp: TaskItemRowProps[] = v.children.map((v2, k2) => {
+        return {
+          typeName: names[k].children[k2],
+          isFinished: finishs[k].children[k2],
+          typeId: v2,
+        };
+      });
+      return (
+        <GroupTaskRow
+          groupId={v.description}
+          message={names[k].description}
+          childrenProps={cp}
+        />
+      );
+    });
+  } else {
+    throw Error("未知");
   }
+
+  setDataComponent(ret);
 }
 
 function getSpecificDate(date: number, durationType: number) {

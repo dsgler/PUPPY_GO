@@ -5,6 +5,20 @@ import Storage from "expo-sqlite/kv-store";
 export type targetCheckRow = { date: number; typeId: number };
 export type typeRelationRow = { typeId: number; type: string };
 
+export type daylyRowType = number;
+export type monothlyRowType = { description: number; children: number[] };
+export type yearlyRowType = { description: number; children: number[] };
+
+export type uniRow = daylyRowType[] | monothlyRowType[] | yearlyRowType[];
+type IterableNumber =
+  | number
+  | IterableNumber[]
+  | { [key: string]: IterableNumber };
+type IterableString =
+  | string
+  | IterableString[]
+  | { [key: string]: IterableString };
+
 export async function createTable(db: SQLite.SQLiteDatabase) {
   await db.execAsync(
     `CREATE TABLE IF NOT EXISTS typeRelation (
@@ -81,6 +95,55 @@ export async function getIdByTypename(
     return id;
   }
 }
+export type NestedIterable<T = any> =
+  | T
+  | NestedIterable[]
+  | { [key: string]: NestedIterable<T> };
+// | null
+// | undefined;
+
+export function flatten<T = any>(iter: NestedIterable<T>): T[] {
+  let ans: T[] = [];
+
+  function helper(iter: any) {
+    if (Array.isArray(iter)) {
+      for (let ele of iter) {
+        helper(ele);
+      }
+    } else if (typeof iter === "object" && iter !== null) {
+      for (let key in iter) {
+        helper(iter[key]);
+      }
+    } else {
+      ans.push(iter);
+    }
+  }
+  helper(iter);
+  return ans;
+}
+
+export function deflatten<T, P>(flattened: T[], structure: any) {
+  let index = 0;
+
+  function helper(struct: any): any {
+    if (Array.isArray(struct)) {
+      // If the structure is an array, recursively reconstruct each element
+      return struct.map((v, k) => helper(struct[k]));
+    } else if (typeof struct === "object" && struct !== null) {
+      // If the structure is an object, recursively reconstruct each key-value pair
+      const obj: any = {};
+      for (let key in struct) {
+        obj[key] = helper(struct[key]);
+      }
+      return obj;
+    } else {
+      // If the structure is a primitive, take the next value from the flattened array
+      return flattened[index++];
+    }
+  }
+
+  return helper(structure);
+}
 
 export async function getTypenamesByIDs(
   db: SQLite.SQLiteDatabase,
@@ -92,6 +155,10 @@ export async function getTypenamesByIDs(
   let ans: string[] = Array.from({ length: typeIds.length });
   try {
     for (let i = 0; i < typeIds.length; i++) {
+      if (typeIds[i] === undefined) {
+        ans[i] = "";
+        continue;
+      }
       let ret = (await (
         await statement.executeAsync([typeIds[i]])
       ).getAllAsync()) as typeRelationRow[];
@@ -144,32 +211,50 @@ export async function deleteTypeIdByDurationTypeId(
 
 export async function getTargetIdsByDurationTypeId(
   durationTypeId: number
-): Promise<number[]> {
+): Promise<uniRow[]> {
   let key = "durationTypeId_" + durationTypeId;
   let ret = await Storage.getItemAsync(key);
   if (!ret) {
     return [];
   }
 
-  let arr: number[] = JSON.parse(ret);
+  let arr: uniRow[] = JSON.parse(ret);
   return arr;
 }
 
-export async function getTargetNamesByDurationTypeId(
-  db: SQLite.SQLiteDatabase,
-  durationTypeId: number
-): Promise<string[]> {
-  let TargetIds = await getTargetIdsByDurationTypeId(durationTypeId);
-  let TargetNames: string[] = await getTypenamesByIDs(db, TargetIds);
-  return TargetNames;
-}
+// export async function getTargetNamesByDurationTypeId(
+//   db: SQLite.SQLiteDatabase,
+//   durationTypeId: number
+// ): Promise<string[]> {
+//   let TargetIds = await getTargetIdsByDurationTypeId(durationTypeId);
+//   let TargetNames: string[] = await getTypenamesByIDs(db, TargetIds);
+//   return TargetNames;
+// }
 
 export async function __setType() {
   // let typeId = await getIdByTypename(db, typeDescription);
   for (let durationTypeId of [0, 1, 2]) {
     let key = "durationTypeId_" + durationTypeId;
     // let ret = await Storage.getItemAsync(key);
-    let arr: number[] = [[3, 2], [3], [3, 2, 1]][durationTypeId];
+    // let arr: number[] = [[3, 2], [3], [3, 2, 1]][durationTypeId];
+    let arr: uniRow;
+    switch (durationTypeId) {
+      case DAYLY:
+        arr = [3, 2, 1];
+        break;
+      case MONTHLY:
+        arr = [
+          { description: 4, children: [2, 3] },
+          { description: 5, children: [2, 3, 1] },
+        ];
+        break;
+      case YEARLY:
+        arr = [{ description: 4, children: [1] }];
+        break;
+      default:
+        throw Error;
+    }
+
     // arr.push(typeId);
     await Storage.setItemAsync(key, JSON.stringify(arr));
   }
