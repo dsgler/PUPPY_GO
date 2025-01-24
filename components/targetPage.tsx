@@ -35,9 +35,14 @@ import {
   useEffect,
   useState,
 } from "react";
-import { Modal, Portal, TouchableRipple } from "react-native-paper";
+import {
+  Button,
+  Dialog,
+  Modal,
+  Portal,
+  TouchableRipple,
+} from "react-native-paper";
 import PressableText from "./PressableText";
-import { useFocusEffect } from "expo-router";
 
 import {
   DAYLY,
@@ -55,6 +60,7 @@ import {
   flatten,
   deflatten,
   NestedIterable,
+  isFirstRun,
 } from "./targetSql";
 import { getDB, getDate } from "./indexSql";
 
@@ -65,29 +71,49 @@ type structedIsfinishedType = { description: boolean; children: boolean[] };
 
 const RefreshFn = createContext<() => Promise<void>>(() => Promise.resolve());
 const DateContext = createContext<[number, number]>([0, 0]);
+const ActiveGroupId = createContext<
+  [number, React.Dispatch<React.SetStateAction<number>>]
+>([0, () => {}]);
 
 export default function Page() {
   console.log("渲染targetPage");
-  __setType();
 
   const [insertModalV, setInsertModalV] = useState(false);
   const [durationType, setDurationType] = useState(DAYLY);
+  const [ActiveGroupIdState, setActiveGroupIdState] = useState(-1);
+
   const [dataComponent, setDataComponent] = useState<
     React.JSX.Element[] | undefined
   >();
   const [newTargetContent, setNewTargetContent] = useState("");
 
+  const [dialogV, setDialogV] = useState(false);
+  const [dialogC, setDialogC] = useState("");
+
   const date = getSpecificDate(getDate(new Date()), durationType);
 
-  const refreshData = useCallback(async () => {
-    await showData(durationType, date, setDataComponent);
+  const refreshData = useCallback(() => {
+    return showData(durationType, date, setDataComponent).catch((e) => {
+      setDialogC(e.message);
+      setDialogV(true);
+    });
   }, [durationType, date, setDataComponent]);
 
-  // __setType();
+  useEffect(() => {
+    refreshData();
+  }, [refreshData]);
 
-  // useEffect(() => {
-  //   refreshData();
-  // }, [refreshData]);
+  isFirstRun().then((t) => {
+    if (t) {
+      console.log("first");
+      __setType()
+        .then(refreshData)
+        .catch((e) => {
+          setDialogC(e.message);
+          setDialogV(true);
+        });
+    }
+  });
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -95,14 +121,21 @@ export default function Page() {
         <ScrollView style={{ paddingHorizontal: 20 }}>
           <TopBar
             durationType={durationType}
-            setDurationType={setDurationType}
+            setDurationType={(id) => {
+              setDurationType(id);
+              setActiveGroupIdState(-1);
+            }}
           />
           <Tip />
           <AddTarget setInsertModalV={setInsertModalV} />
           <View style={{ height: 10 }} />
           <RefreshFn.Provider value={refreshData}>
             <DateContext.Provider value={[date, durationType]}>
-              {dataComponent}
+              <ActiveGroupId.Provider
+                value={[ActiveGroupIdState, setActiveGroupIdState]}
+              >
+                {dataComponent}
+              </ActiveGroupId.Provider>
             </DateContext.Provider>
           </RefreshFn.Provider>
         </ScrollView>
@@ -149,12 +182,29 @@ export default function Page() {
                 highlightColor="#ffd399"
                 TextStyle={{ fontSize: 16 }}
                 onPress={() => {
-                  addTypenameByDurationTypeId(durationType, newTargetContent)
+                  if (newTargetContent.trim() === "") {
+                    setDialogC("请输入内容");
+                    setDialogV(true);
+                    return;
+                  }
+                  let groupId =
+                    ActiveGroupIdState === -1 ? undefined : ActiveGroupIdState;
+                  addTypenameByDurationTypeId(
+                    durationType,
+                    newTargetContent,
+                    groupId
+                  )
+                    .catch((e) => {
+                      setDialogC(e.message);
+                      setDialogV(true);
+                      throw Error();
+                    })
                     .then(refreshData)
                     .then(() => {
                       setNewTargetContent("");
                       setInsertModalV(false);
-                    });
+                    })
+                    .catch();
                 }}
               />
             </View>
@@ -165,6 +215,8 @@ export default function Page() {
                 marginTop: 20,
                 paddingHorizontal: 10,
                 paddingVertical: 3,
+                height: 45,
+                justifyContent: "center",
               }}
             >
               <TextInput
@@ -172,10 +224,19 @@ export default function Page() {
                 autoFocus={true}
                 value={newTargetContent}
                 onChangeText={setNewTargetContent}
+                style={{ fontSize: 16 }}
               />
             </View>
           </View>
         </Modal>
+        <Dialog visible={dialogV} onDismiss={() => setDialogV(false)}>
+          <Dialog.Content>
+            <Text>{dialogC}</Text>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={() => setDialogV(false)}>ok</Button>
+          </Dialog.Actions>
+        </Dialog>
       </Portal>
     </GestureHandlerRootView>
   );
@@ -236,7 +297,7 @@ function TopBar({
   setDurationType,
 }: {
   durationType: number;
-  setDurationType: React.Dispatch<React.SetStateAction<number>>;
+  setDurationType: (id: number) => void;
 }) {
   return (
     <View style={TopBarStyle.container}>
@@ -380,6 +441,8 @@ function GroupTaskRow({
   style?: StyleProp<ViewStyle>;
   childrenProps: TaskItemRowProps[];
 }) {
+  const [ActiveGroupIdState, setActiveGroupIdState] = useContext(ActiveGroupId);
+
   return (
     <View style={style}>
       <View
@@ -396,8 +459,24 @@ function GroupTaskRow({
           <Text>{message}</Text>
         </View>
         <View>
-          {/* @ts-ignore */}
-          <AntIcon name="rightcircleo" size={24} color={"black"} />
+          <Pressable
+            onPress={() => {
+              if (ActiveGroupIdState === groupId) {
+                setActiveGroupIdState(-1);
+              } else {
+                setActiveGroupIdState(groupId);
+              }
+            }}
+          >
+            {/* @ts-ignore */}
+            <AntIcon
+              name={
+                ActiveGroupIdState === groupId ? "downcircleo" : "rightcircleo"
+              }
+              size={24}
+              color={"black"}
+            />
+          </Pressable>
         </View>
       </View>
       <View
@@ -406,16 +485,22 @@ function GroupTaskRow({
           backgroundColor: "#FF960B",
           borderRadius: 999,
           marginTop: 3,
+          marginBottom: 5,
         }}
       ></View>
-      {childrenProps.map((v) => (
-        <TaskItemRow
-          typeName={v.typeName}
-          isFinished={v.isFinished}
-          typeId={v.typeId}
-          groupId={groupId}
-        />
-      ))}
+      <View
+        style={{ display: ActiveGroupIdState === groupId ? "flex" : "none" }}
+      >
+        {childrenProps.map((v, k) => (
+          <TaskItemRow
+            typeName={v.typeName}
+            isFinished={v.isFinished}
+            typeId={v.typeId}
+            groupId={groupId}
+            key={k}
+          />
+        ))}
+      </View>
     </View>
   );
 }
@@ -434,6 +519,7 @@ function TaskItemRow({
   style,
   isFinished,
   typeId,
+  groupId,
 }: TaskItemRowProps) {
   const SWIPE_DISTANCE = 30;
   const swapConfig = {
@@ -530,7 +616,7 @@ function TaskItemRow({
         <Pressable
           style={{ marginRight: 16 }}
           onPress={() => {
-            deleteTypeIdByDurationTypeId(durationType, typeId).then(
+            deleteTypeIdByDurationTypeId(durationType, typeId, groupId).then(
               refreshData
             );
           }}
@@ -597,6 +683,7 @@ async function showData(
           groupId={v.description}
           message={names[k].description}
           childrenProps={cp}
+          key={k}
         />
       );
     });

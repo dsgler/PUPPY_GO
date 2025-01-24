@@ -10,14 +10,14 @@ export type monothlyRowType = { description: number; children: number[] };
 export type yearlyRowType = { description: number; children: number[] };
 
 export type uniRow = daylyRowType[] | monothlyRowType[] | yearlyRowType[];
-type IterableNumber =
-  | number
-  | IterableNumber[]
-  | { [key: string]: IterableNumber };
-type IterableString =
-  | string
-  | IterableString[]
-  | { [key: string]: IterableString };
+// type IterableNumber =
+//   | number
+//   | IterableNumber[]
+//   | { [key: string]: IterableNumber };
+// type IterableString =
+//   | string
+//   | IterableString[]
+//   | { [key: string]: IterableString };
 
 export async function createTable(db: SQLite.SQLiteDatabase) {
   await db.execAsync(
@@ -83,6 +83,7 @@ export async function getIdByTypename(
   db: SQLite.SQLiteDatabase,
   type: string
 ): Promise<number> {
+  await createTable(db);
   let id = await _queryTypeId(db, type);
   if (id === -1) {
     await _addType(db, type);
@@ -122,13 +123,13 @@ export function flatten<T = any>(iter: NestedIterable<T>): T[] {
   return ans;
 }
 
-export function deflatten<T, P>(flattened: T[], structure: any) {
+export function deflatten<T>(flattened: T[], structure: any) {
   let index = 0;
 
   function helper(struct: any): any {
     if (Array.isArray(struct)) {
       // If the structure is an array, recursively reconstruct each element
-      return struct.map((v, k) => helper(struct[k]));
+      return struct.map((v) => helper(v));
     } else if (typeof struct === "object" && struct !== null) {
       // If the structure is an object, recursively reconstruct each key-value pair
       const obj: any = {};
@@ -149,6 +150,8 @@ export async function getTypenamesByIDs(
   db: SQLite.SQLiteDatabase,
   typeIds: number[]
 ): Promise<string[]> {
+  await createTable(db);
+
   let statement = await db.prepareAsync(
     `SELECT * FROM typeRelation WHERE typeId=?;`
   );
@@ -181,32 +184,65 @@ export const YEARLY = 2;
 
 export async function addTypenameByDurationTypeId(
   durationTypeId: number,
-  typeDescription: string
+  typeDescription: string,
+  groupId?: number
 ) {
   const db = await getDB();
+  await createTable(db);
+
   let typeId = await getIdByTypename(db, typeDescription);
   let key = "durationTypeId_" + durationTypeId;
   let ret = await Storage.getItemAsync(key);
-  let arr: number[] = ret ? JSON.parse(ret) : [];
-  for (let ele of arr) {
-    if (ele === typeId) {
-      return;
+  let arr: monothlyRowType[] | number[];
+  if (groupId) {
+    let rows: monothlyRowType[] = ret ? JSON.parse(ret) : [];
+    for (let ele of rows) {
+      if (ele.description === groupId) {
+        ele.children.push(typeId);
+      }
     }
+    arr = rows;
+  } else {
+    let rows: number[] = ret ? JSON.parse(ret) : [];
+    // 防止重复加入
+    for (let ele of rows) {
+      if (typeof ele !== "number") {
+        throw Error("请选择加入的组");
+      }
+      if (ele === typeId) {
+        return;
+      }
+    }
+    rows.push(typeId);
+    arr = rows;
   }
-  arr.push(typeId);
+  console.log(arr, 777);
   await Storage.setItemAsync(key, JSON.stringify(arr));
 }
 
 export async function deleteTypeIdByDurationTypeId(
   durationTypeId: number,
-  typeId: number
+  typeId: number,
+  groupId?: number
 ) {
-  let key = "durationTypeId_" + durationTypeId;
-  let ret = await Storage.getItemAsync(key);
-  let arr: number[] = ret ? JSON.parse(ret) : [];
-  arr = arr.filter((v) => v !== typeId);
-  await Storage.setItemAsync(key, JSON.stringify(arr));
-  console.log(JSON.stringify(arr));
+  if (groupId) {
+    console.log(groupId, 666);
+    let key = "durationTypeId_" + durationTypeId;
+    let ret = await Storage.getItemAsync(key);
+    let arr: monothlyRowType[] = ret ? JSON.parse(ret) : [];
+    for (let ele of arr) {
+      if (ele.description === groupId) {
+        ele.children = ele.children.filter((v) => v !== typeId);
+      }
+    }
+    await Storage.setItemAsync(key, JSON.stringify(arr));
+  } else {
+    let key = "durationTypeId_" + durationTypeId;
+    let ret = await Storage.getItemAsync(key);
+    let arr: number[] = ret ? JSON.parse(ret) : [];
+    arr = arr.filter((v) => v !== typeId);
+    await Storage.setItemAsync(key, JSON.stringify(arr));
+  }
 }
 
 export async function getTargetIdsByDurationTypeId(
@@ -231,12 +267,27 @@ export async function getTargetIdsByDurationTypeId(
 //   return TargetNames;
 // }
 
+export async function isFirstRun() {
+  let db = await getDB();
+  await createTable(db);
+
+  let statement = await db.prepareAsync("SELECT * FROM typeRelation;");
+  try {
+    let rows = await (await statement.executeAsync()).getAllAsync();
+    if (rows.length === 0) {
+      return true;
+    } else {
+      return false;
+    }
+  } finally {
+    await statement.finalizeAsync();
+  }
+}
+
 export async function __setType() {
   // let typeId = await getIdByTypename(db, typeDescription);
   for (let durationTypeId of [0, 1, 2]) {
     let key = "durationTypeId_" + durationTypeId;
-    // let ret = await Storage.getItemAsync(key);
-    // let arr: number[] = [[3, 2], [3], [3, 2, 1]][durationTypeId];
     let arr: uniRow;
     switch (durationTypeId) {
       case DAYLY:
@@ -255,8 +306,14 @@ export async function __setType() {
         throw Error;
     }
 
-    // arr.push(typeId);
+    console.log(key, JSON.stringify(arr), 222);
     await Storage.setItemAsync(key, JSON.stringify(arr));
+  }
+  // console.log(await Storage.getItemAsync("durationTypeId_0"));
+
+  const db = await getDB();
+  for (let i = 1; i <= 5; i++) {
+    _addType(db, "测试" + i);
   }
 }
 
@@ -265,6 +322,8 @@ export async function getFinishsByIds(
   ids: number[],
   date: number
 ): Promise<boolean[]> {
+  await createTable(db);
+
   const statement = await db.prepareAsync(
     `SELECT * FROM targetCheck WHERE date=?;`
   );
@@ -290,6 +349,8 @@ export async function setTargetState(
   date: number
 ) {
   const db = await getDB();
+  await createTable(db);
+
   if (isFinished) {
     const statement = await db.prepareAsync(`INSERT INTO
   targetCheck (DATE, typeId)
