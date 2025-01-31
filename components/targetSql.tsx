@@ -179,8 +179,8 @@ export async function getTypenamesByIDs(
 }
 
 export const DAYLY = 0;
-export const MONTHLY = 1;
-export const YEARLY = 2;
+export const WEEKLY = 1;
+export const MONTHLY = 2;
 
 export async function addTypenameByDurationTypeId(
   durationTypeId: number,
@@ -284,38 +284,38 @@ export async function isFirstRun() {
   }
 }
 
-export async function __setType() {
-  // let typeId = await getIdByTypename(db, typeDescription);
-  for (let durationTypeId of [0, 1, 2]) {
-    let key = "durationTypeId_" + durationTypeId;
-    let arr: uniRow;
-    switch (durationTypeId) {
-      case DAYLY:
-        arr = [3, 2, 1];
-        break;
-      case MONTHLY:
-        arr = [
-          { description: 4, children: [2, 3] },
-          { description: 5, children: [2, 3, 1] },
-        ];
-        break;
-      case YEARLY:
-        arr = [{ description: 4, children: [1] }];
-        break;
-      default:
-        throw Error;
-    }
+// export async function __setType() {
+//   // let typeId = await getIdByTypename(db, typeDescription);
+//   for (let durationTypeId of [0, 1, 2]) {
+//     let key = "durationTypeId_" + durationTypeId;
+//     let arr: uniRow;
+//     switch (durationTypeId) {
+//       case DAYLY:
+//         arr = [3, 2, 1];
+//         break;
+//       case MONTHLY:
+//         arr = [
+//           { description: 4, children: [2, 3] },
+//           { description: 5, children: [2, 3, 1] },
+//         ];
+//         break;
+//       case YEARLY:
+//         arr = [{ description: 4, children: [1] }];
+//         break;
+//       default:
+//         throw Error;
+//     }
 
-    console.log(key, JSON.stringify(arr), 222);
-    await Storage.setItemAsync(key, JSON.stringify(arr));
-  }
-  // console.log(await Storage.getItemAsync("durationTypeId_0"));
+//     console.log(key, JSON.stringify(arr), 222);
+//     await Storage.setItemAsync(key, JSON.stringify(arr));
+//   }
+//   // console.log(await Storage.getItemAsync("durationTypeId_0"));
 
-  const db = await getDB();
-  for (let i = 1; i <= 5; i++) {
-    _addType(db, "测试" + i);
-  }
-}
+//   const db = await getDB();
+//   for (let i = 1; i <= 5; i++) {
+//     _addType(db, "测试" + i);
+//   }
+// }
 
 export async function getFinishsByIds(
   db: SQLite.SQLiteDatabase,

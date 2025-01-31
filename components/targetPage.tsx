@@ -9,6 +9,7 @@ import {
   ViewStyle,
   TextInput,
   StyleSheet,
+  GestureResponderEvent,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AntIcon from "react-native-vector-icons/AntDesign";
@@ -45,10 +46,6 @@ import {
 import PressableText from "./PressableText";
 
 import {
-  DAYLY,
-  MONTHLY,
-  YEARLY,
-  __setType,
   getTargetIdsByDurationTypeId,
   getTypenamesByIDs,
   getFinishsByIds,
@@ -60,14 +57,9 @@ import {
   flatten,
   deflatten,
   NestedIterable,
-  isFirstRun,
 } from "./targetSql";
 import { getDB, getDate } from "./indexSql";
-
-// type daylyRowType = string;
-type structedRowType = { description: string; children: string[] };
-type structedIsfinishedType = { description: boolean; children: boolean[] };
-// type yearlyRowType = { description: string; children: string[] };
+import * as consts_duration from "@/consts/duration";
 
 const RefreshFn = createContext<() => Promise<void>>(() => Promise.resolve());
 const DateContext = createContext<[number, number]>([0, 0]);
@@ -79,7 +71,7 @@ export default function Page() {
   console.log("渲染targetPage");
 
   const [insertModalV, setInsertModalV] = useState(false);
-  const [durationType, setDurationType] = useState(DAYLY);
+  const [durationType, setDurationType] = useState(consts_duration.DAYLY);
   const [ActiveGroupIdState, setActiveGroupIdState] = useState(-1);
 
   const [dataComponent, setDataComponent] = useState<
@@ -100,20 +92,20 @@ export default function Page() {
   }, [durationType, date, setDataComponent]);
 
   useEffect(() => {
-    refreshData();
+    // refreshData();
   }, [refreshData]);
 
-  isFirstRun().then((t) => {
-    if (t) {
-      console.log("first");
-      __setType()
-        .then(refreshData)
-        .catch((e) => {
-          setDialogC(e.message);
-          setDialogV(true);
-        });
-    }
-  });
+  // isFirstRun().then((t) => {
+  //   if (t) {
+  //     console.log("first");
+  //     __setType()
+  //       .then(refreshData)
+  //       .catch((e) => {
+  //         setDialogC(e.message);
+  //         setDialogV(true);
+  //       });
+  //   }
+  // });
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -127,7 +119,7 @@ export default function Page() {
             }}
           />
           <Tip />
-          <AddTarget setInsertModalV={setInsertModalV} />
+          <AddTargetRow />
           <View style={{ height: 10 }} />
           <RefreshFn.Provider value={refreshData}>
             <DateContext.Provider value={[date, durationType]}>
@@ -303,17 +295,19 @@ function TopBar({
     <View style={TopBarStyle.container}>
       <TouchableRipple
         onPress={() => {
-          setDurationType(DAYLY);
+          setDurationType(consts_duration.DAYLY);
         }}
         style={[
           TopBarStyle.left,
-          durationType === DAYLY ? TopBarStyle.chosen : TopBarStyle.unchosen,
+          durationType === consts_duration.DAYLY
+            ? TopBarStyle.chosen
+            : TopBarStyle.unchosen,
         ]}
         borderless={true}
       >
         <Text
           style={
-            durationType === DAYLY
+            durationType === consts_duration.DAYLY
               ? TopBarStyle.chosenText
               : TopBarStyle.unchosenText
           }
@@ -323,42 +317,46 @@ function TopBar({
       </TouchableRipple>
       <TouchableRipple
         onPress={() => {
-          setDurationType(MONTHLY);
+          setDurationType(consts_duration.WEEKLY);
         }}
         style={[
           TopBarStyle.middle,
-          durationType === MONTHLY ? TopBarStyle.chosen : TopBarStyle.unchosen,
+          durationType === consts_duration.WEEKLY
+            ? TopBarStyle.chosen
+            : TopBarStyle.unchosen,
         ]}
         borderless={true}
       >
         <Text
           style={
-            durationType === MONTHLY
+            durationType === consts_duration.WEEKLY
+              ? TopBarStyle.chosenText
+              : TopBarStyle.unchosenText
+          }
+        >
+          周
+        </Text>
+      </TouchableRipple>
+      <TouchableRipple
+        onPress={() => {
+          setDurationType(consts_duration.MONTHLY);
+        }}
+        style={[
+          TopBarStyle.right,
+          durationType === consts_duration.MONTHLY
+            ? TopBarStyle.chosen
+            : TopBarStyle.unchosen,
+        ]}
+        borderless={true}
+      >
+        <Text
+          style={
+            durationType === consts_duration.MONTHLY
               ? TopBarStyle.chosenText
               : TopBarStyle.unchosenText
           }
         >
           月
-        </Text>
-      </TouchableRipple>
-      <TouchableRipple
-        onPress={() => {
-          setDurationType(YEARLY);
-        }}
-        style={[
-          TopBarStyle.right,
-          durationType === YEARLY ? TopBarStyle.chosen : TopBarStyle.unchosen,
-        ]}
-        borderless={true}
-      >
-        <Text
-          style={
-            durationType === YEARLY
-              ? TopBarStyle.chosenText
-              : TopBarStyle.unchosenText
-          }
-        >
-          年
         </Text>
       </TouchableRipple>
     </View>
@@ -396,10 +394,15 @@ function Tip() {
   );
 }
 
-function AddTarget({
-  setInsertModalV,
+function AddTargetRow({
+  onPress,
+  style,
 }: {
-  setInsertModalV: React.Dispatch<React.SetStateAction<boolean>>;
+  onPress?:
+    | (((event: GestureResponderEvent) => void) &
+        ((e: GestureResponderEvent) => void))
+    | undefined;
+  style?: StyleProp<ViewStyle>;
 }) {
   return (
     <TouchableRipple
@@ -409,17 +412,18 @@ function AddTarget({
         overflow: "hidden",
       }}
       borderless={true}
-      onPress={() => {
-        setInsertModalV(true);
-      }}
+      onPress={onPress}
     >
       <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          height: 60,
-          backgroundColor: "#FFB52B",
-        }}
+        style={[
+          {
+            flexDirection: "row",
+            alignItems: "center",
+            height: 60,
+            backgroundColor: "#FFB52B",
+          },
+          style,
+        ]}
       >
         <View style={{ width: 26, marginHorizontal: 16 }}>
           <AddIcon />

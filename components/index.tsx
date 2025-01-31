@@ -9,7 +9,6 @@ import {
 } from "react-native";
 import { router, useFocusEffect } from "expo-router";
 import React, { useState, useCallback, useMemo } from "react";
-import { LinearGradient } from "expo-linear-gradient";
 import { SafeAreaView } from "react-native-safe-area-context";
 import CalIcon from "@/assets/images/index/calendar";
 import { BrandColor, unChoseColor } from "@/consts/tabs";
@@ -29,6 +28,7 @@ import Svg, { Line } from "react-native-svg";
 import sportArr from "@/consts/sportType";
 import { effortArr, MoodObj } from "@/consts";
 import MyScrollView from "./myScrollView";
+import { getDatesByWeek } from "@/utility/datetool";
 
 export default function Index() {
   console.log("index渲染");
@@ -129,13 +129,6 @@ function Header({ style }: { style?: StyleProp<ViewStyle> }) {
   );
 }
 
-const oneDay = 24 * 60 * 60 * 1000; // 一天的毫秒数
-function AddDays(date: Date, days: number) {
-  const result = new Date(date); // 创建日期的副本以避免修改原始日期
-  result.setTime(result.getTime() + days * oneDay); // 减去指定天数的毫秒数
-  return result;
-}
-
 // 让周日在最后
 // const dayArr = [1, 2, 3, 4, 5, 6, 0];
 function WeekCalendar({
@@ -146,12 +139,8 @@ function WeekCalendar({
   setShowT: React.Dispatch<React.SetStateAction<number>>;
 }) {
   let d = new Date();
-  let dateArr: Date[] = Array.from({ length: 7 });
-  let t = d.getDay();
-  let off = t === 0 ? -6 : -t + 1;
-  for (let i = 0; i < 7; i++) {
-    dateArr[i] = AddDays(d, off + i);
-  }
+
+  let dateArr = getDatesByWeek(d);
 
   return (
     <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
