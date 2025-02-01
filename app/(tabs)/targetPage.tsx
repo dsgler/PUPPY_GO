@@ -1,4 +1,4 @@
-import Page from "@/components/targetPage";
+import Page from "@/components/targetPage2";
 import React from "react";
 import { LinearGradient } from "expo-linear-gradient";
 

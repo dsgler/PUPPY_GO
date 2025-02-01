@@ -29,84 +29,22 @@ import Animated, {
   useAnimatedStyle,
   Easing,
 } from "react-native-reanimated";
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
-import {
-  Button,
-  Dialog,
-  Modal,
-  Portal,
-  TouchableRipple,
-} from "react-native-paper";
+import { useState } from "react";
+import { Modal, Portal, TouchableRipple } from "react-native-paper";
 import PressableText from "./PressableText";
 
-import {
-  getTargetIdsByDurationTypeId,
-  getTypenamesByIDs,
-  getFinishsByIds,
-  setTargetState,
-  addTypenameByDurationTypeId,
-  deleteTypeIdByDurationTypeId,
-  daylyRowType,
-  monothlyRowType,
-  flatten,
-  deflatten,
-  NestedIterable,
-} from "./targetSql";
 import { getDB } from "../sqls/indexSql";
-import { getDateNumber } from "@/utility/datetool";
 import * as consts_duration from "@/consts/duration";
-
-const RefreshFn = createContext<() => Promise<void>>(() => Promise.resolve());
-const DateContext = createContext<[number, number]>([0, 0]);
-const ActiveGroupId = createContext<
-  [number, React.Dispatch<React.SetStateAction<number>>]
->([0, () => {}]);
 
 export default function Page() {
   console.log("渲染targetPage");
 
   const [insertModalV, setInsertModalV] = useState(false);
   const [durationType, setDurationType] = useState(consts_duration.DAYLY);
-  const [ActiveGroupIdState, setActiveGroupIdState] = useState(-1);
 
   const [dataComponent, setDataComponent] = useState<
-    React.JSX.Element[] | undefined
+    React.JSX.Element[] | React.JSX.Element | undefined
   >();
-  const [newTargetContent, setNewTargetContent] = useState("");
-
-  const [dialogV, setDialogV] = useState(false);
-  const [dialogC, setDialogC] = useState("");
-
-  const date = getSpecificDate(getDateNumber(new Date()), durationType);
-
-  const refreshData = useCallback(() => {
-    return showData(durationType, date, setDataComponent).catch((e) => {
-      setDialogC(e.message);
-      setDialogV(true);
-    });
-  }, [durationType, date, setDataComponent]);
-
-  useEffect(() => {
-    // refreshData();
-  }, [refreshData]);
-
-  // isFirstRun().then((t) => {
-  //   if (t) {
-  //     console.log("first");
-  //     __setType()
-  //       .then(refreshData)
-  //       .catch((e) => {
-  //         setDialogC(e.message);
-  //         setDialogV(true);
-  //       });
-  //   }
-  // });
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -114,23 +52,13 @@ export default function Page() {
         <ScrollView style={{ paddingHorizontal: 20 }}>
           <TopBar
             durationType={durationType}
-            setDurationType={(id) => {
-              setDurationType(id);
-              setActiveGroupIdState(-1);
-            }}
+            setDurationType={setDurationType}
           />
           <Tip />
-          <AddTargetRow />
+          <AddGroup />
+          <AddTarget />
           <View style={{ height: 10 }} />
-          <RefreshFn.Provider value={refreshData}>
-            <DateContext.Provider value={[date, durationType]}>
-              <ActiveGroupId.Provider
-                value={[ActiveGroupIdState, setActiveGroupIdState]}
-              >
-                {dataComponent}
-              </ActiveGroupId.Provider>
-            </DateContext.Provider>
-          </RefreshFn.Provider>
+          {dataComponent}
         </ScrollView>
       </SafeAreaView>
       <Portal>
@@ -174,31 +102,7 @@ export default function Page() {
                 color={BrandColor}
                 highlightColor="#ffd399"
                 TextStyle={{ fontSize: 16 }}
-                onPress={() => {
-                  if (newTargetContent.trim() === "") {
-                    setDialogC("请输入内容");
-                    setDialogV(true);
-                    return;
-                  }
-                  let groupId =
-                    ActiveGroupIdState === -1 ? undefined : ActiveGroupIdState;
-                  addTypenameByDurationTypeId(
-                    durationType,
-                    newTargetContent,
-                    groupId
-                  )
-                    .catch((e) => {
-                      setDialogC(e.message);
-                      setDialogV(true);
-                      throw Error();
-                    })
-                    .then(refreshData)
-                    .then(() => {
-                      setNewTargetContent("");
-                      setInsertModalV(false);
-                    })
-                    .catch();
-                }}
+                onPress={() => {}}
               />
             </View>
             <View
@@ -215,21 +119,11 @@ export default function Page() {
               <TextInput
                 cursorColor={BrandColor}
                 autoFocus={true}
-                value={newTargetContent}
-                onChangeText={setNewTargetContent}
                 style={{ fontSize: 16 }}
               />
             </View>
           </View>
         </Modal>
-        <Dialog visible={dialogV} onDismiss={() => setDialogV(false)}>
-          <Dialog.Content>
-            <Text>{dialogC}</Text>
-          </Dialog.Content>
-          <Dialog.Actions>
-            <Button onPress={() => setDialogV(false)}>ok</Button>
-          </Dialog.Actions>
-        </Dialog>
       </Portal>
     </GestureHandlerRootView>
   );
@@ -395,7 +289,7 @@ function Tip() {
   );
 }
 
-function AddTargetRow({
+function AddGroup({
   onPress,
   style,
 }: {
@@ -427,9 +321,53 @@ function AddTargetRow({
         ]}
       >
         <View style={{ width: 26, marginHorizontal: 16 }}>
-          <AddIcon />
+          {/* @ts-ignore */}
+          <AntIcon name="plus" size={24} />
         </View>
-        <Text style={{ color: textColor, fontSize: 14 }}>创建一个目标</Text>
+        <Text style={{ color: textColor, fontSize: 14 }}>创建一个分组</Text>
+      </View>
+    </TouchableRipple>
+  );
+}
+
+function AddTarget({
+  onPress,
+  style,
+}: {
+  onPress?:
+    | (((event: GestureResponderEvent) => void) &
+        ((e: GestureResponderEvent) => void))
+    | undefined;
+  style?: StyleProp<ViewStyle>;
+}) {
+  return (
+    <TouchableRipple
+      style={{
+        marginTop: 20,
+        borderRadius: 10,
+        overflow: "hidden",
+      }}
+      borderless={true}
+      onPress={onPress}
+    >
+      <View
+        style={[
+          {
+            flexDirection: "row",
+            alignItems: "center",
+            height: 60,
+            backgroundColor: "white",
+          },
+          style,
+        ]}
+      >
+        <View style={{ flex: 1, marginLeft: 20 }}>
+          <Text style={{ color: textColor, fontSize: 14 }}>创建一个目标</Text>
+        </View>
+        <View style={{ width: 26, marginHorizontal: 16 }}>
+          {/* @ts-ignore */}
+          <AntIcon name="pluscircle" size={24} color={BrandColor} />
+        </View>
       </View>
     </TouchableRipple>
   );
@@ -446,8 +384,6 @@ function GroupTaskRow({
   style?: StyleProp<ViewStyle>;
   childrenProps: TaskItemRowProps[];
 }) {
-  const [ActiveGroupIdState, setActiveGroupIdState] = useContext(ActiveGroupId);
-
   return (
     <View style={style}>
       <View
@@ -464,20 +400,10 @@ function GroupTaskRow({
           <Text>{message}</Text>
         </View>
         <View>
-          <Pressable
-            onPress={() => {
-              if (ActiveGroupIdState === groupId) {
-                setActiveGroupIdState(-1);
-              } else {
-                setActiveGroupIdState(groupId);
-              }
-            }}
-          >
+          <Pressable onPress={() => {}}>
             {/* @ts-ignore */}
             <AntIcon
-              name={
-                ActiveGroupIdState === groupId ? "downcircleo" : "rightcircleo"
-              }
+              name={true ? "downcircleo" : "rightcircleo"}
               size={24}
               color={"black"}
             />
@@ -493,9 +419,7 @@ function GroupTaskRow({
           marginBottom: 5,
         }}
       ></View>
-      <View
-        style={{ display: ActiveGroupIdState === groupId ? "flex" : "none" }}
-      >
+      <View style={{ display: true ? "flex" : "none" }}>
         {childrenProps.map((v, k) => (
           <TaskItemRow
             typeName={v.typeName}
@@ -547,9 +471,6 @@ function TaskItemRow({
     transform: [{ translateX: cardTransform.value }],
   }));
 
-  const refreshData = useContext(RefreshFn);
-  const [date, durationType] = useContext(DateContext);
-
   return (
     <View>
       <GestureDetector gesture={panGesture}>
@@ -570,17 +491,13 @@ function TaskItemRow({
           ]}
         >
           <View style={{ marginHorizontal: 16 }}>
-            <Pressable
-              onPress={() => {
-                setTargetState(!isFinished, typeId, date).then(refreshData);
-              }}
-            >
+            <Pressable onPress={() => {}}>
               {isFinished ? (
                 /* @ts-ignore */
                 <AntIcon name="checkcircle" size={24} color="#B5C7FF" />
               ) : (
                 /* @ts-ignore */
-                <FeaIcon name="circle" size={24} color={"#DCDCDC"} />
+                <FeaIcon name="circle" size={24} color="#DCDCDC" />
               )}
             </Pressable>
           </View>
@@ -618,14 +535,7 @@ function TaskItemRow({
           zIndex: -1,
         }}
       >
-        <Pressable
-          style={{ marginRight: 16 }}
-          onPress={() => {
-            deleteTypeIdByDurationTypeId(durationType, typeId, groupId).then(
-              refreshData
-            );
-          }}
-        >
+        <Pressable style={{ marginRight: 16 }} onPress={() => {}}>
           {/* @ts-ignore */}
           <FeaIcon name="trash-2" size={24} color={"white"} />
         </Pressable>
@@ -642,75 +552,4 @@ async function showData(
   >
 ) {
   const db = await getDB();
-  const rows = await getTargetIdsByDurationTypeId(durationType);
-  let ret: React.JSX.Element[];
-  if (durationType === DAYLY) {
-    const ids = rows as unknown as daylyRowType[];
-    const names = await getTypenamesByIDs(db, ids);
-    const finishs = await getFinishsByIds(db, ids, date);
-
-    if (ids.length !== names.length) {
-      throw Error("ids.length!==names.length");
-    }
-
-    ret = Array.from({ length: ids.length }) as React.JSX.Element[];
-    for (let i = 0; i < ids.length; i++) {
-      ret[i] = (
-        <TaskItemRow
-          typeName={names[i]}
-          typeId={ids[i]}
-          isFinished={finishs[i]}
-          key={i}
-        />
-      );
-    }
-  } else if (durationType === MONTHLY || durationType === YEARLY) {
-    const ids = rows as unknown as monothlyRowType[];
-    const ids_flattened = flatten(ids as NestedIterable<number>);
-    const names: structedRowType[] = deflatten(
-      await getTypenamesByIDs(db, ids_flattened),
-      ids
-    );
-    const finishs: structedIsfinishedType[] = deflatten(
-      await getFinishsByIds(db, ids_flattened, date),
-      ids
-    );
-    ret = ids.map((v, k) => {
-      const cp: TaskItemRowProps[] = v.children.map((v2, k2) => {
-        return {
-          typeName: names[k].children[k2],
-          isFinished: finishs[k].children[k2],
-          typeId: v2,
-        };
-      });
-      return (
-        <GroupTaskRow
-          groupId={v.description}
-          message={names[k].description}
-          childrenProps={cp}
-          key={k}
-        />
-      );
-    });
-  } else {
-    throw Error("未知");
-  }
-
-  setDataComponent(ret);
-}
-
-function getSpecificDate(date: number, durationType: number) {
-  switch (durationType) {
-    case DAYLY:
-      break;
-    case MONTHLY:
-      date = Math.floor(date / 100);
-      break;
-    case YEARLY:
-      date = Math.floor(date / 10000);
-      break;
-    default:
-      throw Error("未知的durationType:" + durationType);
-  }
-  return date;
 }

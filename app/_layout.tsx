@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { createContext, useState } from "react";
 import { Stack } from "expo-router";
 import { Button, Dialog, PaperProvider, Portal } from "react-native-paper";
 import { StatusBar } from "expo-status-bar";
@@ -7,10 +7,30 @@ import * as SQLite from "expo-sqlite";
 import { MD3LightTheme, ThemeProvider } from "react-native-paper";
 import { Text } from "react-native";
 
+export const MyAlertCtx = createContext<
+  (message: React.JSX.Element | string | Error) => void
+>(() => {});
+
 export default function RootLayout() {
   useDrizzleStudio(SQLite.openDatabaseSync("myDatabase.db"));
   const [dialogV, setDialogV] = useState(false);
-  const [dialogC, setDialogC] = useState("");
+  const [dialogC, setDialogC] = useState<React.JSX.Element>();
+
+  const myAlert = (message: React.JSX.Element | string | Error) => {
+    let dataComponent: React.JSX.Element;
+
+    if (typeof message === "string") {
+      dataComponent = <Text>{message}</Text>;
+    } else if (message instanceof Error) {
+      dataComponent = <Text>{message.message}</Text>;
+    } else {
+      dataComponent = message;
+    }
+
+    setDialogC(dataComponent);
+    setDialogV(true);
+  };
+
   try {
     return (
       <>
@@ -62,21 +82,21 @@ export default function RootLayout() {
               },
             }}
           >
-            <Stack>
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen name="addPage" options={{ headerShown: false }} />
-              <Stack.Screen name="+not-found" />
-            </Stack>
-            <Portal>
-              <Dialog visible={dialogV} onDismiss={() => setDialogV(false)}>
-                <Dialog.Content>
-                  <Text>{dialogC}</Text>
-                </Dialog.Content>
-                <Dialog.Actions>
-                  <Button onPress={() => setDialogV(false)}>ok</Button>
-                </Dialog.Actions>
-              </Dialog>
-            </Portal>
+            <MyAlertCtx.Provider value={myAlert}>
+              <Stack>
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen name="addPage" options={{ headerShown: false }} />
+                <Stack.Screen name="+not-found" />
+              </Stack>
+              <Portal>
+                <Dialog visible={dialogV} onDismiss={() => setDialogV(false)}>
+                  <Dialog.Content>{dialogC}</Dialog.Content>
+                  <Dialog.Actions>
+                    <Button onPress={() => setDialogV(false)}>好的</Button>
+                  </Dialog.Actions>
+                </Dialog>
+              </Portal>
+            </MyAlertCtx.Provider>
           </ThemeProvider>
         </PaperProvider>
         {/* eslint-disable-next-line react/style-prop-object */}
@@ -85,7 +105,7 @@ export default function RootLayout() {
     );
   } catch (e) {
     if (e instanceof Error) {
-      setDialogC(e.message);
+      myAlert(<Text>{e.message}</Text>);
     }
     console.log(e);
   }

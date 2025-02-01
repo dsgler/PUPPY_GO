@@ -23,17 +23,24 @@ import {
 } from "react-native-paper";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+  useContext,
+} from "react";
 
 import sports, { sportItemType } from "../consts/sportType";
 import BackIcon from "@/assets/images/addPage/back";
 import Line from "@/assets/images/addPage/line";
 
-import { insertData, addDataType, getDB } from "./indexSql";
+import { insertData, addDataType, getDB } from "../sqls/indexSql";
 import { getmulti } from "@/utility/datetool";
 import { effortArr, MoodObj } from "@/consts";
 import { useImmer } from "use-immer";
-// import Toast from "react-native-toast-message";
+
+import { MyAlertCtx } from "@/app/_layout";
 
 const EmptyF = () => {};
 
@@ -93,8 +100,6 @@ export default function AddPage() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
 
-  const [dialogV, setDialogV] = useState(false);
-  const [dialogC, setDialogC] = useState("");
   const [SnackbarV, setSnackbarV] = useState(false);
 
   const [pageState, setPageState] = useState(MAIN);
@@ -102,10 +107,7 @@ export default function AddPage() {
   console.log("add渲染");
 
   // 这个useCallback好像意义不大
-  const myAlert = useCallback((message: string) => {
-    setDialogC(message);
-    setDialogV(true);
-  }, []);
+  const myAlert = useContext(MyAlertCtx);
 
   return (
     <View style={{ flex: 1 }}>
@@ -425,8 +427,7 @@ export default function AddPage() {
                       setPageState(TAG);
                     } else {
                       if (tagContent === "") {
-                        setDialogC("请输入Tag");
-                        setDialogV(true);
+                        myAlert("请输入Tag");
                         return;
                       }
                       updateTags((tags) => {
@@ -525,14 +526,6 @@ export default function AddPage() {
         </SafeAreaView>
       </View>
       <Portal>
-        <Dialog visible={dialogV} onDismiss={() => setDialogV(false)}>
-          <Dialog.Content>
-            <Text>{dialogC}</Text>
-          </Dialog.Content>
-          <Dialog.Actions>
-            <Button onPress={() => setDialogV(false)}>ok</Button>
-          </Dialog.Actions>
-        </Dialog>
         <Snackbar
           visible={SnackbarV}
           onDismiss={() => {

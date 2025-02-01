@@ -75,18 +75,16 @@ export async function addTarget(
 ) {
   return await getAllOnce(
     db,
-    `
-        INSERT INTO targetRow (
-          groupId,
-          description,
-          makeTime,
-          duration,
-          count,
-          frequency,
-          sportId,
-          endTime
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?);
-      `,
+    `INSERT INTO targetRow (
+        groupId,
+        description,
+        makeTime,
+        duration,
+        count,
+        frequency,
+        sportId,
+        endTime
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?);`,
     [
       groupId,
       description,
@@ -98,6 +96,41 @@ export async function addTarget(
       endTime,
     ]
   );
+}
+
+export async function updateTarget(
+  db: SQLite.SQLiteDatabase,
+  {
+    Id,
+    groupId,
+    description,
+    makeTime,
+    duration,
+    count,
+    frequency,
+    sportId,
+    endTime,
+  }: targetRow
+) {
+  await getAllOnce(
+    db,
+    `UPDATE targetRow SET groupId=?,description=?,makeTime=?,duration=?,count=?,frequency=?,sportId=?,endTime=? WHERE Id=?;`,
+    [
+      groupId,
+      description,
+      makeTime,
+      duration,
+      count,
+      frequency,
+      sportId,
+      endTime,
+      Id,
+    ]
+  );
+}
+
+export async function deleteTarget(db: SQLite.SQLiteDatabase, Id: number) {
+  await getAllOnce(db, `DELETE FROM targetRow WHERE Id=?;`, [Id]);
 }
 
 export async function getTargetsByDay(db: SQLite.SQLiteDatabase, d: Date) {
@@ -298,5 +331,37 @@ export async function getProgressByMonth(db: SQLite.SQLiteDatabase) {
 export async function addGroup(db: SQLite.SQLiteDatabase, groupName: string) {
   return await getAllOnce(db, `INSERT INTO groupName (groupName) VALUES (?);`, [
     groupName,
+  ]);
+}
+
+export async function setCheck(
+  db: SQLite.SQLiteDatabase,
+  targetId: number,
+  date: number = getDateNumber(Date.now())
+) {
+  let ret = await getAllOnce(
+    db,
+    `SELECT * FROM targetCheck WHERE date=? AND targetId=?;`,
+    [date, targetId]
+  );
+  if (ret.length !== 0) {
+    console.log(ret);
+    return;
+  }
+  await getAllOnce(
+    db,
+    `INSERT INTO targetCheck (date,targetId) VALUES (?,?);`,
+    [date, targetId]
+  );
+}
+
+export async function cancelCheck(
+  db: SQLite.SQLiteDatabase,
+  targetId: number,
+  date: number = getDateNumber(Date.now())
+) {
+  await getAllOnce(db, `DELETE FROM targetCheck WHERE date=? AND targetId=?;`, [
+    date,
+    targetId,
   ]);
 }

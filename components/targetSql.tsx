@@ -1,5 +1,5 @@
 import * as SQLite from "expo-sqlite";
-import { getDB } from "./indexSql";
+import { getDB } from "../sqls/indexSql";
 import Storage from "expo-sqlite/kv-store";
 
 export type targetCheckRow = { date: number; typeId: number };

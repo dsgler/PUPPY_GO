@@ -14,7 +14,7 @@ import CalIcon from "@/assets/images/index/calendar";
 import { BrandColor, unChoseColor } from "@/consts/tabs";
 import AiPlan from "./AiPlan";
 
-import { addDataType, GetDataByDate, getDB } from "./indexSql";
+import { addDataType, GetDataByDate, getDB } from "../sqls/indexSql";
 import {
   getDateNumber,
   getTimeString,
