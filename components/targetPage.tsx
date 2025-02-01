@@ -58,7 +58,8 @@ import {
   deflatten,
   NestedIterable,
 } from "./targetSql";
-import { getDB, getDate } from "./indexSql";
+import { getDB } from "./indexSql";
+import { getDateNumber } from "@/utility/datetool";
 import * as consts_duration from "@/consts/duration";
 
 const RefreshFn = createContext<() => Promise<void>>(() => Promise.resolve());
@@ -82,7 +83,7 @@ export default function Page() {
   const [dialogV, setDialogV] = useState(false);
   const [dialogC, setDialogC] = useState("");
 
-  const date = getSpecificDate(getDate(new Date()), durationType);
+  const date = getSpecificDate(getDateNumber(new Date()), durationType);
 
   const refreshData = useCallback(() => {
     return showData(durationType, date, setDataComponent).catch((e) => {

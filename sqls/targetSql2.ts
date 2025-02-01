@@ -1,9 +1,15 @@
 import * as SQLite from "expo-sqlite";
-import { getDB } from "./indexSql";
 import * as consts_frequency from "@/consts/frequency";
-import { getDatesByWeek, isSameDay, isWeekday } from "@/utility/datetool";
+import {
+  getDateNumber,
+  getDatesInMonth,
+  getDatesInWeek,
+  isSameDay,
+  isWeekday,
+} from "@/utility/datetool";
+import { getAllOnce } from "@/utility/sql";
 
-type targetRowType = {
+type targetRow = {
   Id: number;
   groupId: number;
   description: string;
@@ -19,6 +25,10 @@ type frequencyType = {
   typeId: number;
   content: number[];
 };
+
+export type targetCheckRow = { date: number; typeId: number };
+
+export type groupNameRow = { groupId: number; groupName: string };
 
 export async function createTable(db: SQLite.SQLiteDatabase) {
   await db.execAsync(
@@ -61,9 +71,11 @@ export async function addTarget(
     frequency,
     sportId,
     endTime,
-  }: targetRowType
+  }: targetRow
 ) {
-  const statement = await db.prepareAsync(`
+  return await getAllOnce(
+    db,
+    `
         INSERT INTO targetRow (
           groupId,
           description,
@@ -74,10 +86,8 @@ export async function addTarget(
           sportId,
           endTime
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?);
-      `);
-
-  try {
-    await statement.executeAsync([
+      `,
+    [
       groupId,
       description,
       makeTime,
@@ -86,30 +96,17 @@ export async function addTarget(
       frequency,
       sportId,
       endTime,
-    ]);
-  } finally {
-    await statement.finalizeAsync();
-  }
-}
-
-export async function getTargetsRows(db: SQLite.SQLiteDatabase) {
-  let statement = await db.prepareAsync(`SELECT * FROM targetRow;`);
-  let ret: targetRowType[];
-
-  try {
-    ret = (await (
-      await statement.executeAsync()
-    ).getAllAsync()) as targetRowType[];
-  } finally {
-    await statement.finalizeAsync();
-  }
-
-  return ret;
+    ]
+  );
 }
 
 export async function getTargetsByDay(db: SQLite.SQLiteDatabase, d: Date) {
-  let rows = await getTargetsRows(db);
-  let ret: targetRowType[] = [];
+  let rows = (await getAllOnce(
+    db,
+    `SELECT * FROM targetRow;`,
+    []
+  )) as targetRow[];
+  let ret: targetRow[] = [];
 
   for (let ele of rows) {
     let frequency = JSON.parse(ele.frequency) as frequencyType;
@@ -154,10 +151,14 @@ export async function getTargetsByDay(db: SQLite.SQLiteDatabase, d: Date) {
  * 周日是一周的最后一天
  */
 export async function getTargetsByWeek(db: SQLite.SQLiteDatabase, d: Date) {
-  let rows = await getTargetsRows(db);
-  let ret: targetRowType[][] = Array.from({ length: 7 }, () => []);
+  let rows = (await getAllOnce(
+    db,
+    `SELECT * FROM targetRow;`,
+    []
+  )) as targetRow[];
+  let ret: targetRow[][] = Array.from({ length: 7 }, () => []);
 
-  let thisWeek = getDatesByWeek(d);
+  let thisWeek = getDatesInWeek(d);
 
   for (let ele of rows) {
     let frequency = JSON.parse(ele.frequency) as frequencyType;
@@ -195,7 +196,7 @@ export async function getTargetsByWeek(db: SQLite.SQLiteDatabase, d: Date) {
       case consts_frequency.COSTUM_DAY:
         for (let day of frequency.content) {
           for (let i = 0; i < 7; i++) {
-            if (isSameDay(d, thisWeek[i])) {
+            if (isSameDay(new Date(day), thisWeek[i])) {
               ret[i].push(ele);
               break;
             }
@@ -205,4 +206,97 @@ export async function getTargetsByWeek(db: SQLite.SQLiteDatabase, d: Date) {
     }
   }
   return ret;
+}
+
+export async function getProgressByDay(
+  db: SQLite.SQLiteDatabase,
+  d: Date,
+  targetIds: number[]
+): Promise<boolean[]> {
+  let date = getDateNumber(d);
+  let ret = (await getAllOnce(db, `SELECT * FROM targetCheck WHERE date=?;`, [
+    date,
+  ])) as targetCheckRow[];
+
+  return targetIds.map((v) => {
+    for (const ele of ret) {
+      if (v === ele.typeId) {
+        return true;
+      }
+    }
+    return false;
+  });
+}
+
+export async function getProgressByWeek() {}
+
+type getProgressByMonthRetRow = {
+  groupId: number;
+  groupName: string;
+  // 0-100
+  progress: number;
+  children: childrenRow[];
+};
+
+type childrenRow = targetRow & { times: number };
+
+export async function getProgressByMonth(db: SQLite.SQLiteDatabase) {
+  let d = new Date();
+  let groups = (await getAllOnce(
+    db,
+    `SELECT * FROM groupName;`,
+    []
+  )) as groupNameRow[];
+  let targets = (await getAllOnce(
+    db,
+    `SELECT * FROM targetRow;`,
+    []
+  )) as targetRow[];
+
+  let thisMonth = getDatesInMonth(d).map((v) => getDateNumber(v));
+  let checks = (await getAllOnce(
+    db,
+    `SELECT * FROM targetCheck WHERE date>=? AND date<=?;`,
+    [thisMonth[0], thisMonth[thisMonth.length - 1]]
+  )) as targetCheckRow[];
+
+  let ret: getProgressByMonthRetRow[] = groups.map((v) => ({
+    ...v,
+    progress: 0,
+    children: [],
+  }));
+  let chi: childrenRow[] = targets.map((v) => ({ ...v, times: 0 }));
+  for (let checkRow of checks) {
+    let typeId = checkRow.typeId;
+    for (let ele of chi) {
+      if (ele.Id === typeId) {
+        ele.times++;
+      }
+    }
+  }
+
+  for (const ele of chi) {
+    for (const retRow of ret) {
+      if (retRow.groupId === ele.groupId) {
+        retRow.children.push(ele);
+      }
+    }
+  }
+
+  for (const ele of ret) {
+    const len = ele.children.length;
+    for (const chi of ele.children) {
+      ele.progress +=
+        chi.count === 0 || chi.times / chi.count >= 1
+          ? 100 / len
+          : (100 * chi.times) / chi.count / len;
+    }
+    ele.progress = Math.round(ele.progress);
+  }
+}
+
+export async function addGroup(db: SQLite.SQLiteDatabase, groupName: string) {
+  return await getAllOnce(db, `INSERT INTO groupName (groupName) VALUES (?);`, [
+    groupName,
+  ]);
 }

@@ -14,21 +14,19 @@ import CalIcon from "@/assets/images/index/calendar";
 import { BrandColor, unChoseColor } from "@/consts/tabs";
 import AiPlan from "./AiPlan";
 
+import { addDataType, GetDataByDate, getDB } from "./indexSql";
 import {
-  addDataType,
-  GetDataByDate,
-  getDB,
-  getDate,
-  getTime,
-  getGapTime,
-} from "./indexSql";
+  getDateNumber,
+  getTimeString,
+  getGapTimeString,
+} from "@/utility/datetool";
 import { Icon, TouchableRipple } from "react-native-paper";
 import Svg, { Line } from "react-native-svg";
 
 import sportArr from "@/consts/sportType";
 import { effortArr, MoodObj } from "@/consts";
 import MyScrollView from "./myScrollView";
-import { getDatesByWeek } from "@/utility/datetool";
+import { getDatesInWeek } from "@/utility/datetool";
 
 export default function Index() {
   console.log("index渲染");
@@ -140,7 +138,7 @@ function WeekCalendar({
 }) {
   let d = new Date();
 
-  let dateArr = getDatesByWeek(d);
+  let dateArr = getDatesInWeek(d);
 
   return (
     <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
@@ -148,8 +146,11 @@ function WeekCalendar({
         <WeekCalendarCap
           key={index}
           d={date}
-          isAfter={getDate(date) !== getDate(d) && date.getTime() > d.getTime()}
-          isChosen={getDate(date) === getDate(showT)}
+          isAfter={
+            getDateNumber(date) !== getDateNumber(d) &&
+            date.getTime() > d.getTime()
+          }
+          isChosen={getDateNumber(date) === getDateNumber(showT)}
           setShowT={setShowT}
         />
       ))}
@@ -229,7 +230,7 @@ async function showData(
 ) {
   const db = await getDB();
   console.log("获得DB");
-  const ret = await GetDataByDate(db, getDate(t));
+  const ret = await GetDataByDate(db, getDateNumber(t));
   console.log("获得ret");
   if (ret.length === 0) {
     setDataFace(<EmptyDog />);
@@ -311,7 +312,7 @@ function SportBlockLeft({
       }}
     >
       <Text style={{ color: "#FF9B0B", fontSize: 15 }}>
-        {getTime(data.timestart)}
+        {getTimeString(data.timestart)}
       </Text>
       <Svg width={1} height={height}>
         <Line
@@ -325,7 +326,7 @@ function SportBlockLeft({
         />
       </Svg>
       <Text style={{ color: "#FF9B0B", fontSize: 15 }}>
-        {getTime(data.timeend)}
+        {getTimeString(data.timeend)}
       </Text>
     </View>
   );
@@ -373,7 +374,7 @@ function SportBlockRight({
           >
             <Icon source={MoodObj[data.moodId].icon} size={20} />
             <Text style={{ fontSize: 22, fontWeight: 500, color: "#131315" }}>
-              {" " + getGapTime(data.timeend - data.timestart) + " "}
+              {" " + getGapTimeString(data.timeend - data.timestart) + " "}
             </Text>
             <Text style={{ fontSize: 15, color: "#131315" }}>时长</Text>
           </View>

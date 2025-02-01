@@ -29,7 +29,8 @@ import sports, { sportItemType } from "../consts/sportType";
 import BackIcon from "@/assets/images/addPage/back";
 import Line from "@/assets/images/addPage/line";
 
-import { insertData, addDataType, getmulti, getDB } from "./indexSql";
+import { insertData, addDataType, getDB } from "./indexSql";
+import { getmulti } from "@/utility/datetool";
 import { effortArr, MoodObj } from "@/consts";
 import { useImmer } from "use-immer";
 // import Toast from "react-native-toast-message";

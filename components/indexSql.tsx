@@ -14,37 +14,6 @@ export type addDataType = {
   reply: string;
 };
 
-export function getmulti(Minutes: number) {
-  let d = new Date();
-  // month 从0开始多少有点逆天
-  // let startd = new Date(d.getTime() - 60 * 1000 * Minutes);
-  let obj = {
-    date: d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate(),
-    timeend: d.getTime(),
-    timestart: d.getTime() - 60 * 1000 * Minutes,
-  };
-  return obj;
-}
-
-export function getTime(t: number) {
-  let d = new Date(t);
-  let hours = d.getHours().toString();
-  let minutes = d.getMinutes().toString().padStart(2, "0");
-  return `${hours}:${minutes}`;
-}
-
-export function getGapTime(t: number) {
-  let totalMinutes = Math.floor(t / 60000); // 将毫秒转换为分钟
-  let hours = Math.floor(totalMinutes / 60).toString(); // 计算小时数并补零
-  let minutes = (totalMinutes % 60).toString().padStart(2, "0"); // 计算剩余分钟数并补零
-  return `${hours}:${minutes}`;
-}
-
-export function getDate(t: number | Date) {
-  let d = new Date(t);
-  return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
-}
-
 export async function getDB() {
   const db = SQLite.openDatabaseAsync("myDatabase.db");
   return db;
