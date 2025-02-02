@@ -72,7 +72,7 @@ export default function Page() {
   console.log("渲染targetPage");
 
   const [insertModalV, setInsertModalV] = useState(false);
-  const [durationType, setDurationType] = useState(consts_duration.DAYLY);
+  const [durationType, setDurationType] = useState(consts_duration.DAILY);
   const [ActiveGroupIdState, setActiveGroupIdState] = useState(-1);
 
   const [dataComponent, setDataComponent] = useState<
@@ -296,11 +296,11 @@ function TopBar({
     <View style={TopBarStyle.container}>
       <TouchableRipple
         onPress={() => {
-          setDurationType(consts_duration.DAYLY);
+          setDurationType(consts_duration.DAILY);
         }}
         style={[
           TopBarStyle.left,
-          durationType === consts_duration.DAYLY
+          durationType === consts_duration.DAILY
             ? TopBarStyle.chosen
             : TopBarStyle.unchosen,
         ]}
@@ -308,7 +308,7 @@ function TopBar({
       >
         <Text
           style={
-            durationType === consts_duration.DAYLY
+            durationType === consts_duration.DAILY
               ? TopBarStyle.chosenText
               : TopBarStyle.unchosenText
           }

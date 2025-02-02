@@ -10,13 +10,13 @@ import {
   TextInput,
   StyleSheet,
   GestureResponderEvent,
+  TextStyle,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AntIcon from "react-native-vector-icons/AntDesign";
 import FeaIcon from "react-native-vector-icons/Feather";
 
 import Pencil from "@/assets/images/targetPage/pencil";
-import AddIcon from "@/assets/images/targetPage/add";
 
 import {
   Gesture,
@@ -29,102 +29,129 @@ import Animated, {
   useAnimatedStyle,
   Easing,
 } from "react-native-reanimated";
-import { useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import { Modal, Portal, TouchableRipple } from "react-native-paper";
 import PressableText from "./PressableText";
 
-import { getDB } from "../sqls/indexSql";
 import * as consts_duration from "@/consts/duration";
+import { useSQLiteContext } from "expo-sqlite";
+import * as SQLite from "expo-sqlite";
+import { getDateNumber, getGapTimeString } from "@/utility/datetool";
+import {
+  cancelCheck,
+  getProgressByDay,
+  getProgressByWeek,
+  getProgressByWeekRetRow,
+  setCheck,
+} from "@/sqls/targetSql2";
+import sports from "@/consts/sportType";
+import { MyAlertCtx } from "@/app/_layout";
+import { dayDescription, dayDescriptionChina } from "@/consts/dayDescription";
 
+const RefreshFnCtx = createContext(() => {});
 export default function Page() {
   console.log("渲染targetPage");
 
+  const db = useSQLiteContext();
+
   const [insertModalV, setInsertModalV] = useState(false);
-  const [durationType, setDurationType] = useState(consts_duration.DAYLY);
+  const [durationType, setDurationType] = useState(consts_duration.DAILY);
 
   const [dataComponent, setDataComponent] = useState<
     React.JSX.Element[] | React.JSX.Element | undefined
   >();
+  const myAlert = useContext(MyAlertCtx);
+  const RefreshFn = useCallback(() => {
+    showData(db, durationType, new Date(), setDataComponent).catch(myAlert);
+  }, [db, myAlert, durationType]);
+
+  useEffect(RefreshFn, [RefreshFn]);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaView>
-        <ScrollView style={{ paddingHorizontal: 20 }}>
-          <TopBar
-            durationType={durationType}
-            setDurationType={setDurationType}
-          />
-          <Tip />
-          <AddGroup />
-          <AddTarget />
-          <View style={{ height: 10 }} />
-          {dataComponent}
-        </ScrollView>
-      </SafeAreaView>
-      <Portal>
-        <Modal
-          visible={insertModalV}
-          style={{
-            flexDirection: "column-reverse",
-            justifyContent: "flex-start",
-          }}
-          dismissable={false}
-        >
-          <View
+      <RefreshFnCtx.Provider value={RefreshFn}>
+        <SafeAreaView>
+          <ScrollView style={{ paddingHorizontal: 20 }}>
+            <TopBar
+              durationType={durationType}
+              setDurationType={setDurationType}
+            />
+            <Tip />
+            <View style={{ height: 10 }} />
+            {dataComponent}
+          </ScrollView>
+        </SafeAreaView>
+        <Portal>
+          <Modal
+            visible={insertModalV}
             style={{
-              height: 150,
-              backgroundColor: "#F4F4F4",
-              borderTopLeftRadius: 12,
-              borderTopRightRadius: 12,
-              paddingHorizontal: 20,
+              flexDirection: "column-reverse",
+              justifyContent: "flex-start",
             }}
+            dismissable={false}
           >
             <View
               style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "baseline",
-                marginTop: 20,
+                height: 150,
+                backgroundColor: "#F4F4F4",
+                borderTopLeftRadius: 12,
+                borderTopRightRadius: 12,
+                paddingHorizontal: 20,
               }}
             >
-              <PressableText
-                message="取消"
-                color={BrandColor}
-                highlightColor="#ffd399"
-                TextStyle={{ fontSize: 16 }}
-                onPress={() => {
-                  setInsertModalV(false);
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "baseline",
+                  marginTop: 20,
                 }}
-              />
-              <Text style={{ color: textColor, fontSize: 18 }}>创建目标</Text>
-              <PressableText
-                message="保存"
-                color={BrandColor}
-                highlightColor="#ffd399"
-                TextStyle={{ fontSize: 16 }}
-                onPress={() => {}}
-              />
+              >
+                <PressableText
+                  message="取消"
+                  color={BrandColor}
+                  highlightColor="#ffd399"
+                  TextStyle={{ fontSize: 16 }}
+                  onPress={() => {
+                    setInsertModalV(false);
+                  }}
+                />
+                <Text style={{ color: textColor, fontSize: 18 }}>创建目标</Text>
+                <PressableText
+                  message="保存"
+                  color={BrandColor}
+                  highlightColor="#ffd399"
+                  TextStyle={{ fontSize: 16 }}
+                  onPress={() => {}}
+                />
+              </View>
+              <View
+                style={{
+                  borderRadius: 15,
+                  backgroundColor: "white",
+                  marginTop: 20,
+                  paddingHorizontal: 10,
+                  paddingVertical: 3,
+                  height: 45,
+                  justifyContent: "center",
+                }}
+              >
+                <TextInput
+                  cursorColor={BrandColor}
+                  autoFocus={true}
+                  style={{ fontSize: 16 }}
+                />
+              </View>
             </View>
-            <View
-              style={{
-                borderRadius: 15,
-                backgroundColor: "white",
-                marginTop: 20,
-                paddingHorizontal: 10,
-                paddingVertical: 3,
-                height: 45,
-                justifyContent: "center",
-              }}
-            >
-              <TextInput
-                cursorColor={BrandColor}
-                autoFocus={true}
-                style={{ fontSize: 16 }}
-              />
-            </View>
-          </View>
-        </Modal>
-      </Portal>
+          </Modal>
+        </Portal>
+      </RefreshFnCtx.Provider>
     </GestureHandlerRootView>
   );
 }
@@ -190,11 +217,11 @@ function TopBar({
     <View style={TopBarStyle.container}>
       <TouchableRipple
         onPress={() => {
-          setDurationType(consts_duration.DAYLY);
+          setDurationType(consts_duration.DAILY);
         }}
         style={[
           TopBarStyle.left,
-          durationType === consts_duration.DAYLY
+          durationType === consts_duration.DAILY
             ? TopBarStyle.chosen
             : TopBarStyle.unchosen,
         ]}
@@ -202,7 +229,7 @@ function TopBar({
       >
         <Text
           style={
-            durationType === consts_duration.DAYLY
+            durationType === consts_duration.DAILY
               ? TopBarStyle.chosenText
               : TopBarStyle.unchosenText
           }
@@ -373,82 +400,18 @@ function AddTarget({
   );
 }
 
-function GroupTaskRow({
-  groupId,
-  message,
-  style,
-  childrenProps,
-}: {
-  groupId: number;
-  message: string;
-  style?: StyleProp<ViewStyle>;
-  childrenProps: TaskItemRowProps[];
-}) {
-  return (
-    <View style={style}>
-      <View
-        style={{
-          flexDirection: "row",
-          marginTop: 15,
-          alignItems: "center",
-        }}
-      >
-        <View>
-          <Pencil />
-        </View>
-        <View style={{ flex: 1, marginLeft: 10 }}>
-          <Text>{message}</Text>
-        </View>
-        <View>
-          <Pressable onPress={() => {}}>
-            {/* @ts-ignore */}
-            <AntIcon
-              name={true ? "downcircleo" : "rightcircleo"}
-              size={24}
-              color={"black"}
-            />
-          </Pressable>
-        </View>
-      </View>
-      <View
-        style={{
-          height: 2,
-          backgroundColor: "#FF960B",
-          borderRadius: 999,
-          marginTop: 3,
-          marginBottom: 5,
-        }}
-      ></View>
-      <View style={{ display: true ? "flex" : "none" }}>
-        {childrenProps.map((v, k) => (
-          <TaskItemRow
-            typeName={v.typeName}
-            isFinished={v.isFinished}
-            typeId={v.typeId}
-            groupId={groupId}
-            key={k}
-          />
-        ))}
-      </View>
-    </View>
-  );
-}
-
 type TaskItemRowProps = {
   typeName: string;
   style?: StyleProp<ViewStyle>;
   isFinished: boolean;
-  // setTargetState?: (isFinished: boolean, typeId: number) => Promise<void>;
-  typeId: number;
-  groupId?: number;
+  targetId: number;
 };
 
 function TaskItemRow({
   typeName,
   style,
   isFinished,
-  typeId,
-  groupId,
+  targetId,
 }: TaskItemRowProps) {
   const SWIPE_DISTANCE = 30;
   const swapConfig = {
@@ -471,8 +434,11 @@ function TaskItemRow({
     transform: [{ translateX: cardTransform.value }],
   }));
 
+  const db = useSQLiteContext();
+  const myAlert = useContext(MyAlertCtx);
+  const RefreshFn = useContext(RefreshFnCtx);
   return (
-    <View>
+    <View style={style}>
       <GestureDetector gesture={panGesture}>
         <Animated.View
           style={[
@@ -487,14 +453,21 @@ function TaskItemRow({
               marginBottom: 10,
             },
             animatedStyle,
-            style,
           ]}
         >
           <View style={{ marginHorizontal: 16 }}>
-            <Pressable onPress={() => {}}>
+            <Pressable
+              onPress={() => {
+                if (isFinished) {
+                  cancelCheck(db, targetId).catch(myAlert).then(RefreshFn);
+                } else {
+                  setCheck(db, targetId).catch(myAlert).then(RefreshFn);
+                }
+              }}
+            >
               {isFinished ? (
                 /* @ts-ignore */
-                <AntIcon name="checkcircle" size={24} color="#B5C7FF" />
+                <AntIcon name="checkcircle" size={24} color="#FFCC8E" />
               ) : (
                 /* @ts-ignore */
                 <FeaIcon name="circle" size={24} color="#DCDCDC" />
@@ -544,12 +517,152 @@ function TaskItemRow({
   );
 }
 
+function WeekGroup({ data }: { data: getProgressByWeekRetRow }) {
+  const [isFolded, setIsFolded] = useState(false);
+
+  return (
+    <View>
+      <View style={{ flexDirection: "row" }}>
+        <View style={{ flex: 1 }}>
+          <Text>{dayDescriptionChina[data.day]}</Text>
+        </View>
+        <Pressable
+          onPress={() => {
+            setIsFolded(!isFolded);
+          }}
+        >
+          {/* @ts-ignore */}
+          <AntIcon name={isFolded ? "rightcircleo" : "downcircleo"} />
+        </Pressable>
+      </View>
+      <View
+        style={{
+          height: 1,
+          backgroundColor: "#e7e7e7",
+          marginHorizontal: 10,
+          marginVertical: 5,
+        }}
+      ></View>
+      <Progress
+        isShowText={true}
+        total={data.children.length}
+        achieved={data.finished}
+        style={{ height: 25 }}
+      />
+      <View style={{ display: isFolded ? "none" : "flex" }}>
+        {data.children.map((v) => {
+          return (
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <View>
+                {v.isFinished ? (
+                  /* @ts-ignore */
+                  <AntIcon name="checkcircle" size={24} color="#FFCC8E" />
+                ) : (
+                  /* @ts-ignore */
+                  <FeaIcon name="circle" size={24} color="#DCDCDC" />
+                )}
+              </View>
+              <Text>
+                {v.sportId === -1
+                  ? v.description
+                  : `${sports[v.sportId].sportName}${getGapTimeString(
+                      v.duration
+                    )}`}
+              </Text>
+            </View>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
+function Progress({
+  isShowText,
+  total,
+  achieved,
+  style,
+  textStyle,
+}: {
+  isShowText: boolean;
+  style?: StyleProp<ViewStyle>;
+  textStyle?: StyleProp<TextStyle>;
+  total: number;
+  achieved: number;
+}) {
+  return (
+    <View
+      style={[
+        {
+          borderRadius: 999,
+          backgroundColor: "#E7E7E7",
+          height: 30,
+          overflow: "hidden",
+          flexDirection: "row",
+        },
+        style,
+      ]}
+    >
+      <View
+        style={{
+          flex: achieved,
+          flexDirection: "row",
+          borderRadius: 999,
+          backgroundColor: BrandColor,
+          alignItems: "center",
+        }}
+      >
+        <View style={{ flex: 1 }}></View>
+        {isShowText ? (
+          <Text style={[{ marginHorizontal: 5, color: "white" }, textStyle]}>
+            {Math.round((100 * achieved) / total) + "%"}
+          </Text>
+        ) : undefined}
+      </View>
+      <View style={{ flex: total - achieved }}></View>
+    </View>
+  );
+}
+
 async function showData(
+  db: SQLite.SQLiteDatabase,
   durationType: number,
-  date: number,
+  d: Date,
   setDataComponent: React.Dispatch<
-    React.SetStateAction<React.JSX.Element[] | undefined>
+    React.SetStateAction<React.JSX.Element | React.JSX.Element[] | undefined>
   >
 ) {
-  const db = await getDB();
+  if (durationType === consts_duration.DAILY) {
+    let datas = await getProgressByDay(db, d);
+    setDataComponent(
+      <View>
+        <AddTarget />
+        {datas.map((data) => (
+          <TaskItemRow
+            typeName={
+              data.sportId === -1
+                ? data.description
+                : `${sports[data.sportId].sportName}${getGapTimeString(
+                    data.duration
+                  )}`
+            }
+            isFinished={data.isFinished}
+            targetId={data.Id}
+            key={data.Id}
+            style={{ marginTop: 10 }}
+          />
+        ))}
+      </View>
+    );
+  } else if (durationType === consts_duration.WEEKLY) {
+    const datas = await getProgressByWeek(db, d);
+    console.log(datas);
+    setDataComponent(
+      <View>
+        {datas.map((data, key) => (
+          <WeekGroup data={data} key={key} />
+        ))}
+      </View>
+    );
+  }
 }

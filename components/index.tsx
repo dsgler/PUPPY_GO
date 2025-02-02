@@ -27,6 +27,7 @@ import sportArr from "@/consts/sportType";
 import { effortArr, MoodObj } from "@/consts";
 import MyScrollView from "./myScrollView";
 import { getDatesInWeek } from "@/utility/datetool";
+import { dayDescription } from "../consts/dayDescription";
 
 export default function Index() {
   console.log("index渲染");
@@ -158,7 +159,6 @@ function WeekCalendar({
   );
 }
 
-const dayDescription = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
 function WeekCalendarCap({
   d,
   isChosen = false,

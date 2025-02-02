@@ -82,21 +82,29 @@ export default function RootLayout() {
               },
             }}
           >
-            <MyAlertCtx.Provider value={myAlert}>
-              <Stack>
-                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                <Stack.Screen name="addPage" options={{ headerShown: false }} />
-                <Stack.Screen name="+not-found" />
-              </Stack>
-              <Portal>
-                <Dialog visible={dialogV} onDismiss={() => setDialogV(false)}>
-                  <Dialog.Content>{dialogC}</Dialog.Content>
-                  <Dialog.Actions>
-                    <Button onPress={() => setDialogV(false)}>好的</Button>
-                  </Dialog.Actions>
-                </Dialog>
-              </Portal>
-            </MyAlertCtx.Provider>
+            <SQLite.SQLiteProvider databaseName="myDatabase.db">
+              <MyAlertCtx.Provider value={myAlert}>
+                <Stack>
+                  <Stack.Screen
+                    name="(tabs)"
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen
+                    name="addPage"
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen name="+not-found" />
+                </Stack>
+                <Portal>
+                  <Dialog visible={dialogV} onDismiss={() => setDialogV(false)}>
+                    <Dialog.Content>{dialogC}</Dialog.Content>
+                    <Dialog.Actions>
+                      <Button onPress={() => setDialogV(false)}>好的</Button>
+                    </Dialog.Actions>
+                  </Dialog>
+                </Portal>
+              </MyAlertCtx.Provider>
+            </SQLite.SQLiteProvider>
           </ThemeProvider>
         </PaperProvider>
         {/* eslint-disable-next-line react/style-prop-object */}

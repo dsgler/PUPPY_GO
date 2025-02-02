@@ -16,6 +16,9 @@ export function AddDays(date: Date, days: number) {
   return result;
 }
 
+/**
+ * 周日在最后
+ */
 export function getDatesInWeek(d: Date): Date[] {
   let dateArr: Date[] = Array.from({ length: 7 });
   let t = d.getDay();

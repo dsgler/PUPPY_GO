@@ -26,7 +26,7 @@ type frequencyType = {
   content: number[];
 };
 
-export type targetCheckRow = { date: number; typeId: number };
+export type targetCheckRow = { date: number; targetId: number };
 
 export type groupNameRow = { groupId: number; groupName: string };
 
@@ -182,6 +182,7 @@ export async function getTargetsByDay(db: SQLite.SQLiteDatabase, d: Date) {
 
 /**
  * 周日是一周的最后一天
+ * 但 index=0 是周日
  */
 export async function getTargetsByWeek(db: SQLite.SQLiteDatabase, d: Date) {
   let rows = (await getAllOnce(
@@ -241,27 +242,49 @@ export async function getTargetsByWeek(db: SQLite.SQLiteDatabase, d: Date) {
   return ret;
 }
 
+type getProgressByDayRetRow = targetRow & { isFinished: boolean };
 export async function getProgressByDay(
   db: SQLite.SQLiteDatabase,
-  d: Date,
-  targetIds: number[]
-): Promise<boolean[]> {
+  d: Date
+): Promise<getProgressByDayRetRow[]> {
   let date = getDateNumber(d);
-  let ret = (await getAllOnce(db, `SELECT * FROM targetCheck WHERE date=?;`, [
+  let src = (await getAllOnce(db, `SELECT * FROM targetCheck WHERE date=?;`, [
     date,
   ])) as targetCheckRow[];
 
-  return targetIds.map((v) => {
-    for (const ele of ret) {
-      if (v === ele.typeId) {
-        return true;
+  let targets = await getTargetsByDay(db, d);
+  let ret: getProgressByDayRetRow[] = targets.map((target) => {
+    const retRow: getProgressByDayRetRow = { ...target, isFinished: false };
+    for (const ele of src) {
+      if (ele.targetId === retRow.Id) {
+        retRow.isFinished = true;
+        break;
       }
     }
-    return false;
+    return retRow;
   });
+  return ret;
 }
-
-export async function getProgressByWeek() {}
+export type getProgressByWeekRetRow = {
+  day: number;
+  finished: number;
+  children: getProgressByDayRetRow[];
+};
+export async function getProgressByWeek(db: SQLite.SQLiteDatabase, d: Date) {
+  let dates = getDatesInWeek(d);
+  let ret: getProgressByWeekRetRow[] = Array.from({ length: dates.length });
+  for (let i = 0; i < dates.length; i++) {
+    let r = await getProgressByDay(db, dates[i]);
+    let finished = r.reduce((pre, cur) => {
+      if (cur.isFinished) {
+        return pre + 1;
+      }
+      return pre;
+    }, 0);
+    ret[i] = { day: i, finished, children: r };
+  }
+  return ret;
+}
 
 type getProgressByMonthRetRow = {
   groupId: number;
@@ -300,7 +323,7 @@ export async function getProgressByMonth(db: SQLite.SQLiteDatabase) {
   }));
   let chi: childrenRow[] = targets.map((v) => ({ ...v, times: 0 }));
   for (let checkRow of checks) {
-    let typeId = checkRow.typeId;
+    let typeId = checkRow.targetId;
     for (let ele of chi) {
       if (ele.Id === typeId) {
         ele.times++;
@@ -326,6 +349,7 @@ export async function getProgressByMonth(db: SQLite.SQLiteDatabase) {
     }
     ele.progress = Math.round(ele.progress);
   }
+  return ret;
 }
 
 export async function addGroup(db: SQLite.SQLiteDatabase, groupName: string) {
