@@ -85,6 +85,7 @@ export default function Page() {
             <Tip />
             <View style={{ height: 10 }} />
             {dataComponent}
+            <View style={{ height: 10 }}></View>
           </ScrollView>
         </SafeAreaView>
         <Portal>
@@ -518,13 +519,23 @@ function TaskItemRow({
 }
 
 function WeekGroup({ data }: { data: getProgressByWeekRetRow }) {
-  const [isFolded, setIsFolded] = useState(false);
+  const [isFolded, setIsFolded] = useState(
+    new Date().getDay() === (data.day + 1) % 7 ? false : true
+  );
 
   return (
-    <View>
-      <View style={{ flexDirection: "row" }}>
+    <View
+      style={{
+        backgroundColor: "white",
+        borderRadius: 10,
+        marginTop: 11,
+        paddingVertical: 10,
+        paddingHorizontal: 10,
+      }}
+    >
+      <View style={{ flexDirection: "row", height: 30, alignItems: "center" }}>
         <View style={{ flex: 1 }}>
-          <Text>{dayDescriptionChina[data.day]}</Text>
+          <Text style={{ fontSize: 16 }}>{dayDescriptionChina[data.day]}</Text>
         </View>
         <Pressable
           onPress={() => {
@@ -532,37 +543,48 @@ function WeekGroup({ data }: { data: getProgressByWeekRetRow }) {
           }}
         >
           {/* @ts-ignore */}
-          <AntIcon name={isFolded ? "rightcircleo" : "downcircleo"} />
+          <AntIcon name={isFolded ? "rightcircleo" : "downcircleo"} size={21} />
         </Pressable>
       </View>
       <View
         style={{
           height: 1,
           backgroundColor: "#e7e7e7",
-          marginHorizontal: 10,
           marginVertical: 5,
         }}
       ></View>
-      <Progress
-        isShowText={true}
-        total={data.children.length}
-        achieved={data.finished}
-        style={{ height: 25 }}
-      />
+      <View style={{ flexDirection: "row" }}>
+        <Progress
+          isShowText={true}
+          total={data.children.length}
+          achieved={data.finished}
+          style={{ height: 25, flex: 1 }}
+        />
+        <View style={{ marginLeft: 10 }}>
+          {/* @ts-ignore */}
+          <AntIcon name="pluscircle" size={21} color={BrandColor} />
+        </View>
+      </View>
       <View style={{ display: isFolded ? "none" : "flex" }}>
         {data.children.map((v) => {
           return (
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <View>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                marginTop: 13,
+              }}
+            >
+              <View style={{ marginRight: 8 }}>
                 {v.isFinished ? (
                   /* @ts-ignore */
-                  <AntIcon name="checkcircle" size={24} color="#FFCC8E" />
+                  <AntIcon name="checkcircle" size={21} color="#FFCC8E" />
                 ) : (
                   /* @ts-ignore */
-                  <FeaIcon name="circle" size={24} color="#DCDCDC" />
+                  <FeaIcon name="circle" size={21} color="#DCDCDC" />
                 )}
               </View>
-              <Text>
+              <Text style={{ fontSize: 16 }}>
                 {v.sportId === -1
                   ? v.description
                   : `${sports[v.sportId].sportName}${getGapTimeString(
