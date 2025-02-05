@@ -11,6 +11,8 @@ import {
   StyleSheet,
   GestureResponderEvent,
   TextStyle,
+  ColorValue,
+  Keyboard,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AntIcon from "react-native-vector-icons/AntDesign";
@@ -28,15 +30,26 @@ import Animated, {
   withTiming,
   useAnimatedStyle,
   Easing,
+  FadeIn,
+  FadeOut,
+  LinearTransition,
 } from "react-native-reanimated";
 import {
   createContext,
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useState,
 } from "react";
-import { Modal, Portal, TouchableRipple } from "react-native-paper";
+import { useImmer } from "use-immer";
+import {
+  Modal,
+  Portal,
+  Provider,
+  Snackbar,
+  TouchableRipple,
+} from "react-native-paper";
 import PressableText from "./PressableText";
 
 import * as consts_duration from "@/consts/duration";
@@ -44,29 +57,61 @@ import { useSQLiteContext } from "expo-sqlite";
 import * as SQLite from "expo-sqlite";
 import { getDateNumber, getGapTimeString } from "@/utility/datetool";
 import {
+  addGroup,
   cancelCheck,
+  createTable,
+  frequencyType,
+  getGroups,
   getProgressByDay,
+  getProgressByMonth,
+  getProgressByMonthRetRow,
   getProgressByWeek,
   getProgressByWeekRetRow,
+  groupNameRow,
   setCheck,
+  targetRow,
 } from "@/sqls/targetSql2";
 import sports from "@/consts/sportType";
 import { MyAlertCtx } from "@/app/_layout";
-import { dayDescription, dayDescriptionChina } from "@/consts/dayDescription";
+import { dayDescriptionChina } from "@/consts/dayDescription";
+import * as consts_frequency from "@/consts/frequency";
 
-const RefreshFnCtx = createContext(() => {});
+export function getDescription(v: {
+  sportId: number;
+  description: string;
+  duration: number;
+}) {
+  return v.sportId === -1
+    ? v.description
+    : `${sports[v.sportId].sportName}${getGapTimeString(v.duration)}`;
+}
+
+const RefreshFnCtx = createContext<() => void>(() => {
+  throw Error("获取错误");
+});
 export default function Page() {
   console.log("渲染targetPage");
 
   const db = useSQLiteContext();
 
   const [insertModalV, setInsertModalV] = useState(false);
+  const [SnackbarV, setSnackbarV] = useState(false);
+  const [SnackbarC, setSnackbarC] = useState("");
+
   const [durationType, setDurationType] = useState(consts_duration.DAILY);
 
   const [dataComponent, setDataComponent] = useState<
     React.JSX.Element[] | React.JSX.Element | undefined
   >();
+
+  const [modalType, setModalType] = useState(0);
+
   const myAlert = useContext(MyAlertCtx);
+  const myHint = useCallback((message: string) => {
+    setSnackbarC(message);
+    setSnackbarV(true);
+  }, []);
+
   const RefreshFn = useCallback(() => {
     showData(db, durationType, new Date(), setDataComponent).catch(myAlert);
   }, [db, myAlert, durationType]);
@@ -83,77 +128,389 @@ export default function Page() {
               setDurationType={setDurationType}
             />
             <Tip />
+            {durationType === consts_duration.DAILY ? (
+              <AddTarget
+                onPress={() => {
+                  setModalType(ADD_TARGET);
+                  setInsertModalV(true);
+                }}
+              />
+            ) : (
+              <AddGroup
+                onPress={() => {
+                  setModalType(ADD_GROUP);
+                  setInsertModalV(true);
+                }}
+              />
+            )}
             <View style={{ height: 10 }} />
             {dataComponent}
             <View style={{ height: 10 }}></View>
           </ScrollView>
         </SafeAreaView>
-        <Portal>
-          <Modal
-            visible={insertModalV}
-            style={{
-              flexDirection: "column-reverse",
-              justifyContent: "flex-start",
+        <View
+          style={{
+            position: "absolute",
+            top: 0,
+            bottom: 0,
+            left: 0,
+            right: 0,
+          }}
+        >
+          <Portal>
+            <RefreshFnCtx.Provider value={RefreshFn}>
+              <Modal
+                visible={insertModalV}
+                style={{
+                  justifyContent: "flex-end",
+                }}
+                dismissable={false}
+              >
+                <ScrollView keyboardShouldPersistTaps={"always"}>
+                  <View
+                    style={{
+                      backgroundColor: "#F4F4F4",
+                      borderTopLeftRadius: 12,
+                      borderTopRightRadius: 12,
+                      paddingHorizontal: 20,
+                      paddingTop: 20,
+                    }}
+                  >
+                    <ModalComponentSwitcher
+                      modalType={modalType}
+                      setInsertModalV={setInsertModalV}
+                      myHint={myHint}
+                    />
+                  </View>
+                </ScrollView>
+              </Modal>
+            </RefreshFnCtx.Provider>
+            <Snackbar
+              visible={SnackbarV}
+              onDismiss={() => {
+                setSnackbarV(false);
+              }}
+              action={{
+                label: "确定",
+                onPress: () => {
+                  // Do something
+                  setSnackbarV(false);
+                },
+              }}
+              duration={300}
+            >
+              {SnackbarC}
+            </Snackbar>
+          </Portal>
+        </View>
+      </RefreshFnCtx.Provider>
+    </GestureHandlerRootView>
+  );
+}
+
+const ADD_GROUP = 0;
+const ADD_TARGET = 1;
+
+function ModalComponentSwitcher({
+  modalType,
+  setInsertModalV,
+  myHint,
+}: {
+  modalType: number;
+  setInsertModalV: React.Dispatch<React.SetStateAction<boolean>>;
+  myHint: (message: string) => void;
+}) {
+  if (modalType === ADD_GROUP) {
+    return (
+      <ModalComponent0 setInsertModalV={setInsertModalV} myHint={myHint} />
+    );
+  } else if (modalType === ADD_TARGET) {
+    return (
+      <ModalComponent1 setInsertModalV={setInsertModalV} myHint={myHint} />
+    );
+  } else {
+    throw Error("未知的modalType:" + modalType);
+  }
+}
+
+function ModalComponent0({
+  setInsertModalV,
+  myHint,
+}: {
+  setInsertModalV: React.Dispatch<React.SetStateAction<boolean>>;
+  myHint: (message: string) => void;
+}) {
+  const [groupName, setGroupName] = useState("");
+  const db = useSQLiteContext();
+  const myAlert = useContext(MyAlertCtx);
+  const RefreshFn = useContext(RefreshFnCtx);
+
+  return (
+    <View>
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "baseline",
+          marginTop: 20,
+        }}
+      >
+        <PressableText
+          message="取消"
+          color={BrandColor}
+          highlightColor="#ffd399"
+          TextStyle={{ fontSize: 16 }}
+          onPress={() => {
+            setInsertModalV(false);
+          }}
+        />
+        <Text style={{ color: textColor, fontSize: 18 }}>创建分组</Text>
+        <PressableText
+          message="保存"
+          color={BrandColor}
+          highlightColor="#ffd399"
+          TextStyle={{ fontSize: 16 }}
+          onPress={() => {
+            let t = groupName.trim();
+            if (t === "") {
+              myAlert("请输入groupName");
+              return;
+            }
+            addGroup(db, t)
+              .then(() => {
+                myHint("保存成功");
+                setInsertModalV(false);
+                RefreshFn();
+              })
+              .catch(myAlert);
+          }}
+        />
+      </View>
+      <View
+        style={{
+          borderRadius: 15,
+          backgroundColor: "white",
+          marginTop: 20,
+          marginBottom: 20,
+          paddingHorizontal: 10,
+          paddingVertical: 3,
+          height: 45,
+          justifyContent: "center",
+        }}
+      >
+        <TextInput
+          cursorColor={BrandColor}
+          autoFocus={true}
+          style={{ fontSize: 16 }}
+          value={groupName}
+          onChangeText={setGroupName}
+        />
+      </View>
+    </View>
+  );
+}
+
+const ModalComponent1Style = StyleSheet.create({
+  row: {
+    borderRadius: 15,
+    backgroundColor: "white",
+    marginVertical: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    height: 45,
+    justifyContent: "center",
+  },
+});
+
+function ModalComponent1({
+  setInsertModalV,
+  myHint,
+}: {
+  setInsertModalV: React.Dispatch<React.SetStateAction<boolean>>;
+  myHint: (message: string) => void;
+}) {
+  const [targetName, setTargetName] = useState("");
+  const db = useSQLiteContext();
+  const myAlert = useContext(MyAlertCtx);
+  const RefreshFn = useContext(RefreshFnCtx);
+  const [groups, setGroups] = useState<groupNameRow[]>([]);
+  useEffect(() => {
+    getGroups(db)
+      .then((v) => {
+        setGroups(v);
+      })
+      .catch(myAlert);
+  }, [db, myAlert]);
+  const groupList = useMemo<ListChooseListRowType[]>(
+    () => groups.map((v) => ({ name: v.groupName, Id: v.groupId })),
+    [groups]
+  );
+
+  const [frequency, updateFrequency] = useImmer<frequencyType>({
+    typeId: consts_frequency.DAILY,
+    content: [],
+  });
+  const [data, updatedata] = useImmer<targetRow>({
+    Id: -1,
+    groupId: -1,
+    description: "",
+    makeTime: -1,
+    duration: 0,
+    count: 0,
+    frequency: "",
+    sportId: -1,
+    endTime: -1,
+  });
+
+  const MAIN = 0;
+  const CHOOSE_GROUP = 1;
+  const CYCLE = 2;
+  const DURATION = 3;
+  const COUNT = 4;
+
+  const [pageType, setPageType] = useState(MAIN);
+
+  if (pageType === MAIN) {
+    return (
+      <View>
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "baseline",
+          }}
+        >
+          <PressableText
+            message="取消"
+            color={BrandColor}
+            highlightColor="#ffd399"
+            TextStyle={{ fontSize: 16 }}
+            onPress={() => {
+              setInsertModalV(false);
             }}
-            dismissable={false}
+          />
+          <Text style={{ color: textColor, fontSize: 18 }}>创建目标</Text>
+          <PressableText
+            message="保存"
+            color={BrandColor}
+            highlightColor="#ffd399"
+            TextStyle={{ fontSize: 16 }}
+            onPress={() => {
+              // let t = targetName.trim();
+              // if (t === "") {
+              //   myAlert("请输入groupName");
+              //   return;
+              // }
+              // addGroup(db, t)
+              //   .then(() => {
+              //     myHint("保存成功");
+              //     setInsertModalV(false);
+              //     RefreshFn();
+              //   })
+              //   .catch(myAlert);
+            }}
+          />
+        </View>
+        <View style={ModalComponent1Style.row}>
+          <TextInput
+            cursorColor={BrandColor}
+            autoFocus={true}
+            style={{ fontSize: 16 }}
+            value={targetName}
+            onChangeText={setTargetName}
+            placeholder="请输入目标"
+          />
+        </View>
+        <Pressable
+          onPress={() => {
+            setPageType(CHOOSE_GROUP);
+          }}
+        >
+          <View style={ModalComponent1Style.row}>
+            <Text
+              style={{
+                fontSize: 16,
+                color: data.groupId === -1 ? "grep" : "black",
+              }}
+            >
+              {data.groupId === -1
+                ? "请选择分组"
+                : groups.find((v) => v.groupId === data.groupId)?.groupName}
+            </Text>
+          </View>
+        </Pressable>
+      </View>
+    );
+  } else if (pageType === CHOOSE_GROUP) {
+    return (
+      <View>
+        <View style={{ flexDirection: "row" }}>
+          <PressableText
+            message="返回"
+            color={BrandColor}
+            highlightColor="#ffd399"
+            TextStyle={{ fontSize: 16 }}
+            onPress={() => {
+              setPageType(MAIN);
+            }}
+          />
+        </View>
+        <ListChoose
+          list={groupList}
+          chosenId={data.groupId}
+          setId={(newId) => {
+            updatedata((data) => {
+              data.groupId = newId;
+            });
+          }}
+        />
+      </View>
+    );
+  }
+}
+
+type ListChooseListRowType = { name: string; Id: number };
+function ListChoose({
+  list,
+  chosenId,
+  setId,
+}: {
+  list: ListChooseListRowType[];
+  chosenId: number;
+  setId: (newId: number) => void;
+}) {
+  return (
+    <View>
+      {list.map((v) => {
+        return (
+          <Pressable
+            onPress={() => {
+              setId(v.Id);
+            }}
+            style={{ marginVertical: 5 }}
+            key={v.Id}
           >
             <View
               style={{
-                height: 150,
-                backgroundColor: "#F4F4F4",
-                borderTopLeftRadius: 12,
-                borderTopRightRadius: 12,
-                paddingHorizontal: 20,
+                backgroundColor: "white",
+                borderRadius: 10,
+                paddingVertical: 10,
+                paddingLeft: 16,
+                paddingRight: 16,
+                flexDirection: "row",
+                height: 45,
               }}
             >
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  alignItems: "baseline",
-                  marginTop: 20,
-                }}
-              >
-                <PressableText
-                  message="取消"
-                  color={BrandColor}
-                  highlightColor="#ffd399"
-                  TextStyle={{ fontSize: 16 }}
-                  onPress={() => {
-                    setInsertModalV(false);
-                  }}
-                />
-                <Text style={{ color: textColor, fontSize: 18 }}>创建目标</Text>
-                <PressableText
-                  message="保存"
-                  color={BrandColor}
-                  highlightColor="#ffd399"
-                  TextStyle={{ fontSize: 16 }}
-                  onPress={() => {}}
-                />
-              </View>
-              <View
-                style={{
-                  borderRadius: 15,
-                  backgroundColor: "white",
-                  marginTop: 20,
-                  paddingHorizontal: 10,
-                  paddingVertical: 3,
-                  height: 45,
-                  justifyContent: "center",
-                }}
-              >
-                <TextInput
-                  cursorColor={BrandColor}
-                  autoFocus={true}
-                  style={{ fontSize: 16 }}
-                />
-              </View>
+              <Text style={{ fontSize: 16, flex: 1 }}>{v.name}</Text>
+              {chosenId === v.Id ? (
+                // @ts-ignore
+                <AntIcon name="checkcircle" size={21} color={BrandColor} />
+              ) : null}
             </View>
-          </Modal>
-        </Portal>
-      </RefreshFnCtx.Provider>
-    </GestureHandlerRootView>
+          </Pressable>
+        );
+      })}
+    </View>
   );
 }
 
@@ -424,10 +781,8 @@ function TaskItemRow({
   const panGesture = Gesture.Pan().onEnd((e) => {
     if (e.translationX < -SWIPE_DISTANCE) {
       cardTransform.value = withTiming(-50, swapConfig);
-      console.log("in");
     } else if (e.translationX > SWIPE_DISTANCE) {
       cardTransform.value = withTiming(0, swapConfig);
-      console.log("back");
     }
   });
 
@@ -574,6 +929,7 @@ function WeekGroup({ data }: { data: getProgressByWeekRetRow }) {
                 alignItems: "center",
                 marginTop: 13,
               }}
+              key={v.Id}
             >
               <View style={{ marginRight: 8 }}>
                 {v.isFinished ? (
@@ -584,18 +940,148 @@ function WeekGroup({ data }: { data: getProgressByWeekRetRow }) {
                   <FeaIcon name="circle" size={21} color="#DCDCDC" />
                 )}
               </View>
-              <Text style={{ fontSize: 16 }}>
-                {v.sportId === -1
-                  ? v.description
-                  : `${sports[v.sportId].sportName}${getGapTimeString(
-                      v.duration
-                    )}`}
-              </Text>
+              <Text style={{ fontSize: 16 }}>{getDescription(v)}</Text>
             </View>
           );
         })}
       </View>
     </View>
+  );
+}
+
+function MonthGroup({ data }: { data: getProgressByMonthRetRow }) {
+  const [isFolded, setIsFolded] = useState(false);
+
+  return (
+    <Animated.View
+      style={{
+        backgroundColor: "white",
+        borderRadius: 10,
+        marginTop: 10,
+        paddingHorizontal: 10,
+      }}
+      layout={LinearTransition.duration(300)}
+    >
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          marginVertical: 10,
+        }}
+      >
+        <View style={{ flex: 1 }}>
+          <Text style={{ fontSize: 16 }}>{data.groupName}</Text>
+        </View>
+        <Pressable
+          onPress={() => {
+            setIsFolded(!isFolded);
+          }}
+        >
+          {/* @ts-ignore */}
+          <AntIcon name={isFolded ? "rightcircleo" : "downcircleo"} size={21} />
+        </Pressable>
+      </View>
+      <View
+        style={{
+          height: 1,
+          backgroundColor: "#e7e7e7",
+        }}
+      ></View>
+      <View style={{ flexDirection: "row", marginVertical: 10 }}>
+        <Progress
+          isShowText={true}
+          total={100}
+          achieved={data.progress}
+          style={{ height: 25, flex: 1 }}
+        />
+        <View style={{ marginLeft: 10 }}>
+          {/* @ts-ignore */}
+          <AntIcon name="pluscircle" size={21} color={BrandColor} />
+        </View>
+      </View>
+      {isFolded ? null : (
+        <Animated.View
+          entering={FadeIn.duration(300).easing(Easing.inOut(Easing.quad))}
+          exiting={FadeOut.duration(300).easing(Easing.inOut(Easing.quad))}
+        >
+          {data.children.map((data) => {
+            return (
+              <View key={data.Id}>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    marginTop: 10,
+                    height: 24,
+                  }}
+                >
+                  <View>
+                    <Text style={{ fontSize: 16, lineHeight: 24 }}>
+                      {getDescription(data)}
+                    </Text>
+                  </View>
+                  <View
+                    style={{
+                      borderRadius: 999,
+                      backgroundColor: "#FFF1B0",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      paddingHorizontal: 5,
+                      marginLeft: 5,
+                      height: 24,
+                      minWidth: 24,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontSize: 16,
+                        lineHeight: 24,
+                        color: "#FFBC2B",
+                        textAlign: "center",
+                      }}
+                    >
+                      {Math.max(0, data.count - data.times)}
+                    </Text>
+                  </View>
+                </View>
+                <View
+                  style={{
+                    height: 22,
+                    flexDirection: "row",
+                    alignItems: "center",
+                  }}
+                >
+                  <Progress
+                    isShowText={false}
+                    total={data.count}
+                    achieved={data.times}
+                    color={data.times < data.count ? BrandColor : "#2BA471"}
+                    height={6}
+                    style={{ flex: 1 }}
+                  />
+                  {data.times < data.count && data.count !== 0 ? (
+                    <Text
+                      style={{
+                        fontSize: 14,
+                        lineHeight: 22,
+                        width: 36,
+                        textAlign: "right",
+                      }}
+                    >
+                      {Math.round((100 * data.times) / data.count) + "%"}
+                    </Text>
+                  ) : (
+                    // @ts-ignore
+                    <AntIcon name="checkcircle" size={21} color="#2BA471" />
+                  )}
+                </View>
+              </View>
+            );
+          })}
+          <View style={{ height: 5 }}></View>
+        </Animated.View>
+      )}
+    </Animated.View>
   );
 }
 
@@ -605,12 +1091,16 @@ function Progress({
   achieved,
   style,
   textStyle,
+  height = 30,
+  color = BrandColor,
 }: {
   isShowText: boolean;
   style?: StyleProp<ViewStyle>;
   textStyle?: StyleProp<TextStyle>;
   total: number;
   achieved: number;
+  height?: number;
+  color?: ColorValue;
 }) {
   return (
     <View
@@ -618,7 +1108,7 @@ function Progress({
         {
           borderRadius: 999,
           backgroundColor: "#E7E7E7",
-          height: 30,
+          height: height,
           overflow: "hidden",
           flexDirection: "row",
         },
@@ -629,19 +1119,31 @@ function Progress({
         style={{
           flex: achieved,
           flexDirection: "row",
-          borderRadius: 999,
-          backgroundColor: BrandColor,
+          // borderRadius: 999,
+          backgroundColor: color,
           alignItems: "center",
         }}
       >
         <View style={{ flex: 1 }}></View>
-        {isShowText ? (
-          <Text style={[{ marginHorizontal: 5, color: "white" }, textStyle]}>
-            {Math.round((100 * achieved) / total) + "%"}
-          </Text>
-        ) : undefined}
       </View>
-      <View style={{ flex: total - achieved }}></View>
+      <View style={{ flex: total - achieved, flexDirection: "row" }}>
+        <View
+          style={{
+            backgroundColor: color,
+            borderTopRightRadius: 999,
+            borderBottomRightRadius: 999,
+            minWidth: height / 2,
+            flexDirection: "row",
+            alignItems: "center",
+          }}
+        >
+          {isShowText ? (
+            <Text style={[{ marginHorizontal: 5, color: "white" }, textStyle]}>
+              {Math.round((100 * achieved) / total) + "%"}
+            </Text>
+          ) : undefined}
+        </View>
+      </View>
     </View>
   );
 }
@@ -654,11 +1156,12 @@ async function showData(
     React.SetStateAction<React.JSX.Element | React.JSX.Element[] | undefined>
   >
 ) {
+  console.log("showData调用");
+  await createTable(db);
   if (durationType === consts_duration.DAILY) {
     let datas = await getProgressByDay(db, d);
     setDataComponent(
       <View>
-        <AddTarget />
         {datas.map((data) => (
           <TaskItemRow
             typeName={
@@ -678,7 +1181,6 @@ async function showData(
     );
   } else if (durationType === consts_duration.WEEKLY) {
     const datas = await getProgressByWeek(db, d);
-    console.log(datas);
     setDataComponent(
       <View>
         {datas.map((data, key) => (
@@ -686,5 +1188,17 @@ async function showData(
         ))}
       </View>
     );
+  } else if (durationType === consts_duration.MONTHLY) {
+    const datas = await getProgressByMonth(db);
+    console.log(datas);
+    setDataComponent(
+      <View>
+        {datas.map((data, key) => {
+          return <MonthGroup data={data} key={key} />;
+        })}
+      </View>
+    );
+  } else {
+    throw Error("没有这个durationType类型");
   }
 }

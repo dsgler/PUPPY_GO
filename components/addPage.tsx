@@ -127,7 +127,12 @@ export default function AddPage() {
                 overflow: "hidden",
               }}
             >
-              <TouchableRipple onPress={() => router.back()} style={{}}>
+              <TouchableRipple
+                onPress={() => {
+                  router.back();
+                }}
+                style={{}}
+              >
                 <BackIcon />
               </TouchableRipple>
             </View>

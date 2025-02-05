@@ -9,7 +9,7 @@ import {
 } from "@/utility/datetool";
 import { getAllOnce } from "@/utility/sql";
 
-type targetRow = {
+export type targetRow = {
   Id: number;
   groupId: number;
   description: string;
@@ -21,7 +21,7 @@ type targetRow = {
   endTime: number;
 };
 
-type frequencyType = {
+export type frequencyType = {
   typeId: number;
   content: number[];
 };
@@ -286,7 +286,7 @@ export async function getProgressByWeek(db: SQLite.SQLiteDatabase, d: Date) {
   return ret;
 }
 
-type getProgressByMonthRetRow = {
+export type getProgressByMonthRetRow = {
   groupId: number;
   groupName: string;
   // 0-100
@@ -294,15 +294,19 @@ type getProgressByMonthRetRow = {
   children: childrenRow[];
 };
 
-type childrenRow = targetRow & { times: number };
-
-export async function getProgressByMonth(db: SQLite.SQLiteDatabase) {
-  let d = new Date();
-  let groups = (await getAllOnce(
+export async function getGroups(db: SQLite.SQLiteDatabase) {
+  return (await getAllOnce(
     db,
     `SELECT * FROM groupName;`,
     []
   )) as groupNameRow[];
+}
+
+type childrenRow = targetRow & { times: number };
+
+export async function getProgressByMonth(db: SQLite.SQLiteDatabase) {
+  let d = new Date();
+  let groups = await getGroups(db);
   let targets = (await getAllOnce(
     db,
     `SELECT * FROM targetRow;`,
