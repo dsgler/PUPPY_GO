@@ -17,3 +17,5 @@ export const dayDescriptionChina = [
   "周六",
   "周日",
 ];
+
+export const dayChina = [1, 2, 3, 4, 5, 6, 0];

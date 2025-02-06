@@ -1,4 +1,4 @@
-import { BrandColor, textColor } from "@/consts/tabs";
+import { BrandColor, textColor, unChoseColor } from "@/consts/tabs";
 import {
   View,
   Text,
@@ -19,8 +19,10 @@ import AntIcon from "react-native-vector-icons/AntDesign";
 import FeaIcon from "react-native-vector-icons/Feather";
 
 import Pencil from "@/assets/images/targetPage/pencil";
+import RepeatIcon from "@/assets/images/targetPage/repeat";
 
 import {
+  Directions,
   Gesture,
   GestureDetector,
   GestureHandlerRootView,
@@ -55,9 +57,14 @@ import PressableText from "./PressableText";
 import * as consts_duration from "@/consts/duration";
 import { useSQLiteContext } from "expo-sqlite";
 import * as SQLite from "expo-sqlite";
-import { getDateNumber, getGapTimeString } from "@/utility/datetool";
+import {
+  getDateNumber,
+  getDatesInMonth,
+  getGapTimeString,
+} from "@/utility/datetool";
 import {
   addGroup,
+  addTarget,
   cancelCheck,
   createTable,
   frequencyType,
@@ -73,7 +80,7 @@ import {
 } from "@/sqls/targetSql2";
 import sports from "@/consts/sportType";
 import { MyAlertCtx } from "@/app/_layout";
-import { dayDescriptionChina } from "@/consts/dayDescription";
+import { dayDescription, dayDescriptionChina } from "@/consts/dayDescription";
 import * as consts_frequency from "@/consts/frequency";
 
 export function getDescription(v: {
@@ -252,7 +259,6 @@ function ModalComponent0({
           flexDirection: "row",
           justifyContent: "space-between",
           alignItems: "baseline",
-          marginTop: 20,
         }}
       >
         <PressableText
@@ -304,6 +310,7 @@ function ModalComponent0({
           style={{ fontSize: 16 }}
           value={groupName}
           onChangeText={setGroupName}
+          placeholder="请输入分组名"
         />
       </View>
     </View>
@@ -315,10 +322,18 @@ const ModalComponent1Style = StyleSheet.create({
     borderRadius: 15,
     backgroundColor: "white",
     marginVertical: 10,
-    paddingHorizontal: 10,
+    paddingHorizontal: 15,
     paddingVertical: 3,
     height: 45,
     justifyContent: "center",
+  },
+  block: {
+    height: 24,
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: 5,
+    backgroundColor: "white",
+    paddingHorizontal: 3,
   },
 });
 
@@ -345,6 +360,14 @@ function ModalComponent1({
     () => groups.map((v) => ({ name: v.groupName, Id: v.groupId })),
     [groups]
   );
+  const repeatList: ListChooseListRowType[] = [
+    { Id: consts_frequency.DAILY, name: "每日" },
+    { Id: consts_frequency.WEEKDAY, name: "周中" },
+    { Id: consts_frequency.WEEKEND, name: "周末" },
+    { Id: consts_frequency.COSTUM_MONTH, name: "自定义（月）" },
+    { Id: consts_frequency.COSTUM_WEEK, name: "自定义（周）" },
+    { Id: consts_frequency.COSTUM_DAY, name: "自定义（日）" },
+  ];
 
   const [frequency, updateFrequency] = useImmer<frequencyType>({
     typeId: consts_frequency.DAILY,
@@ -364,7 +387,7 @@ function ModalComponent1({
 
   const MAIN = 0;
   const CHOOSE_GROUP = 1;
-  const CYCLE = 2;
+  const REPEAT = 2;
   const DURATION = 3;
   const COUNT = 4;
 
@@ -378,6 +401,7 @@ function ModalComponent1({
             flexDirection: "row",
             justifyContent: "space-between",
             alignItems: "baseline",
+            marginBottom: 10,
           }}
         >
           <PressableText
@@ -396,18 +420,32 @@ function ModalComponent1({
             highlightColor="#ffd399"
             TextStyle={{ fontSize: 16 }}
             onPress={() => {
-              // let t = targetName.trim();
-              // if (t === "") {
-              //   myAlert("请输入groupName");
-              //   return;
-              // }
-              // addGroup(db, t)
-              //   .then(() => {
-              //     myHint("保存成功");
-              //     setInsertModalV(false);
-              //     RefreshFn();
-              //   })
-              //   .catch(myAlert);
+              let t = targetName.trim();
+              let alertText = "";
+              if (t === "") {
+                alertText += "请输入名称\n";
+              }
+              if (data.groupId === -1) {
+                alertText += "请选择分组\n";
+              }
+              if (alertText !== "") {
+                myAlert(alertText.trim());
+                return;
+              }
+
+              addTarget(db, {
+                ...data,
+                frequency: JSON.stringify(frequency),
+                description: t,
+              })
+                .then(() => {
+                  myHint("保存成功");
+                })
+                .then(RefreshFn)
+                .then(() => {
+                  setInsertModalV(false);
+                })
+                .catch(myAlert);
             }}
           />
         </View>
@@ -415,7 +453,7 @@ function ModalComponent1({
           <TextInput
             cursorColor={BrandColor}
             autoFocus={true}
-            style={{ fontSize: 16 }}
+            style={{ fontSize: 16, padding: 0 }}
             value={targetName}
             onChangeText={setTargetName}
             placeholder="请输入目标"
@@ -430,7 +468,7 @@ function ModalComponent1({
             <Text
               style={{
                 fontSize: 16,
-                color: data.groupId === -1 ? "grep" : "black",
+                color: data.groupId === -1 ? "#666666" : "black",
               }}
             >
               {data.groupId === -1
@@ -439,6 +477,32 @@ function ModalComponent1({
             </Text>
           </View>
         </Pressable>
+        <View style={{ flexDirection: "row", gap: 5, marginBottom: 10 }}>
+          <Pressable
+            onPress={() => {
+              setPageType(REPEAT);
+            }}
+            style={ModalComponent1Style.block}
+          >
+            <RepeatIcon />
+          </Pressable>
+          <Pressable
+            onPress={() => {
+              setPageType(DURATION);
+            }}
+            style={ModalComponent1Style.block}
+          >
+            <Text style={{ fontSize: 16 }}>时间</Text>
+          </Pressable>
+          <Pressable
+            onPress={() => {
+              setPageType(COUNT);
+            }}
+            style={ModalComponent1Style.block}
+          >
+            <Text style={{ fontSize: 16 }}>次数</Text>
+          </Pressable>
+        </View>
       </View>
     );
   } else if (pageType === CHOOSE_GROUP) {
@@ -466,6 +530,187 @@ function ModalComponent1({
         />
       </View>
     );
+  } else if (pageType === REPEAT) {
+    return (
+      <View>
+        <View style={{ flexDirection: "row" }}>
+          <PressableText
+            message="返回"
+            color={BrandColor}
+            highlightColor="#ffd399"
+            TextStyle={{ fontSize: 16 }}
+            onPress={() => {
+              setPageType(MAIN);
+            }}
+          />
+        </View>
+        <ListChoose
+          list={repeatList}
+          chosenId={frequency.typeId}
+          setId={(newId) => {
+            updateFrequency((v) => {
+              v.typeId = newId;
+            });
+          }}
+        />
+        {frequency.typeId === consts_frequency.COSTUM_MONTH ? (
+          <CustomeMonthBlock
+            date={new Date()}
+            chosen={frequency.content}
+            setChosen={(arr) => {
+              updateFrequency((v) => {
+                v.content = arr;
+              });
+            }}
+          />
+        ) : null}
+        {frequency.typeId === consts_frequency.COSTUM_WEEK ? (
+          <CustomeWeekBlock
+            chosen={frequency.content}
+            setChosen={(arr) => {
+              updateFrequency((v) => {
+                v.content = arr;
+              });
+            }}
+          />
+        ) : null}
+      </View>
+    );
+  } else if (pageType === DURATION) {
+    return (
+      <View>
+        <View style={{ flexDirection: "row" }}>
+          <PressableText
+            message="返回"
+            color={BrandColor}
+            highlightColor="#ffd399"
+            TextStyle={{ fontSize: 16 }}
+            onPress={() => {
+              setPageType(MAIN);
+            }}
+          />
+        </View>
+        <View
+          style={[
+            ModalComponent1Style.row,
+            {
+              flexDirection: "row",
+              justifyContent: "center",
+              alignItems: "center",
+              height: undefined,
+            },
+          ]}
+        >
+          <View
+            style={{
+              height: 56,
+              flexDirection: "row",
+              justifyContent: "center",
+              alignItems: "flex-end",
+              marginVertical: 10,
+            }}
+          >
+            <TextInput
+              style={{
+                width: 90,
+                fontSize: 50,
+                color: "#ffa356",
+                padding: 0,
+                textAlign: "right",
+                textDecorationLine: "underline",
+              }}
+              cursorColor="#ffa356"
+              placeholder="0"
+              value={data.duration === 0 ? "" : data.duration.toString()}
+              onChangeText={(text) => {
+                let t = Number(text);
+                if (isNaN(t) || text.length > 3 || t < 0) {
+                  myHint("请输入合理数字");
+                  return;
+                }
+                updatedata((data) => {
+                  data.duration = t;
+                });
+              }}
+              keyboardType="numeric"
+              autoFocus
+            />
+            <Text style={{ fontSize: 16 }}>分钟</Text>
+          </View>
+        </View>
+      </View>
+    );
+  } else if (pageType === COUNT) {
+    return (
+      <View>
+        <View style={{ flexDirection: "row" }}>
+          <PressableText
+            message="返回"
+            color={BrandColor}
+            highlightColor="#ffd399"
+            TextStyle={{ fontSize: 16 }}
+            onPress={() => {
+              setPageType(MAIN);
+            }}
+          />
+        </View>
+        <View
+          style={[
+            ModalComponent1Style.row,
+            {
+              flexDirection: "row",
+              justifyContent: "center",
+              alignItems: "center",
+              height: undefined,
+            },
+          ]}
+        >
+          <View
+            style={{
+              height: 56,
+              flexDirection: "row",
+              justifyContent: "center",
+              alignItems: "flex-end",
+              marginVertical: 10,
+            }}
+          >
+            <TextInput
+              style={{
+                width: 90,
+                fontSize: 50,
+                color: "#ffa356",
+                padding: 0,
+                textAlign: "right",
+                textDecorationLine: "underline",
+              }}
+              cursorColor="#ffa356"
+              placeholder="0"
+              value={data.count === 0 ? "" : data.count.toString()}
+              onChangeText={(text) => {
+                let t = Number(text);
+                if (
+                  isNaN(t) ||
+                  text.length > 3 ||
+                  t < 0 ||
+                  Math.floor(t) !== t
+                ) {
+                  myHint("请输入合理整数");
+                  return;
+                }
+                updatedata((data) => {
+                  data.count = t;
+                });
+              }}
+              keyboardType="numeric"
+              autoFocus
+            />
+            <Text style={{ fontSize: 16 }}>次</Text>
+          </View>
+        </View>
+      </View>
+    );
+  } else {
+    throw RangeError(pageType + "不是有意义的pageType");
   }
 }
 
@@ -510,6 +755,223 @@ function ListChoose({
           </Pressable>
         );
       })}
+    </View>
+  );
+}
+
+const CustomeBlockStyle = StyleSheet.create({
+  container: {
+    backgroundColor: "#FFFAF3",
+    borderRadius: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    marginVertical: 10,
+  },
+  dayText: {
+    fontSize: 14,
+    color: "rgba(0,0,0,0.6)",
+    flex: 1,
+    textAlign: "center",
+  },
+  block: {
+    height: 60,
+    borderRadius: 6,
+    backgroundColor: "white",
+    justifyContent: "center",
+    alignItems: "center",
+    flex: 1,
+    flexDirection: "row",
+  },
+  chosenBlock: {
+    backgroundColor: BrandColor,
+  },
+  blockText: {
+    fontSize: 16,
+  },
+  chosenBlockText: {
+    color: "white",
+  },
+  emptyblock: {
+    height: 60,
+    justifyContent: "center",
+    alignItems: "center",
+    flex: 1,
+  },
+});
+
+function CustomeMonthBlock({
+  chosen,
+  setChosen,
+  date,
+}: {
+  chosen: number[];
+  setChosen: (arr: number[]) => void;
+  date: Date;
+}) {
+  const isDateChanged = date.getDay();
+  const thisMonth = useMemo(
+    () => getDatesInMonth(date),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [isDateChanged]
+  );
+
+  const arr = useMemo(() => {
+    // console.log("重新计算");
+    const arr: (Date | undefined)[][] = [];
+
+    for (const ele of thisMonth) {
+      if (ele.getDate() === 1) {
+        const temp: (Date | undefined)[] = [];
+        for (let j = (ele.getDay() + 6) % 7; j > 0; j--) {
+          temp.push(undefined);
+        }
+        temp.push(ele);
+        arr.push(temp);
+        continue;
+      }
+
+      if (ele.getDay() === 1) {
+        arr.push([]);
+      }
+
+      arr[arr.length - 1].push(ele);
+    }
+    for (let i = 7 - arr[arr.length - 1].length; i > 0; i--) {
+      arr[arr.length - 1].push(undefined);
+    }
+    return arr;
+  }, [thisMonth]);
+
+  const Block = ({ day }: { day: number | undefined }) => {
+    if (day === undefined) {
+      return <View style={CustomeBlockStyle.emptyblock}></View>;
+    }
+
+    const isChosen = chosen.includes(day);
+
+    return (
+      <Pressable
+        style={[
+          CustomeBlockStyle.block,
+          isChosen ? CustomeBlockStyle.chosenBlock : null,
+        ]}
+        onPress={() => {
+          if (isChosen) {
+            setChosen(chosen.filter((v) => v !== day));
+          } else {
+            setChosen([...chosen, day]);
+          }
+        }}
+      >
+        <Text
+          style={[
+            CustomeBlockStyle.blockText,
+            chosen.includes(day) ? CustomeBlockStyle.chosenBlockText : null,
+          ]}
+        >
+          {day}
+        </Text>
+      </Pressable>
+    );
+  };
+
+  return (
+    <View
+      style={{
+        backgroundColor: "#FFFAF3",
+        borderRadius: 10,
+        paddingHorizontal: 16,
+        paddingVertical: 16,
+      }}
+    >
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
+        {/* @ts-ignore */}
+        <AntIcon name="caretleft" size={24} color={unChoseColor} />
+        <Text style={{ fontSize: 20 }}>
+          {date.getFullYear() + "年" + (date.getMonth() + 1) + "月"}
+        </Text>
+        {/* @ts-ignore */}
+        <AntIcon name="caretright" size={24} color={unChoseColor} />
+      </View>
+      <View style={{ flexDirection: "row", alignItems: "center", height: 46 }}>
+        <Text style={CustomeBlockStyle.dayText}>周一</Text>
+        <Text style={CustomeBlockStyle.dayText}>周二</Text>
+        <Text style={CustomeBlockStyle.dayText}>周三</Text>
+        <Text style={CustomeBlockStyle.dayText}>周四</Text>
+        <Text style={CustomeBlockStyle.dayText}>周五</Text>
+        <Text style={CustomeBlockStyle.dayText}>周六</Text>
+        <Text style={CustomeBlockStyle.dayText}>周日</Text>
+      </View>
+      <View style={{ gap: 5 }}>
+        {arr.map((row, k) => (
+          <View key={k} style={{ flexDirection: "row", gap: 3 }}>
+            {row.map((v, k) => (
+              <Block day={v?.getDate()} key={k} />
+            ))}
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+}
+
+const dayChina = [1, 2, 3, 4, 5, 6, 0];
+function CustomeWeekBlock({
+  chosen,
+  setChosen,
+}: {
+  chosen: number[];
+  setChosen: (arr: number[]) => void;
+}) {
+  const Block = ({ day }: { day: number }) => {
+    const isChosen = chosen.includes(day);
+
+    return (
+      <Pressable
+        style={[
+          CustomeBlockStyle.block,
+          isChosen ? CustomeBlockStyle.chosenBlock : null,
+        ]}
+        onPress={() => {
+          if (isChosen) {
+            setChosen(chosen.filter((v) => v !== day));
+          } else {
+            setChosen([...chosen, day]);
+          }
+        }}
+      >
+        <Text
+          style={[
+            CustomeBlockStyle.dayText,
+            chosen.includes(day) ? CustomeBlockStyle.chosenBlockText : null,
+          ]}
+        >
+          {dayDescription[day]}
+        </Text>
+      </Pressable>
+    );
+  };
+
+  return (
+    <View style={CustomeBlockStyle.container}>
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          height: 46,
+          gap: 3,
+        }}
+      >
+        {dayChina.map((v) => (
+          <Block day={v} key={v} />
+        ))}
+      </View>
     </View>
   );
 }
@@ -778,13 +1240,18 @@ function TaskItemRow({
   };
 
   const cardTransform = useSharedValue(0);
-  const panGesture = Gesture.Pan().onEnd((e) => {
-    if (e.translationX < -SWIPE_DISTANCE) {
+  const leftGesture = Gesture.Fling()
+    .direction(Directions.LEFT)
+    .onEnd(() => {
       cardTransform.value = withTiming(-50, swapConfig);
-    } else if (e.translationX > SWIPE_DISTANCE) {
+    });
+  const rightGesture = Gesture.Fling()
+    .direction(Directions.RIGHT)
+    .onEnd(() => {
       cardTransform.value = withTiming(0, swapConfig);
-    }
-  });
+    });
+
+  const myGesture = Gesture.Exclusive(leftGesture, rightGesture);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: cardTransform.value }],
@@ -795,7 +1262,7 @@ function TaskItemRow({
   const RefreshFn = useContext(RefreshFnCtx);
   return (
     <View style={style}>
-      <GestureDetector gesture={panGesture}>
+      <GestureDetector gesture={myGesture}>
         <Animated.View
           style={[
             {
@@ -1020,29 +1487,31 @@ function MonthGroup({ data }: { data: getProgressByMonthRetRow }) {
                       {getDescription(data)}
                     </Text>
                   </View>
-                  <View
-                    style={{
-                      borderRadius: 999,
-                      backgroundColor: "#FFF1B0",
-                      justifyContent: "center",
-                      alignItems: "center",
-                      paddingHorizontal: 5,
-                      marginLeft: 5,
-                      height: 24,
-                      minWidth: 24,
-                    }}
-                  >
-                    <Text
+                  {data.count > data.times ? (
+                    <View
                       style={{
-                        fontSize: 16,
-                        lineHeight: 24,
-                        color: "#FFBC2B",
-                        textAlign: "center",
+                        borderRadius: 999,
+                        backgroundColor: "#FFF1B0",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        paddingHorizontal: 5,
+                        marginLeft: 5,
+                        height: 24,
+                        minWidth: 24,
                       }}
                     >
-                      {Math.max(0, data.count - data.times)}
-                    </Text>
-                  </View>
+                      <Text
+                        style={{
+                          fontSize: 16,
+                          lineHeight: 24,
+                          color: "#FFBC2B",
+                          textAlign: "center",
+                        }}
+                      >
+                        {data.count - data.times}
+                      </Text>
+                    </View>
+                  ) : null}
                 </View>
                 <View
                   style={{
@@ -1059,21 +1528,29 @@ function MonthGroup({ data }: { data: getProgressByMonthRetRow }) {
                     height={6}
                     style={{ flex: 1 }}
                   />
-                  {data.times < data.count && data.count !== 0 ? (
-                    <Text
-                      style={{
-                        fontSize: 14,
-                        lineHeight: 22,
-                        width: 36,
-                        textAlign: "right",
-                      }}
-                    >
-                      {Math.round((100 * data.times) / data.count) + "%"}
-                    </Text>
-                  ) : (
-                    // @ts-ignore
-                    <AntIcon name="checkcircle" size={21} color="#2BA471" />
-                  )}
+                  <View
+                    style={{
+                      width: 36,
+                      flexDirection: "row",
+                    }}
+                  >
+                    <View style={{ flex: 1 }}></View>
+                    {data.times < data.count && data.count !== 0 ? (
+                      <Text
+                        style={{
+                          fontSize: 14,
+                          lineHeight: 22,
+                          width: 36,
+                          textAlign: "right",
+                        }}
+                      >
+                        {Math.round((100 * data.times) / data.count) + "%"}
+                      </Text>
+                    ) : (
+                      // @ts-ignore
+                      <AntIcon name="checkcircle" size={21} color="#2BA471" />
+                    )}
+                  </View>
                 </View>
               </View>
             );
@@ -1102,6 +1579,10 @@ function Progress({
   height?: number;
   color?: ColorValue;
 }) {
+  if (total === 0) {
+    total = achieved = 1;
+  }
+
   return (
     <View
       style={[

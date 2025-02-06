@@ -158,7 +158,7 @@ export async function getTargetsByDay(db: SQLite.SQLiteDatabase, d: Date) {
         }
         break;
       case consts_frequency.COSTUM_MONTH:
-        if (frequency.content.includes(d.getMonth())) {
+        if (frequency.content.includes(d.getDate())) {
           ret.push(ele);
         }
         break;

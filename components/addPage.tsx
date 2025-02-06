@@ -16,22 +16,14 @@ import {
   TouchableRipple,
   Icon,
   Portal,
-  Dialog,
-  Button,
   IconButton,
   Snackbar,
 } from "react-native-paper";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import React, {
-  useState,
-  useRef,
-  useEffect,
-  useCallback,
-  useContext,
-} from "react";
+import React, { useState, useContext } from "react";
 
-import sports, { sportItemType } from "../consts/sportType";
+import sports from "../consts/sportType";
 import BackIcon from "@/assets/images/addPage/back";
 import Line from "@/assets/images/addPage/line";
 
@@ -238,10 +230,15 @@ export default function AddPage() {
                       padding: 0,
                       textAlign: "right",
                     }}
+                    cursorColor="#ffa356"
                     placeholder="0"
                     value={exTime}
                     onChangeText={(text) => {
-                      if (isNaN(Number(text)) || text.length > 3) {
+                      if (
+                        isNaN(Number(text)) ||
+                        text.length > 3 ||
+                        Number(text) < 0
+                      ) {
                         setSnackbarV(true);
                         return;
                       }

@@ -1,12 +1,13 @@
-import React, { createContext, useState } from "react";
+import React, { createContext, useCallback, useEffect, useState } from "react";
 import { Stack } from "expo-router";
 import { Button, Dialog, PaperProvider, Portal } from "react-native-paper";
 import { StatusBar } from "expo-status-bar";
 import { useDrizzleStudio } from "expo-drizzle-studio-plugin";
 import * as SQLite from "expo-sqlite";
-import { MD3LightTheme, ThemeProvider } from "react-native-paper";
+import { ThemeProvider } from "react-native-paper";
 import { Text, StyleSheet, View } from "react-native";
 import { MYTHEME } from "@/consts/themeObj";
+import * as NavigationBar from "expo-navigation-bar";
 
 export const MyAlertCtx = createContext<
   (message: React.JSX.Element | string | Error) => void
@@ -19,7 +20,7 @@ export default function RootLayout() {
   const [dialogV, setDialogV] = useState(false);
   const [dialogC, setDialogC] = useState<React.JSX.Element>();
 
-  const myAlert = (message: React.JSX.Element | string | Error) => {
+  const myAlert = useCallback((message: React.JSX.Element | string | Error) => {
     console.log(message);
     let dataComponent: React.JSX.Element;
 
@@ -33,7 +34,11 @@ export default function RootLayout() {
 
     setDialogC(dataComponent);
     setDialogV(true);
-  };
+  }, []);
+
+  useEffect(() => {
+    NavigationBar.setBackgroundColorAsync("rgba(0, 0, 0, 0)");
+  }, []);
 
   return (
     <>
