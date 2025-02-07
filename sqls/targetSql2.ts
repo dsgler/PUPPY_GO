@@ -302,7 +302,7 @@ export async function getGroups(db: SQLite.SQLiteDatabase) {
   )) as groupNameRow[];
 }
 
-type childrenRow = targetRow & { times: number };
+export type childrenRow = targetRow & { times: number };
 
 export async function getProgressByMonth(db: SQLite.SQLiteDatabase) {
   let d = new Date();

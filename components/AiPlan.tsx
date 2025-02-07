@@ -1,4 +1,5 @@
 import { unChoseColor } from "@/consts/tabs";
+import { router } from "expo-router";
 import { View, Image, Text } from "react-native";
 import { TouchableRipple, Icon } from "react-native-paper";
 
@@ -34,7 +35,9 @@ export default function AiPlan() {
           小狗想帮你定制专属于你的私人运动计划哦
         </Text>
         <TouchableRipple
-          onPress={() => {}}
+          onPress={() => {
+            router.push("/editTarget");
+          }}
           borderless={true}
           style={{ borderRadius: 10, overflow: "hidden", marginTop: 5 }}
         >

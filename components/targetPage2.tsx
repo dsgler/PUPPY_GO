@@ -1,4 +1,4 @@
-import { BrandColor, textColor, unChoseColor } from "@/consts/tabs";
+import { BrandColor, textColor } from "@/consts/tabs";
 import {
   View,
   Text,
@@ -12,7 +12,6 @@ import {
   GestureResponderEvent,
   TextStyle,
   ColorValue,
-  Keyboard,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AntIcon from "react-native-vector-icons/AntDesign";
@@ -45,27 +44,18 @@ import {
   useState,
 } from "react";
 import { useImmer } from "use-immer";
-import {
-  Modal,
-  Portal,
-  Provider,
-  Snackbar,
-  TouchableRipple,
-} from "react-native-paper";
+import { Modal, Portal, Snackbar, TouchableRipple } from "react-native-paper";
 import PressableText from "./PressableText";
 
 import * as consts_duration from "@/consts/duration";
 import { useSQLiteContext } from "expo-sqlite";
 import * as SQLite from "expo-sqlite";
-import {
-  getDateNumber,
-  getDatesInMonth,
-  getGapTimeString,
-} from "@/utility/datetool";
+import { getGapTimeString } from "@/utility/datetool";
 import {
   addGroup,
   addTarget,
   cancelCheck,
+  childrenRow,
   createTable,
   frequencyType,
   getGroups,
@@ -80,8 +70,9 @@ import {
 } from "@/sqls/targetSql2";
 import sports from "@/consts/sportType";
 import { MyAlertCtx } from "@/app/_layout";
-import { dayDescription, dayDescriptionChina } from "@/consts/dayDescription";
+import { dayDescriptionChina } from "@/consts/dayDescription";
 import * as consts_frequency from "@/consts/frequency";
+import { CustomeMonthBlock, CustomeWeekBlock } from "./CustomeMonthBlock";
 
 export function getDescription(v: {
   sportId: number;
@@ -92,6 +83,27 @@ export function getDescription(v: {
     ? v.description
     : `${sports[v.sportId].sportName}${getGapTimeString(v.duration)}`;
 }
+
+const MenuCtx = createContext<[menuObjType, (menuobj: menuObjType) => void]>([
+  {
+    x: 0,
+    y: 0,
+    visibility: false,
+    targetId: -1,
+    groupId: -1,
+  },
+  () => {
+    throw TypeError("不应为初值");
+  },
+]);
+
+type menuObjType = {
+  x: number;
+  y: number;
+  visibility: boolean;
+  targetId: number;
+  groupId: number;
+};
 
 const RefreshFnCtx = createContext<() => void>(() => {
   throw Error("获取错误");
@@ -125,6 +137,14 @@ export default function Page() {
 
   useEffect(RefreshFn, [RefreshFn]);
 
+  const [menuobj, setMenuobj] = useState<menuObjType>({
+    x: 0,
+    y: 0,
+    visibility: false,
+    targetId: -1,
+    groupId: -1,
+  });
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <RefreshFnCtx.Provider value={RefreshFn}>
@@ -151,65 +171,110 @@ export default function Page() {
               />
             )}
             <View style={{ height: 10 }} />
-            {dataComponent}
+            <MenuCtx.Provider value={[menuobj, setMenuobj]}>
+              {dataComponent}
+            </MenuCtx.Provider>
             <View style={{ height: 10 }}></View>
           </ScrollView>
         </SafeAreaView>
-        <View
-          style={{
-            position: "absolute",
-            top: 0,
-            bottom: 0,
-            left: 0,
-            right: 0,
+        <Portal>
+          <RefreshFnCtx.Provider value={RefreshFn}>
+            <Modal
+              visible={insertModalV}
+              style={{
+                justifyContent: "flex-end",
+              }}
+              dismissable={false}
+            >
+              <ScrollView keyboardShouldPersistTaps={"always"}>
+                <View
+                  style={{
+                    backgroundColor: "#F4F4F4",
+                    borderTopLeftRadius: 12,
+                    borderTopRightRadius: 12,
+                    paddingHorizontal: 20,
+                    paddingTop: 20,
+                  }}
+                >
+                  <ModalComponentSwitcher
+                    modalType={modalType}
+                    setInsertModalV={setInsertModalV}
+                    myHint={myHint}
+                  />
+                </View>
+              </ScrollView>
+            </Modal>
+          </RefreshFnCtx.Provider>
+          <Snackbar
+            visible={SnackbarV}
+            onDismiss={() => {
+              setSnackbarV(false);
+            }}
+            action={{
+              label: "确定",
+              onPress: () => {
+                // Do something
+                setSnackbarV(false);
+              },
+            }}
+            duration={300}
+          >
+            {SnackbarC}
+          </Snackbar>
+        </Portal>
+        <Pressable
+          style={[
+            StyleSheet.absoluteFill,
+            {
+              display: menuobj.visibility ? "flex" : "none",
+            },
+          ]}
+          onPress={() => {
+            setMenuobj({ ...menuobj, visibility: false });
           }}
         >
-          <Portal>
-            <RefreshFnCtx.Provider value={RefreshFn}>
-              <Modal
-                visible={insertModalV}
-                style={{
-                  justifyContent: "flex-end",
-                }}
-                dismissable={false}
-              >
-                <ScrollView keyboardShouldPersistTaps={"always"}>
-                  <View
-                    style={{
-                      backgroundColor: "#F4F4F4",
-                      borderTopLeftRadius: 12,
-                      borderTopRightRadius: 12,
-                      paddingHorizontal: 20,
-                      paddingTop: 20,
-                    }}
-                  >
-                    <ModalComponentSwitcher
-                      modalType={modalType}
-                      setInsertModalV={setInsertModalV}
-                      myHint={myHint}
-                    />
-                  </View>
-                </ScrollView>
-              </Modal>
-            </RefreshFnCtx.Provider>
-            <Snackbar
-              visible={SnackbarV}
-              onDismiss={() => {
-                setSnackbarV(false);
+          <Pressable
+            style={{
+              backgroundColor: "#E7E7E7",
+              width: 150,
+              position: "absolute",
+              left: menuobj.x,
+              top: menuobj.y,
+              borderRadius: 10,
+              gap: 3,
+              overflow: "hidden",
+              boxShadow: "0 4 34 rgba(0,0,0,0.1)",
+            }}
+            onPress={() => {}}
+          >
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                backgroundColor: "white",
+                paddingHorizontal: 10,
+                height: 34,
               }}
-              action={{
-                label: "确定",
-                onPress: () => {
-                  // Do something
-                  setSnackbarV(false);
-                },
-              }}
-              duration={300}
             >
-              {SnackbarC}
-            </Snackbar>
-          </Portal>
-        </View>
+              <Text style={{ fontSize: 14 }}>编辑</Text>
+            </View>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                backgroundColor: "white",
+                paddingHorizontal: 10,
+                height: 34,
+              }}
+            >
+              <Text style={{ flex: 1, color: "#F57165", fontSize: 14 }}>
+                删除
+              </Text>
+              {/* @ts-ignore */}
+              <FeaIcon name="trash-2" size={24} color={"#F57165"} />
+            </View>
+          </Pressable>
+        </Pressable>
       </RefreshFnCtx.Provider>
     </GestureHandlerRootView>
   );
@@ -759,223 +824,6 @@ function ListChoose({
   );
 }
 
-const CustomeBlockStyle = StyleSheet.create({
-  container: {
-    backgroundColor: "#FFFAF3",
-    borderRadius: 10,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    marginVertical: 10,
-  },
-  dayText: {
-    fontSize: 14,
-    color: "rgba(0,0,0,0.6)",
-    flex: 1,
-    textAlign: "center",
-  },
-  block: {
-    height: 60,
-    borderRadius: 6,
-    backgroundColor: "white",
-    justifyContent: "center",
-    alignItems: "center",
-    flex: 1,
-    flexDirection: "row",
-  },
-  chosenBlock: {
-    backgroundColor: BrandColor,
-  },
-  blockText: {
-    fontSize: 16,
-  },
-  chosenBlockText: {
-    color: "white",
-  },
-  emptyblock: {
-    height: 60,
-    justifyContent: "center",
-    alignItems: "center",
-    flex: 1,
-  },
-});
-
-function CustomeMonthBlock({
-  chosen,
-  setChosen,
-  date,
-}: {
-  chosen: number[];
-  setChosen: (arr: number[]) => void;
-  date: Date;
-}) {
-  const isDateChanged = date.getDay();
-  const thisMonth = useMemo(
-    () => getDatesInMonth(date),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [isDateChanged]
-  );
-
-  const arr = useMemo(() => {
-    // console.log("重新计算");
-    const arr: (Date | undefined)[][] = [];
-
-    for (const ele of thisMonth) {
-      if (ele.getDate() === 1) {
-        const temp: (Date | undefined)[] = [];
-        for (let j = (ele.getDay() + 6) % 7; j > 0; j--) {
-          temp.push(undefined);
-        }
-        temp.push(ele);
-        arr.push(temp);
-        continue;
-      }
-
-      if (ele.getDay() === 1) {
-        arr.push([]);
-      }
-
-      arr[arr.length - 1].push(ele);
-    }
-    for (let i = 7 - arr[arr.length - 1].length; i > 0; i--) {
-      arr[arr.length - 1].push(undefined);
-    }
-    return arr;
-  }, [thisMonth]);
-
-  const Block = ({ day }: { day: number | undefined }) => {
-    if (day === undefined) {
-      return <View style={CustomeBlockStyle.emptyblock}></View>;
-    }
-
-    const isChosen = chosen.includes(day);
-
-    return (
-      <Pressable
-        style={[
-          CustomeBlockStyle.block,
-          isChosen ? CustomeBlockStyle.chosenBlock : null,
-        ]}
-        onPress={() => {
-          if (isChosen) {
-            setChosen(chosen.filter((v) => v !== day));
-          } else {
-            setChosen([...chosen, day]);
-          }
-        }}
-      >
-        <Text
-          style={[
-            CustomeBlockStyle.blockText,
-            chosen.includes(day) ? CustomeBlockStyle.chosenBlockText : null,
-          ]}
-        >
-          {day}
-        </Text>
-      </Pressable>
-    );
-  };
-
-  return (
-    <View
-      style={{
-        backgroundColor: "#FFFAF3",
-        borderRadius: 10,
-        paddingHorizontal: 16,
-        paddingVertical: 16,
-      }}
-    >
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}
-      >
-        {/* @ts-ignore */}
-        <AntIcon name="caretleft" size={24} color={unChoseColor} />
-        <Text style={{ fontSize: 20 }}>
-          {date.getFullYear() + "年" + (date.getMonth() + 1) + "月"}
-        </Text>
-        {/* @ts-ignore */}
-        <AntIcon name="caretright" size={24} color={unChoseColor} />
-      </View>
-      <View style={{ flexDirection: "row", alignItems: "center", height: 46 }}>
-        <Text style={CustomeBlockStyle.dayText}>周一</Text>
-        <Text style={CustomeBlockStyle.dayText}>周二</Text>
-        <Text style={CustomeBlockStyle.dayText}>周三</Text>
-        <Text style={CustomeBlockStyle.dayText}>周四</Text>
-        <Text style={CustomeBlockStyle.dayText}>周五</Text>
-        <Text style={CustomeBlockStyle.dayText}>周六</Text>
-        <Text style={CustomeBlockStyle.dayText}>周日</Text>
-      </View>
-      <View style={{ gap: 5 }}>
-        {arr.map((row, k) => (
-          <View key={k} style={{ flexDirection: "row", gap: 3 }}>
-            {row.map((v, k) => (
-              <Block day={v?.getDate()} key={k} />
-            ))}
-          </View>
-        ))}
-      </View>
-    </View>
-  );
-}
-
-const dayChina = [1, 2, 3, 4, 5, 6, 0];
-function CustomeWeekBlock({
-  chosen,
-  setChosen,
-}: {
-  chosen: number[];
-  setChosen: (arr: number[]) => void;
-}) {
-  const Block = ({ day }: { day: number }) => {
-    const isChosen = chosen.includes(day);
-
-    return (
-      <Pressable
-        style={[
-          CustomeBlockStyle.block,
-          isChosen ? CustomeBlockStyle.chosenBlock : null,
-        ]}
-        onPress={() => {
-          if (isChosen) {
-            setChosen(chosen.filter((v) => v !== day));
-          } else {
-            setChosen([...chosen, day]);
-          }
-        }}
-      >
-        <Text
-          style={[
-            CustomeBlockStyle.dayText,
-            chosen.includes(day) ? CustomeBlockStyle.chosenBlockText : null,
-          ]}
-        >
-          {dayDescription[day]}
-        </Text>
-      </Pressable>
-    );
-  };
-
-  return (
-    <View style={CustomeBlockStyle.container}>
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          height: 46,
-          gap: 3,
-        }}
-      >
-        {dayChina.map((v) => (
-          <Block day={v} key={v} />
-        ))}
-      </View>
-    </View>
-  );
-}
-
 const TopBarStyle = StyleSheet.create({
   container: {
     backgroundColor: "white",
@@ -1233,7 +1081,6 @@ function TaskItemRow({
   isFinished,
   targetId,
 }: TaskItemRowProps) {
-  const SWIPE_DISTANCE = 30;
   const swapConfig = {
     duration: 80,
     easing: Easing.in(Easing.ease),
@@ -1418,6 +1265,19 @@ function WeekGroup({ data }: { data: getProgressByWeekRetRow }) {
 
 function MonthGroup({ data }: { data: getProgressByMonthRetRow }) {
   const [isFolded, setIsFolded] = useState(false);
+  const greyColor = "#E5DDD5";
+  const duration = 500;
+  const bgColor = useSharedValue<ColorValue>("#FFFFFF");
+  const bgStyle = useAnimatedStyle(() => ({
+    backgroundColor: bgColor.value,
+    borderRadius: 5,
+  }));
+  const [menuObj, setMenu] = useContext(MenuCtx);
+  useEffect(() => {
+    if (!menuObj.visibility) {
+      bgColor.value = withTiming("#FFFFFF", { duration: duration });
+    }
+  }, [bgColor, menuObj.visibility]);
 
   return (
     <Animated.View
@@ -1436,9 +1296,34 @@ function MonthGroup({ data }: { data: getProgressByMonthRetRow }) {
           marginVertical: 10,
         }}
       >
-        <View style={{ flex: 1 }}>
-          <Text style={{ fontSize: 16 }}>{data.groupName}</Text>
-        </View>
+        <Pressable
+          key={data.groupId}
+          onPressIn={() => {
+            bgColor.value = withTiming(greyColor, { duration: duration });
+          }}
+          onLongPress={(e) => {
+            const obj: menuObjType = {
+              x: e.nativeEvent.pageX,
+              y: e.nativeEvent.pageY,
+              targetId: -1,
+              groupId: data.groupId,
+              visibility: true,
+            };
+            setMenu(obj);
+          }}
+          onPressOut={() => {
+            if (menuObj.visibility) {
+              return;
+            }
+
+            bgColor.value = withTiming("#FFFFFF", { duration: duration });
+          }}
+          style={{ flex: 1 }}
+        >
+          <Animated.View style={bgStyle}>
+            <Text style={{ fontSize: 18 }}>{data.groupName}</Text>
+          </Animated.View>
+        </Pressable>
         <Pressable
           onPress={() => {
             setIsFolded(!isFolded);
@@ -1471,94 +1356,136 @@ function MonthGroup({ data }: { data: getProgressByMonthRetRow }) {
           entering={FadeIn.duration(300).easing(Easing.inOut(Easing.quad))}
           exiting={FadeOut.duration(300).easing(Easing.inOut(Easing.quad))}
         >
-          {data.children.map((data) => {
-            return (
-              <View key={data.Id}>
-                <View
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    marginTop: 10,
-                    height: 24,
-                  }}
-                >
-                  <View>
-                    <Text style={{ fontSize: 16, lineHeight: 24 }}>
-                      {getDescription(data)}
-                    </Text>
-                  </View>
-                  {data.count > data.times ? (
-                    <View
-                      style={{
-                        borderRadius: 999,
-                        backgroundColor: "#FFF1B0",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        paddingHorizontal: 5,
-                        marginLeft: 5,
-                        height: 24,
-                        minWidth: 24,
-                      }}
-                    >
-                      <Text
-                        style={{
-                          fontSize: 16,
-                          lineHeight: 24,
-                          color: "#FFBC2B",
-                          textAlign: "center",
-                        }}
-                      >
-                        {data.count - data.times}
-                      </Text>
-                    </View>
-                  ) : null}
-                </View>
-                <View
-                  style={{
-                    height: 22,
-                    flexDirection: "row",
-                    alignItems: "center",
-                  }}
-                >
-                  <Progress
-                    isShowText={false}
-                    total={data.count}
-                    achieved={data.times}
-                    color={data.times < data.count ? BrandColor : "#2BA471"}
-                    height={6}
-                    style={{ flex: 1 }}
-                  />
-                  <View
-                    style={{
-                      width: 36,
-                      flexDirection: "row",
-                    }}
-                  >
-                    <View style={{ flex: 1 }}></View>
-                    {data.times < data.count && data.count !== 0 ? (
-                      <Text
-                        style={{
-                          fontSize: 14,
-                          lineHeight: 22,
-                          width: 36,
-                          textAlign: "right",
-                        }}
-                      >
-                        {Math.round((100 * data.times) / data.count) + "%"}
-                      </Text>
-                    ) : (
-                      // @ts-ignore
-                      <AntIcon name="checkcircle" size={21} color="#2BA471" />
-                    )}
-                  </View>
-                </View>
-              </View>
-            );
-          })}
+          {data.children.map((data) => (
+            <MonthgroupChildRow data={data} key={data.Id} />
+          ))}
           <View style={{ height: 5 }}></View>
         </Animated.View>
       )}
     </Animated.View>
+  );
+}
+
+function MonthgroupChildRow({ data }: { data: childrenRow }) {
+  const greyColor = "#E5DDD5";
+  const duration = 500;
+  const bgColor = useSharedValue<ColorValue>("#FFFFFF");
+  const bgStyle = useAnimatedStyle(() => ({
+    backgroundColor: bgColor.value,
+    borderRadius: 5,
+  }));
+  const [menuObj, setMenu] = useContext(MenuCtx);
+  useEffect(() => {
+    if (!menuObj.visibility) {
+      bgColor.value = withTiming("#FFFFFF", { duration: duration });
+    }
+  }, [bgColor, menuObj.visibility]);
+
+  return (
+    <Pressable
+      key={data.Id}
+      onPressIn={() => {
+        bgColor.value = withTiming(greyColor, { duration: duration });
+      }}
+      onLongPress={(e) => {
+        const obj: menuObjType = {
+          x: e.nativeEvent.pageX,
+          y: e.nativeEvent.pageY,
+          targetId: data.Id,
+          groupId: -1,
+          visibility: true,
+        };
+        setMenu(obj);
+      }}
+      onPressOut={() => {
+        if (menuObj.visibility) {
+          return;
+        }
+
+        bgColor.value = withTiming("#FFFFFF", { duration: duration });
+      }}
+    >
+      <Animated.View style={bgStyle}>
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            marginTop: 10,
+            height: 24,
+          }}
+        >
+          <View>
+            <Text style={{ fontSize: 16, lineHeight: 24 }}>
+              {getDescription(data)}
+            </Text>
+          </View>
+          {data.count > data.times ? (
+            <View
+              style={{
+                borderRadius: 999,
+                backgroundColor: "#FFF1B0",
+                justifyContent: "center",
+                alignItems: "center",
+                paddingHorizontal: 5,
+                marginLeft: 5,
+                height: 24,
+                minWidth: 24,
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 16,
+                  lineHeight: 24,
+                  color: "#FFBC2B",
+                  textAlign: "center",
+                }}
+              >
+                {data.count - data.times}
+              </Text>
+            </View>
+          ) : null}
+        </View>
+        <View
+          style={{
+            height: 22,
+            flexDirection: "row",
+            alignItems: "center",
+          }}
+        >
+          <Progress
+            isShowText={false}
+            total={data.count}
+            achieved={data.times}
+            color={data.times < data.count ? BrandColor : "#2BA471"}
+            height={6}
+            style={{ flex: 1 }}
+          />
+          <View
+            style={{
+              width: 36,
+              flexDirection: "row",
+            }}
+          >
+            <View style={{ flex: 1 }}></View>
+            {data.times < data.count && data.count !== 0 ? (
+              <Text
+                style={{
+                  fontSize: 14,
+                  lineHeight: 22,
+                  width: 36,
+                  textAlign: "right",
+                }}
+              >
+                {Math.round((100 * data.times) / data.count) + "%"}
+              </Text>
+            ) : (
+              // @ts-ignore
+              <AntIcon name="checkcircle" size={21} color="#2BA471" />
+            )}
+          </View>
+        </View>
+      </Animated.View>
+    </Pressable>
   );
 }
 

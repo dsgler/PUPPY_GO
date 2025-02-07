@@ -56,6 +56,10 @@ export default function RootLayout() {
                     name="addPage"
                     options={{ headerShown: false }}
                   />
+                  <Stack.Screen
+                    name="editTarget"
+                    options={{ headerShown: false }}
+                  />
                   <Stack.Screen name="+not-found" />
                 </Stack>
                 {dialogV ? (
