@@ -97,6 +97,13 @@ export async function addTarget(
     ]
   );
 }
+export async function getTarget(db: SQLite.SQLiteDatabase, Id: number) {
+  const ret = (await getAllOnce(db, `SELECT * FROM targetRow WHERE Id=?;`, [
+    Id,
+  ])) as targetRow[];
+  console.assert(ret.length === 1, ret);
+  return ret[0];
+}
 
 export async function updateTarget(
   db: SQLite.SQLiteDatabase,

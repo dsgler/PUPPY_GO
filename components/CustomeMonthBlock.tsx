@@ -122,14 +122,7 @@ export function CustomeMonthBlock({
   };
 
   return (
-    <View
-      style={{
-        backgroundColor: "#FFFAF3",
-        borderRadius: 10,
-        paddingHorizontal: 16,
-        paddingVertical: 16,
-      }}
-    >
+    <View style={CustomeBlockStyle.container}>
       <View
         style={{
           flexDirection: "row",

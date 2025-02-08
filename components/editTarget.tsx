@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext, useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -8,88 +8,295 @@ import {
   TextInput,
   StyleProp,
   ViewStyle,
+  ScrollView,
+  FlatList,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AntIcon from "react-native-vector-icons/AntDesign";
 import Pencil from "@/assets/images/targetPage/pencil";
+import {
+  deleteTarget,
+  frequencyType,
+  getGroups,
+  getTarget,
+  groupNameRow,
+  targetRow,
+  updateTarget,
+} from "@/sqls/targetSql2";
+import { useSQLiteContext } from "expo-sqlite";
+import RepeatIcon from "@/assets/images/targetPage/repeat";
+import { CustomeMonthBlock, CustomeWeekBlock } from "./CustomeMonthBlock";
+import * as consts_frequency from "@/consts/frequency";
+import { useImmer } from "use-immer";
+import { MyAlertCtx, MyConfirmCtx, MyHintCtx } from "@/app/_layout";
+
+import { repeatList } from "@/consts/repeatList";
+import Animated, {
+  FadeOut,
+  FadeOutDown,
+  FadingTransition,
+  LinearTransition,
+} from "react-native-reanimated";
+import { myFadeIn, myFadeOut, myLayoutTransition } from "./targetPage2";
+import { BrandColor } from "@/consts/tabs";
+import { router, useLocalSearchParams } from "expo-router";
 
 const bgYellow = "#FEE6CE";
 const bgRed = "#FECECE";
 const bgBigRed = "#FF7272";
 
+const emptyData = {};
+
 export default function Page() {
+  const db = useSQLiteContext();
+  const { targetId: targetIdString } = useLocalSearchParams<{
+    targetId: string;
+  }>();
+  const targetId = Number(targetIdString);
+  const [data, updateData] = useImmer(emptyData as targetRow);
+  const [frequency, updateFrequency] = useImmer<frequencyType>(
+    emptyData as frequencyType
+  );
+  const [groups, setGroups] = useState<groupNameRow[]>();
+
+  const myHint = useContext(MyHintCtx);
+  const myConfirm = useContext(MyConfirmCtx);
+  const myAlert = useContext(MyAlertCtx);
+
+  useEffect(() => {
+    getTarget(db, targetId).then((v) => {
+      updateData(v);
+      updateFrequency(JSON.parse(v.frequency));
+    });
+    getGroups(db).then(setGroups);
+  }, [targetId, db, updateFrequency, updateData]);
+
+  const groupName = useMemo(
+    () => groups?.find((v) => v.groupId === data.groupId)?.groupName,
+    [data.groupId, groups]
+  );
+
+  const makeTime = useMemo(() => {
+    const d = new Date(data.makeTime);
+    return `${d
+      .toLocaleDateString()
+      .replaceAll("/", "-")} ${d.toLocaleTimeString()}`;
+  }, [data.makeTime]);
+
+  if (data === emptyData) {
+    return (
+      <SafeAreaView>
+        <Text>加载中</Text>
+      </SafeAreaView>
+    );
+  }
+
   return (
-    <SafeAreaView style={{ paddingHorizontal: 16 }}>
-      <Header />
-      <View style={{ gap: 10 }}>
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <Text style={[{ fontSize: 17 }, ColoredRowStyle.bold]}>
-            跑步15分钟
-          </Text>
-          <Pencil />
-        </View>
-        <ColoredRow
-          title={<Text style={ColoredRowStyle.title}>所属列表</Text>}
-          backgroundColor={bgYellow}
-        >
-          <Text style={ColoredRowStyle.content}>减肥</Text>
-        </ColoredRow>
-        <ColoredRow
-          title={<Text style={ColoredRowStyle.title}>创建时间</Text>}
-          backgroundColor={bgYellow}
-        >
-          <Text style={ColoredRowStyle.content}>2025-01-19 23:28</Text>
-        </ColoredRow>
-        <ColoredRow
-          title={<Text style={ColoredRowStyle.title}>目标时长</Text>}
-          backgroundColor={bgRed}
-          style={{ alignItems: "flex-start" }}
-        >
+    <SafeAreaView>
+      <ScrollView style={{ paddingHorizontal: 16 }}>
+        <Header />
+        <View style={{ gap: 10 }}>
           <View
             style={{
               flexDirection: "row",
-              backgroundColor: bgBigRed,
-              borderRadius: 10,
-              paddingHorizontal: 3,
+              justifyContent: "space-between",
+              alignItems: "center",
             }}
           >
-            <TextInput
-              defaultValue="0"
-              style={{
-                fontSize: 22,
-                lineHeight: 22,
-                width: 40,
-                color: "#FFFFFF",
-                textAlign: "right",
-                height: 30,
-                fontWeight: 600,
-                padding: 0,
-                margin: 0,
+            <Text style={[{ fontSize: 17 }, ColoredRowStyle.bold]}>
+              {data.description}
+            </Text>
+            <Pencil />
+          </View>
+          <ColoredRow
+            title={<Text style={ColoredRowStyle.title}>所属列表</Text>}
+            backgroundColor={bgYellow}
+          >
+            <Text style={ColoredRowStyle.content}>{groupName}</Text>
+          </ColoredRow>
+          <ColoredRow
+            title={<Text style={ColoredRowStyle.title}>创建时间</Text>}
+            backgroundColor={bgYellow}
+          >
+            <Text style={ColoredRowStyle.content}>{makeTime}</Text>
+          </ColoredRow>
+          <ColoredRow
+            title={<Text style={ColoredRowStyle.title}>目标时长</Text>}
+            backgroundColor={bgRed}
+            style={{ alignItems: "flex-start" }}
+          >
+            <View style={ColoredRowStyle.inputContainer}>
+              <TextInput
+                value={data.duration.toString()}
+                onChangeText={(text) => {
+                  let t = Number(text);
+                  if (isNaN(t) || text.length > 3 || t < 0) {
+                    myHint("请输入合理数字");
+                    return;
+                  }
+                  updateData((data) => {
+                    data.duration = t;
+                  });
+                }}
+                style={ColoredRowStyle.inputText}
+              />
+              <Text style={ColoredRowStyle.inputBesideText}>分钟</Text>
+            </View>
+          </ColoredRow>
+          <ColoredRow
+            title={<Text style={ColoredRowStyle.title}>目标次数</Text>}
+            backgroundColor={bgRed}
+            style={{ alignItems: "flex-start" }}
+          >
+            <View style={ColoredRowStyle.inputContainer}>
+              <TextInput
+                value={data.count.toString()}
+                onChangeText={(text) => {
+                  let t = Number(text);
+                  if (isNaN(t) || text.length > 3 || t < 0) {
+                    myHint("请输入合理数字");
+                    return;
+                  }
+                  updateData((data) => {
+                    data.count = t;
+                  });
+                }}
+                style={ColoredRowStyle.inputText}
+              />
+              <Text style={ColoredRowStyle.inputBesideText}>次</Text>
+            </View>
+          </ColoredRow>
+          <ColoredRow
+            title={
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                }}
+              >
+                <RepeatIcon color={ColoredRowStyle.title.color} />
+                <Text style={ColoredRowStyle.title}>重复</Text>
+              </View>
+            }
+            backgroundColor={bgYellow}
+          >
+            <FlatList
+              data={repeatList}
+              horizontal={true}
+              renderItem={({ item }) => {
+                const isChosen = frequency.typeId === item.Id;
+                return (
+                  <Pressable
+                    style={[
+                      ColoredRowStyle.frequencyBlock,
+                      isChosen
+                        ? ColoredRowStyle.frequencyBlockChosen
+                        : undefined,
+                    ]}
+                    onPress={() => {
+                      updateFrequency((v) => {
+                        v.typeId = item.Id;
+                      });
+                    }}
+                  >
+                    <Text
+                      style={[
+                        ColoredRowStyle.frequencyBlockText,
+                        isChosen
+                          ? ColoredRowStyle.frequencyBlockChosenText
+                          : undefined,
+                      ]}
+                    >
+                      {item.name}
+                    </Text>
+                  </Pressable>
+                );
               }}
             />
-            <Text
-              style={{
-                fontSize: 16,
-                color: "#FFFFFF",
-                alignSelf: "flex-end",
-                marginBottom: 5,
-              }}
-            >
-              分钟
-            </Text>
-          </View>
-        </ColoredRow>
-      </View>
+            <Animated.View>
+              {frequency.typeId === consts_frequency.COSTUM_MONTH ? (
+                <Animated.View entering={myFadeIn} exiting={myFadeOut}>
+                  <CustomeMonthBlock
+                    date={new Date()}
+                    chosen={frequency.content}
+                    setChosen={(arr) => {
+                      updateFrequency((v) => {
+                        v.content = arr;
+                      });
+                    }}
+                  />
+                </Animated.View>
+              ) : null}
+              {frequency.typeId === consts_frequency.COSTUM_WEEK ? (
+                <Animated.View entering={myFadeIn} exiting={myFadeOut}>
+                  <CustomeWeekBlock
+                    chosen={frequency.content}
+                    setChosen={(arr) => {
+                      updateFrequency((v) => {
+                        v.content = arr;
+                      });
+                    }}
+                  />
+                </Animated.View>
+              ) : null}
+            </Animated.View>
+          </ColoredRow>
+          <Pressable
+            style={{
+              height: 40,
+              borderRadius: 10,
+              backgroundColor: "#FFCC8E",
+              justifyContent: "center",
+              alignItems: "center",
+              flexDirection: "row",
+            }}
+            onPress={() => {
+              updateTarget(db, {
+                ...data,
+                frequency: JSON.stringify(frequency),
+              })
+                .then(() => {
+                  myHint("保存成功");
+                  setTimeout(() => {
+                    router.back();
+                  }, 500);
+                })
+                .catch(myAlert);
+            }}
+          >
+            <Text style={{ color: BrandColor, fontSize: 16 }}>确定</Text>
+          </Pressable>
+          <Pressable
+            style={{
+              height: 40,
+              borderRadius: 10,
+              backgroundColor: "#FFAFAF",
+              justifyContent: "center",
+              alignItems: "center",
+              flexDirection: "row",
+            }}
+            onPress={() => {
+              myConfirm("确定删除？", () => {
+                deleteTarget(db, data.Id)
+                  .then(() => {
+                    myHint("删除成功");
+                    setTimeout(() => {
+                      router.back();
+                    }, 500);
+                  })
+                  .catch(myAlert);
+              });
+            }}
+          >
+            <Text style={{ color: "#E12A2A", fontSize: 16 }}>删除</Text>
+          </Pressable>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
 function Header() {
+  const myConfirm = useContext(MyConfirmCtx);
   return (
     <View
       style={{
@@ -99,7 +306,14 @@ function Header() {
         alignItems: "center",
       }}
     >
-      <Pressable style={{ position: "absolute", left: 0 }}>
+      <Pressable
+        style={{ position: "absolute", left: 0 }}
+        onPress={() => {
+          myConfirm("确定退出？", () => {
+            router.back();
+          });
+        }}
+      >
         {/* @ts-ignore */}
         <AntIcon name="leftcircle" size={34} color="#E8A838" />
       </Pressable>
@@ -122,6 +336,50 @@ const ColoredRowStyle = StyleSheet.create({
   bold: {
     fontWeight: 600,
   },
+  frequencyBlock: {
+    borderRadius: 5,
+    backgroundColor: "#EEEEEE",
+    marginHorizontal: 3,
+    paddingHorizontal: 2,
+    paddingVertical: 2,
+  },
+  frequencyBlockChosen: {
+    backgroundColor: "#FFA772",
+  },
+  frequencyBlockText: {
+    fontSize: 16,
+    lineHeight: 24,
+    color: "rgba(0,0,0,0.26)",
+  },
+  frequencyBlockChosenText: {
+    color: "#FFFFFF",
+  },
+  inputContainer: {
+    flexDirection: "row",
+    backgroundColor: bgBigRed,
+    borderRadius: 10,
+    paddingHorizontal: 3,
+    height: 40,
+    alignItems: "center",
+  },
+  inputText: {
+    fontSize: 26,
+    lineHeight: 30,
+    width: 40,
+    color: "#FFFFFF",
+    textAlign: "right",
+    textAlignVertical: "bottom",
+    height: 30,
+    fontWeight: 600,
+    padding: 0,
+    margin: 0,
+  },
+  inputBesideText: {
+    fontSize: 16,
+    color: "#FFFFFF",
+    alignSelf: "flex-end",
+    marginBottom: 5,
+  },
 });
 
 function ColoredRow({
@@ -136,7 +394,7 @@ function ColoredRow({
   style?: StyleProp<ViewStyle>;
 }) {
   return (
-    <View
+    <Animated.View
       style={[
         {
           paddingHorizontal: 15,
@@ -144,12 +402,14 @@ function ColoredRow({
           borderRadius: 10,
           backgroundColor,
           gap: 5,
+          overflow: "hidden",
         },
         style,
       ]}
+      layout={myLayoutTransition}
     >
       <View>{title}</View>
       <View>{children}</View>
-    </View>
+    </Animated.View>
   );
 }

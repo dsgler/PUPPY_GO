@@ -44,7 +44,7 @@ import {
   useState,
 } from "react";
 import { useImmer } from "use-immer";
-import { Modal, Portal, Snackbar, TouchableRipple } from "react-native-paper";
+import { Modal, Portal, TouchableRipple } from "react-native-paper";
 import PressableText from "./PressableText";
 
 import * as consts_duration from "@/consts/duration";
@@ -69,10 +69,13 @@ import {
   targetRow,
 } from "@/sqls/targetSql2";
 import sports from "@/consts/sportType";
-import { MyAlertCtx } from "@/app/_layout";
+import { defaultError, MyAlertCtx, MyHintCtx } from "@/app/_layout";
 import { dayDescriptionChina } from "@/consts/dayDescription";
 import * as consts_frequency from "@/consts/frequency";
 import { CustomeMonthBlock, CustomeWeekBlock } from "./CustomeMonthBlock";
+import { repeatList } from "@/consts/repeatList";
+import { router, useFocusEffect } from "expo-router";
+// import { myFadeIn, myFadeOut, myLayoutTransition } from "@/consts/anime";
 
 export function getDescription(v: {
   sportId: number;
@@ -92,9 +95,7 @@ const MenuCtx = createContext<[menuObjType, (menuobj: menuObjType) => void]>([
     targetId: -1,
     groupId: -1,
   },
-  () => {
-    throw TypeError("不应为初值");
-  },
+  defaultError,
 ]);
 
 type menuObjType = {
@@ -108,14 +109,19 @@ type menuObjType = {
 const RefreshFnCtx = createContext<() => void>(() => {
   throw Error("获取错误");
 });
+
+export const myFadeIn = FadeIn.duration(300).easing(Easing.inOut(Easing.quad));
+export const myFadeOut = FadeOut.duration(300).easing(
+  Easing.inOut(Easing.quad)
+);
+export const myLayoutTransition = LinearTransition.duration(300);
+
 export default function Page() {
   console.log("渲染targetPage");
 
   const db = useSQLiteContext();
 
   const [insertModalV, setInsertModalV] = useState(false);
-  const [SnackbarV, setSnackbarV] = useState(false);
-  const [SnackbarC, setSnackbarC] = useState("");
 
   const [durationType, setDurationType] = useState(consts_duration.DAILY);
 
@@ -126,10 +132,6 @@ export default function Page() {
   const [modalType, setModalType] = useState(0);
 
   const myAlert = useContext(MyAlertCtx);
-  const myHint = useCallback((message: string) => {
-    setSnackbarC(message);
-    setSnackbarV(true);
-  }, []);
 
   const RefreshFn = useCallback(() => {
     showData(db, durationType, new Date(), setDataComponent).catch(myAlert);
@@ -143,6 +145,10 @@ export default function Page() {
     visibility: false,
     targetId: -1,
     groupId: -1,
+  });
+
+  useFocusEffect(() => {
+    RefreshFn();
   });
 
   return (
@@ -199,28 +205,11 @@ export default function Page() {
                   <ModalComponentSwitcher
                     modalType={modalType}
                     setInsertModalV={setInsertModalV}
-                    myHint={myHint}
                   />
                 </View>
               </ScrollView>
             </Modal>
           </RefreshFnCtx.Provider>
-          <Snackbar
-            visible={SnackbarV}
-            onDismiss={() => {
-              setSnackbarV(false);
-            }}
-            action={{
-              label: "确定",
-              onPress: () => {
-                // Do something
-                setSnackbarV(false);
-              },
-            }}
-            duration={300}
-          >
-            {SnackbarC}
-          </Snackbar>
         </Portal>
         <Pressable
           style={[
@@ -247,7 +236,7 @@ export default function Page() {
             }}
             onPress={() => {}}
           >
-            <View
+            <Pressable
               style={{
                 flexDirection: "row",
                 alignItems: "center",
@@ -255,9 +244,15 @@ export default function Page() {
                 paddingHorizontal: 10,
                 height: 34,
               }}
+              onPress={() => {
+                router.push({
+                  pathname: "/editTarget",
+                  params: { targetId: menuobj.targetId },
+                });
+              }}
             >
               <Text style={{ fontSize: 14 }}>编辑</Text>
-            </View>
+            </Pressable>
             <View
               style={{
                 flexDirection: "row",
@@ -286,20 +281,14 @@ const ADD_TARGET = 1;
 function ModalComponentSwitcher({
   modalType,
   setInsertModalV,
-  myHint,
 }: {
   modalType: number;
   setInsertModalV: React.Dispatch<React.SetStateAction<boolean>>;
-  myHint: (message: string) => void;
 }) {
   if (modalType === ADD_GROUP) {
-    return (
-      <ModalComponent0 setInsertModalV={setInsertModalV} myHint={myHint} />
-    );
+    return <ModalComponent0 setInsertModalV={setInsertModalV} />;
   } else if (modalType === ADD_TARGET) {
-    return (
-      <ModalComponent1 setInsertModalV={setInsertModalV} myHint={myHint} />
-    );
+    return <ModalComponent1 setInsertModalV={setInsertModalV} />;
   } else {
     throw Error("未知的modalType:" + modalType);
   }
@@ -307,15 +296,14 @@ function ModalComponentSwitcher({
 
 function ModalComponent0({
   setInsertModalV,
-  myHint,
 }: {
   setInsertModalV: React.Dispatch<React.SetStateAction<boolean>>;
-  myHint: (message: string) => void;
 }) {
   const [groupName, setGroupName] = useState("");
   const db = useSQLiteContext();
   const myAlert = useContext(MyAlertCtx);
   const RefreshFn = useContext(RefreshFnCtx);
+  const myHint = useContext(MyHintCtx);
 
   return (
     <View>
@@ -404,14 +392,13 @@ const ModalComponent1Style = StyleSheet.create({
 
 function ModalComponent1({
   setInsertModalV,
-  myHint,
 }: {
   setInsertModalV: React.Dispatch<React.SetStateAction<boolean>>;
-  myHint: (message: string) => void;
 }) {
   const [targetName, setTargetName] = useState("");
   const db = useSQLiteContext();
   const myAlert = useContext(MyAlertCtx);
+  const myHint = useContext(MyHintCtx);
   const RefreshFn = useContext(RefreshFnCtx);
   const [groups, setGroups] = useState<groupNameRow[]>([]);
   useEffect(() => {
@@ -425,14 +412,7 @@ function ModalComponent1({
     () => groups.map((v) => ({ name: v.groupName, Id: v.groupId })),
     [groups]
   );
-  const repeatList: ListChooseListRowType[] = [
-    { Id: consts_frequency.DAILY, name: "每日" },
-    { Id: consts_frequency.WEEKDAY, name: "周中" },
-    { Id: consts_frequency.WEEKEND, name: "周末" },
-    { Id: consts_frequency.COSTUM_MONTH, name: "自定义（月）" },
-    { Id: consts_frequency.COSTUM_WEEK, name: "自定义（周）" },
-    { Id: consts_frequency.COSTUM_DAY, name: "自定义（日）" },
-  ];
+  // const repeatList: ListChooseListRowType[] = repeatList;
 
   const [frequency, updateFrequency] = useImmer<frequencyType>({
     typeId: consts_frequency.DAILY,
@@ -1193,7 +1173,7 @@ function WeekGroup({ data }: { data: getProgressByWeekRetRow }) {
   );
 
   return (
-    <View
+    <Animated.View
       style={{
         backgroundColor: "white",
         borderRadius: 10,
@@ -1201,6 +1181,7 @@ function WeekGroup({ data }: { data: getProgressByWeekRetRow }) {
         paddingVertical: 10,
         paddingHorizontal: 10,
       }}
+      layout={myLayoutTransition}
     >
       <View style={{ flexDirection: "row", height: 30, alignItems: "center" }}>
         <View style={{ flex: 1 }}>
@@ -1234,32 +1215,34 @@ function WeekGroup({ data }: { data: getProgressByWeekRetRow }) {
           <AntIcon name="pluscircle" size={21} color={BrandColor} />
         </View>
       </View>
-      <View style={{ display: isFolded ? "none" : "flex" }}>
-        {data.children.map((v) => {
-          return (
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                marginTop: 13,
-              }}
-              key={v.Id}
-            >
-              <View style={{ marginRight: 8 }}>
-                {v.isFinished ? (
-                  /* @ts-ignore */
-                  <AntIcon name="checkcircle" size={21} color="#FFCC8E" />
-                ) : (
-                  /* @ts-ignore */
-                  <FeaIcon name="circle" size={21} color="#DCDCDC" />
-                )}
+      {isFolded ? null : (
+        <Animated.View entering={myFadeIn} exiting={myFadeOut}>
+          {data.children.map((v) => {
+            return (
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  marginTop: 13,
+                }}
+                key={v.Id}
+              >
+                <View style={{ marginRight: 8 }}>
+                  {v.isFinished ? (
+                    /* @ts-ignore */
+                    <AntIcon name="checkcircle" size={21} color="#FFCC8E" />
+                  ) : (
+                    /* @ts-ignore */
+                    <FeaIcon name="circle" size={21} color="#DCDCDC" />
+                  )}
+                </View>
+                <Text style={{ fontSize: 16 }}>{getDescription(v)}</Text>
               </View>
-              <Text style={{ fontSize: 16 }}>{getDescription(v)}</Text>
-            </View>
-          );
-        })}
-      </View>
-    </View>
+            );
+          })}
+        </Animated.View>
+      )}
+    </Animated.View>
   );
 }
 
@@ -1287,7 +1270,7 @@ function MonthGroup({ data }: { data: getProgressByMonthRetRow }) {
         marginTop: 10,
         paddingHorizontal: 10,
       }}
-      layout={LinearTransition.duration(300)}
+      layout={myLayoutTransition}
     >
       <View
         style={{
@@ -1352,10 +1335,7 @@ function MonthGroup({ data }: { data: getProgressByMonthRetRow }) {
         </View>
       </View>
       {isFolded ? null : (
-        <Animated.View
-          entering={FadeIn.duration(300).easing(Easing.inOut(Easing.quad))}
-          exiting={FadeOut.duration(300).easing(Easing.inOut(Easing.quad))}
-        >
+        <Animated.View entering={myFadeIn} exiting={myFadeOut}>
           {data.children.map((data) => (
             <MonthgroupChildRow data={data} key={data.Id} />
           ))}
