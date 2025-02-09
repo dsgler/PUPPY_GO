@@ -12,7 +12,7 @@ import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { useState, useEffect } from "react";
 
 export default function Footer({ props }: { props: BottomTabBarProps }) {
-  console.log("bar渲染");
+  // console.log("footer渲染");
 
   let indexMap = new Map<string, number>();
   for (let i = 0; i < props.state.routes.length; i++) {

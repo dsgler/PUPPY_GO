@@ -55,8 +55,11 @@ import {
   addGroup,
   addTarget,
   cancelCheck,
+  changeGroupName,
   childrenRow,
   createTable,
+  deleteGroup,
+  deleteTarget,
   frequencyType,
   getGroups,
   getProgressByDay,
@@ -69,7 +72,12 @@ import {
   targetRow,
 } from "@/sqls/targetSql2";
 import sports from "@/consts/sportType";
-import { defaultError, MyAlertCtx, MyHintCtx } from "@/app/_layout";
+import {
+  defaultError,
+  MyAlertCtx,
+  MyConfirmCtx,
+  MyHintCtx,
+} from "@/app/_layout";
 import { dayDescriptionChina } from "@/consts/dayDescription";
 import * as consts_frequency from "@/consts/frequency";
 import { CustomeMonthBlock, CustomeWeekBlock } from "./CustomeMonthBlock";
@@ -94,6 +102,7 @@ const MenuCtx = createContext<[menuObjType, (menuobj: menuObjType) => void]>([
     visibility: false,
     targetId: -1,
     groupId: -1,
+    groupName: "",
   },
   defaultError,
 ]);
@@ -104,6 +113,7 @@ type menuObjType = {
   visibility: boolean;
   targetId: number;
   groupId: number;
+  groupName: string;
 };
 
 const RefreshFnCtx = createContext<() => void>(() => {
@@ -125,31 +135,49 @@ export default function Page() {
 
   const [durationType, setDurationType] = useState(consts_duration.DAILY);
 
-  const [dataComponent, setDataComponent] = useState<
-    React.JSX.Element[] | React.JSX.Element | undefined
-  >();
+  const [dataComponent, setDataComponent] = useState<React.ReactNode>();
 
   const [modalType, setModalType] = useState(0);
+  const [isEmpty, setIsEmpty] = useState(false);
 
   const myAlert = useContext(MyAlertCtx);
-
-  const RefreshFn = useCallback(() => {
-    showData(db, durationType, new Date(), setDataComponent).catch(myAlert);
-  }, [db, myAlert, durationType]);
-
-  useEffect(RefreshFn, [RefreshFn]);
-
-  const [menuobj, setMenuobj] = useState<menuObjType>({
+  const myConfirm = useContext(MyConfirmCtx);
+  const [menuobj, setMenuobj] = useImmer<menuObjType>({
     x: 0,
     y: 0,
     visibility: false,
     targetId: -1,
     groupId: -1,
+    groupName: "",
   });
 
-  useFocusEffect(() => {
-    RefreshFn();
-  });
+  const RefreshFn = useCallback(() => {
+    showData(db, durationType, new Date(), setDataComponent, setIsEmpty).catch(
+      myAlert
+    );
+    setMenuobj((v) => {
+      v.visibility = false;
+    });
+  }, [db, durationType, myAlert, setMenuobj]);
+
+  useEffect(RefreshFn, [RefreshFn]);
+
+  useFocusEffect(RefreshFn);
+
+  const showAddGroup = useCallback(() => {
+    setMenuobj((v) => {
+      v.groupId = -1;
+      v.groupName = "";
+      v.targetId = -1;
+      v.visibility = false;
+    });
+    setModalType(ADD_GROUP);
+    setInsertModalV(true);
+  }, [setMenuobj]);
+  const showAddTarget = useCallback(() => {
+    setModalType(ADD_TARGET);
+    setInsertModalV(true);
+  }, []);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -160,22 +188,13 @@ export default function Page() {
               durationType={durationType}
               setDurationType={setDurationType}
             />
-            <Tip />
-            {durationType === consts_duration.DAILY ? (
-              <AddTarget
-                onPress={() => {
-                  setModalType(ADD_TARGET);
-                  setInsertModalV(true);
-                }}
-              />
-            ) : (
-              <AddGroup
-                onPress={() => {
-                  setModalType(ADD_GROUP);
-                  setInsertModalV(true);
-                }}
-              />
-            )}
+            {(isEmpty && durationType === consts_duration.DAILY) || <Tip />}
+            {(isEmpty && durationType === consts_duration.DAILY) ||
+              (durationType === consts_duration.DAILY ? (
+                <AddTarget onPress={showAddTarget} />
+              ) : (
+                <AddGroup onPress={showAddGroup} />
+              ))}
             <View style={{ height: 10 }} />
             <MenuCtx.Provider value={[menuobj, setMenuobj]}>
               {dataComponent}
@@ -183,32 +202,64 @@ export default function Page() {
             <View style={{ height: 10 }}></View>
           </ScrollView>
         </SafeAreaView>
+        {isEmpty && durationType === consts_duration.DAILY && (
+          <View
+            style={[
+              StyleSheet.absoluteFill,
+              { justifyContent: "center", alignItems: "center" },
+            ]}
+          >
+            <Image
+              source={require("@/assets/images/targetPage/empty.png")}
+              style={{ width: 233, height: 187 }}
+            />
+            <Text
+              style={{ color: "#828287", fontSize: 14, textAlign: "center" }}
+            >
+              {"还没有目标哦……\n先从一件小事开始吧"}
+            </Text>
+            <Pressable
+              style={{
+                backgroundColor: "#FF960B",
+                borderRadius: 15,
+                paddingHorizontal: 16,
+                paddingVertical: 6,
+                marginTop: 10,
+              }}
+              onPress={showAddTarget}
+            >
+              <Text style={{ fontSize: 16, color: "#FFFFFF" }}>去添加</Text>
+            </Pressable>
+          </View>
+        )}
         <Portal>
           <RefreshFnCtx.Provider value={RefreshFn}>
-            <Modal
-              visible={insertModalV}
-              style={{
-                justifyContent: "flex-end",
-              }}
-              dismissable={false}
-            >
-              <ScrollView keyboardShouldPersistTaps={"always"}>
-                <View
-                  style={{
-                    backgroundColor: "#F4F4F4",
-                    borderTopLeftRadius: 12,
-                    borderTopRightRadius: 12,
-                    paddingHorizontal: 20,
-                    paddingTop: 20,
-                  }}
-                >
-                  <ModalComponentSwitcher
-                    modalType={modalType}
-                    setInsertModalV={setInsertModalV}
-                  />
-                </View>
-              </ScrollView>
-            </Modal>
+            <MenuCtx.Provider value={[menuobj, setMenuobj]}>
+              <Modal
+                visible={insertModalV}
+                style={{
+                  justifyContent: "flex-end",
+                }}
+                dismissable={false}
+              >
+                <ScrollView keyboardShouldPersistTaps={"always"}>
+                  <View
+                    style={{
+                      backgroundColor: "#F4F4F4",
+                      borderTopLeftRadius: 12,
+                      borderTopRightRadius: 12,
+                      paddingHorizontal: 20,
+                      paddingTop: 20,
+                    }}
+                  >
+                    <ModalComponentSwitcher
+                      modalType={modalType}
+                      setInsertModalV={setInsertModalV}
+                    />
+                  </View>
+                </ScrollView>
+              </Modal>
+            </MenuCtx.Provider>
           </RefreshFnCtx.Provider>
         </Portal>
         <Pressable
@@ -245,15 +296,21 @@ export default function Page() {
                 height: 34,
               }}
               onPress={() => {
-                router.push({
-                  pathname: "/editTarget",
-                  params: { targetId: menuobj.targetId },
-                });
+                if (menuobj.targetId !== -1) {
+                  router.push({
+                    pathname: "/editTarget",
+                    params: { targetId: menuobj.targetId },
+                  });
+                } else if (menuobj.groupId !== -1) {
+                  setModalType(ADD_GROUP);
+                  setInsertModalV(true);
+                }
               }}
+              // disabled={menuobj.targetId === -1}
             >
               <Text style={{ fontSize: 14 }}>编辑</Text>
             </Pressable>
-            <View
+            <Pressable
               style={{
                 flexDirection: "row",
                 alignItems: "center",
@@ -261,13 +318,26 @@ export default function Page() {
                 paddingHorizontal: 10,
                 height: 34,
               }}
+              onPress={() => {
+                myConfirm("确定删除吗？", () => {
+                  if (menuobj.targetId !== -1) {
+                    deleteTarget(db, menuobj.targetId)
+                      .then(RefreshFn)
+                      .catch(myAlert);
+                  } else if (menuobj.groupId !== -1) {
+                    deleteGroup(db, menuobj.groupId)
+                      .then(RefreshFn)
+                      .catch(myAlert);
+                  }
+                });
+              }}
             >
               <Text style={{ flex: 1, color: "#F57165", fontSize: 14 }}>
                 删除
               </Text>
               {/* @ts-ignore */}
               <FeaIcon name="trash-2" size={24} color={"#F57165"} />
-            </View>
+            </Pressable>
           </Pressable>
         </Pressable>
       </RefreshFnCtx.Provider>
@@ -294,16 +364,24 @@ function ModalComponentSwitcher({
   }
 }
 
+/**
+ * @describe 同时承担了添加和修改 groupName
+ * 具体通过  groupId是否为 -1 判断
+ */
 function ModalComponent0({
   setInsertModalV,
 }: {
   setInsertModalV: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
-  const [groupName, setGroupName] = useState("");
+  const [menuobj] = useContext(MenuCtx);
+  console.log(menuobj);
+  const [groupName, setGroupName] = useState(menuobj.groupName);
   const db = useSQLiteContext();
   const myAlert = useContext(MyAlertCtx);
   const RefreshFn = useContext(RefreshFnCtx);
   const myHint = useContext(MyHintCtx);
+
+  const isAdd = menuobj.groupId === -1;
 
   return (
     <View>
@@ -323,7 +401,9 @@ function ModalComponent0({
             setInsertModalV(false);
           }}
         />
-        <Text style={{ color: textColor, fontSize: 18 }}>创建分组</Text>
+        <Text style={{ color: textColor, fontSize: 18 }}>
+          {isAdd ? "创建分组" : "修改分组"}
+        </Text>
         <PressableText
           message="保存"
           color={BrandColor}
@@ -335,13 +415,23 @@ function ModalComponent0({
               myAlert("请输入groupName");
               return;
             }
-            addGroup(db, t)
-              .then(() => {
-                myHint("保存成功");
-                setInsertModalV(false);
-                RefreshFn();
-              })
-              .catch(myAlert);
+            if (isAdd) {
+              addGroup(db, t)
+                .then(() => {
+                  myHint("添加成功");
+                  setInsertModalV(false);
+                  RefreshFn();
+                })
+                .catch(myAlert);
+            } else {
+              changeGroupName(db, menuobj.groupId, t)
+                .then(() => {
+                  myHint("修改成功");
+                  setInsertModalV(false);
+                  RefreshFn();
+                })
+                .catch(myAlert);
+            }
           }}
         />
       </View>
@@ -759,8 +849,8 @@ function ModalComponent1({
   }
 }
 
-type ListChooseListRowType = { name: string; Id: number };
-function ListChoose({
+export type ListChooseListRowType = { name: string; Id: number };
+export function ListChoose({
   list,
   chosenId,
   setId,
@@ -1021,6 +1111,7 @@ function AddTarget({
         marginTop: 20,
         borderRadius: 10,
         overflow: "hidden",
+        boxShadow: "0 4 4 rgba(0,0,0,0.1)",
       }}
       borderless={true}
       onPress={onPress}
@@ -1291,6 +1382,7 @@ function MonthGroup({ data }: { data: getProgressByMonthRetRow }) {
               targetId: -1,
               groupId: data.groupId,
               visibility: true,
+              groupName: data.groupName,
             };
             setMenu(obj);
           }}
@@ -1374,6 +1466,7 @@ function MonthgroupChildRow({ data }: { data: childrenRow }) {
           targetId: data.Id,
           groupId: -1,
           visibility: true,
+          groupName: "",
         };
         setMenu(obj);
       }}
@@ -1436,9 +1529,10 @@ function MonthgroupChildRow({ data }: { data: childrenRow }) {
             isShowText={false}
             total={data.count}
             achieved={data.times}
-            color={data.times < data.count ? BrandColor : "#2BA471"}
+            color={BrandColor}
             height={6}
             style={{ flex: 1 }}
+            achievedColor={"#2BA471"}
           />
           <View
             style={{
@@ -1477,6 +1571,7 @@ function Progress({
   textStyle,
   height = 30,
   color = BrandColor,
+  achievedColor = "#2BA471",
 }: {
   isShowText: boolean;
   style?: StyleProp<ViewStyle>;
@@ -1485,10 +1580,12 @@ function Progress({
   achieved: number;
   height?: number;
   color?: ColorValue;
+  achievedColor?: ColorValue;
 }) {
   if (total === 0) {
     total = achieved = 1;
   }
+  const isAchieved = achieved >= total;
 
   return (
     <View
@@ -1508,7 +1605,7 @@ function Progress({
           flex: achieved,
           flexDirection: "row",
           // borderRadius: 999,
-          backgroundColor: color,
+          backgroundColor: isAchieved ? achievedColor : color,
           alignItems: "center",
         }}
       >
@@ -1517,7 +1614,7 @@ function Progress({
       <View style={{ flex: total - achieved, flexDirection: "row" }}>
         <View
           style={{
-            backgroundColor: color,
+            backgroundColor: isAchieved ? achievedColor : color,
             borderTopRightRadius: 999,
             borderBottomRightRadius: 999,
             minWidth: height / 2,
@@ -1540,14 +1637,20 @@ async function showData(
   db: SQLite.SQLiteDatabase,
   durationType: number,
   d: Date,
-  setDataComponent: React.Dispatch<
-    React.SetStateAction<React.JSX.Element | React.JSX.Element[] | undefined>
-  >
+  setDataComponent: React.Dispatch<React.SetStateAction<React.ReactNode>>,
+  setIsEmpty: React.Dispatch<React.SetStateAction<boolean>>
 ) {
   console.log("showData调用");
   await createTable(db);
   if (durationType === consts_duration.DAILY) {
     let datas = await getProgressByDay(db, d);
+    if (datas.length === 0) {
+      setIsEmpty(true);
+      setDataComponent(null);
+      return;
+    }
+
+    setIsEmpty(false);
     setDataComponent(
       <View>
         {datas.map((data) => (

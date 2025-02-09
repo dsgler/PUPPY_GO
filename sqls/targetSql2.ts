@@ -101,7 +101,11 @@ export async function getTarget(db: SQLite.SQLiteDatabase, Id: number) {
   const ret = (await getAllOnce(db, `SELECT * FROM targetRow WHERE Id=?;`, [
     Id,
   ])) as targetRow[];
-  console.assert(ret.length === 1, ret);
+
+  if (ret.length === 0) {
+    throw Error("未查询到Target");
+  }
+
   return ret[0];
 }
 
@@ -363,12 +367,6 @@ export async function getProgressByMonth(db: SQLite.SQLiteDatabase) {
   return ret;
 }
 
-export async function addGroup(db: SQLite.SQLiteDatabase, groupName: string) {
-  return await getAllOnce(db, `INSERT INTO groupName (groupName) VALUES (?);`, [
-    groupName,
-  ]);
-}
-
 export async function setCheck(
   db: SQLite.SQLiteDatabase,
   targetId: number,
@@ -399,4 +397,38 @@ export async function cancelCheck(
     date,
     targetId,
   ]);
+}
+
+export async function addGroup(db: SQLite.SQLiteDatabase, groupName: string) {
+  return await getAllOnce(db, `INSERT INTO groupName (groupName) VALUES (?);`, [
+    groupName,
+  ]);
+}
+
+export async function deleteGroup(db: SQLite.SQLiteDatabase, groupId: number) {
+  const children = (await getAllOnce(
+    db,
+    `SELECT * FROM targetRow WHERE groupId=?;`,
+    [groupId]
+  )) as targetRow[];
+  console.log(children, groupId, 333);
+  if (children.length !== 0) {
+    throw Error("请先删除组内的目标再删除组");
+  }
+
+  return await getAllOnce(db, `DELETE FROM groupName WHERE groupId=?;`, [
+    groupId,
+  ]);
+}
+
+export async function changeGroupName(
+  db: SQLite.SQLiteDatabase,
+  groupId: number,
+  newName: string
+) {
+  return await getAllOnce(
+    db,
+    `UPDATE groupName SET groupName=? WHERE groupId=?;`,
+    [newName, groupId]
+  );
 }

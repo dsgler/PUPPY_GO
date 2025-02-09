@@ -31,13 +31,12 @@ import { useImmer } from "use-immer";
 import { MyAlertCtx, MyConfirmCtx, MyHintCtx } from "@/app/_layout";
 
 import { repeatList } from "@/consts/repeatList";
-import Animated, {
-  FadeOut,
-  FadeOutDown,
-  FadingTransition,
-  LinearTransition,
-} from "react-native-reanimated";
-import { myFadeIn, myFadeOut, myLayoutTransition } from "./targetPage2";
+import Animated from "react-native-reanimated";
+import {
+  myFadeIn,
+  myFadeOut,
+  myLayoutTransition,
+} from "@/components/targetPage2";
 import { BrandColor } from "@/consts/tabs";
 import { router, useLocalSearchParams } from "expo-router";
 
@@ -47,34 +46,87 @@ const bgBigRed = "#FF7272";
 
 const emptyData = {};
 
+type ListChooseListRowType = { name: string; Id: number };
+function ListChoose({
+  list,
+  chosenId,
+  setId,
+}: {
+  list: ListChooseListRowType[];
+  chosenId: number;
+  setId: (newId: number) => void;
+}) {
+  return (
+    <View>
+      {list.map((v) => {
+        return (
+          <Pressable
+            onPress={() => {
+              setId(v.Id);
+            }}
+            style={{ marginVertical: 5 }}
+            key={v.Id}
+          >
+            <View
+              style={{
+                backgroundColor: "white",
+                borderRadius: 10,
+                paddingVertical: 10,
+                paddingLeft: 16,
+                paddingRight: 16,
+                flexDirection: "row",
+                height: 45,
+              }}
+            >
+              <Text style={{ fontSize: 16, flex: 1 }}>{v.name}</Text>
+              {chosenId === v.Id ? (
+                // @ts-ignore
+                <AntIcon name="checkcircle" size={21} color={BrandColor} />
+              ) : null}
+            </View>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
 export default function Page() {
   const db = useSQLiteContext();
   const { targetId: targetIdString } = useLocalSearchParams<{
     targetId: string;
   }>();
   const targetId = Number(targetIdString);
+
   const [data, updateData] = useImmer(emptyData as targetRow);
   const [frequency, updateFrequency] = useImmer<frequencyType>(
     emptyData as frequencyType
   );
   const [groups, setGroups] = useState<groupNameRow[]>();
+  const groupList = useMemo<ListChooseListRowType[]>(
+    () => (groups ?? []).map((v) => ({ name: v.groupName, Id: v.groupId })),
+    [groups]
+  );
 
   const myHint = useContext(MyHintCtx);
   const myConfirm = useContext(MyConfirmCtx);
   const myAlert = useContext(MyAlertCtx);
 
   useEffect(() => {
-    getTarget(db, targetId).then((v) => {
-      updateData(v);
-      updateFrequency(JSON.parse(v.frequency));
-    });
+    getTarget(db, targetId)
+      .then((v) => {
+        updateData(v);
+        updateFrequency(JSON.parse(v.frequency));
+      })
+      .catch(myAlert);
     getGroups(db).then(setGroups);
-  }, [targetId, db, updateFrequency, updateData]);
+  }, [targetId, db, updateFrequency, updateData, myAlert]);
 
   const groupName = useMemo(
     () => groups?.find((v) => v.groupId === data.groupId)?.groupName,
     [data.groupId, groups]
   );
+  const [isFolded, setIsFolded] = useState(true);
 
   const makeTime = useMemo(() => {
     const d = new Date(data.makeTime);
@@ -87,6 +139,14 @@ export default function Page() {
     return (
       <SafeAreaView>
         <Text>加载中</Text>
+      </SafeAreaView>
+    );
+  }
+
+  if (isNaN(targetId)) {
+    return (
+      <SafeAreaView>
+        <Text>请输入合理的targetId:{targetId}</Text>
       </SafeAreaView>
     );
   }
@@ -112,7 +172,39 @@ export default function Page() {
             title={<Text style={ColoredRowStyle.title}>所属列表</Text>}
             backgroundColor={bgYellow}
           >
-            <Text style={ColoredRowStyle.content}>{groupName}</Text>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
+            >
+              <Text style={ColoredRowStyle.content}>{groupName}</Text>
+              <Pressable
+                onPress={() => {
+                  setIsFolded(!isFolded);
+                }}
+              >
+                {/* @ts-ignore */}
+                <AntIcon
+                  name={isFolded ? "rightcircleo" : "downcircleo"}
+                  size={21}
+                />
+              </Pressable>
+            </View>
+            {isFolded ? null : (
+              <Animated.View entering={myFadeIn} exiting={myFadeOut}>
+                <ListChoose
+                  list={groupList}
+                  chosenId={data.groupId}
+                  setId={(newId) => {
+                    updateData((data) => {
+                      data.groupId = newId;
+                    });
+                  }}
+                />
+              </Animated.View>
+            )}
           </ColoredRow>
           <ColoredRow
             title={<Text style={ColoredRowStyle.title}>创建时间</Text>}
@@ -241,55 +333,59 @@ export default function Page() {
               ) : null}
             </Animated.View>
           </ColoredRow>
-          <Pressable
-            style={{
-              height: 40,
-              borderRadius: 10,
-              backgroundColor: "#FFCC8E",
-              justifyContent: "center",
-              alignItems: "center",
-              flexDirection: "row",
-            }}
-            onPress={() => {
-              updateTarget(db, {
-                ...data,
-                frequency: JSON.stringify(frequency),
-              })
-                .then(() => {
-                  myHint("保存成功");
-                  setTimeout(() => {
-                    router.back();
-                  }, 500);
+          <Animated.View layout={myLayoutTransition}>
+            <Pressable
+              style={{
+                height: 40,
+                borderRadius: 10,
+                backgroundColor: "#FFCC8E",
+                justifyContent: "center",
+                alignItems: "center",
+                flexDirection: "row",
+              }}
+              onPress={() => {
+                updateTarget(db, {
+                  ...data,
+                  frequency: JSON.stringify(frequency),
                 })
-                .catch(myAlert);
-            }}
-          >
-            <Text style={{ color: BrandColor, fontSize: 16 }}>确定</Text>
-          </Pressable>
-          <Pressable
-            style={{
-              height: 40,
-              borderRadius: 10,
-              backgroundColor: "#FFAFAF",
-              justifyContent: "center",
-              alignItems: "center",
-              flexDirection: "row",
-            }}
-            onPress={() => {
-              myConfirm("确定删除？", () => {
-                deleteTarget(db, data.Id)
                   .then(() => {
-                    myHint("删除成功");
+                    myHint("保存成功");
                     setTimeout(() => {
                       router.back();
                     }, 500);
                   })
                   .catch(myAlert);
-              });
-            }}
-          >
-            <Text style={{ color: "#E12A2A", fontSize: 16 }}>删除</Text>
-          </Pressable>
+              }}
+            >
+              <Text style={{ color: BrandColor, fontSize: 16 }}>确定</Text>
+            </Pressable>
+          </Animated.View>
+          <Animated.View layout={myLayoutTransition}>
+            <Pressable
+              style={{
+                height: 40,
+                borderRadius: 10,
+                backgroundColor: "#FFAFAF",
+                justifyContent: "center",
+                alignItems: "center",
+                flexDirection: "row",
+              }}
+              onPress={() => {
+                myConfirm("确定删除？", () => {
+                  deleteTarget(db, data.Id)
+                    .then(() => {
+                      myHint("删除成功");
+                      setTimeout(() => {
+                        router.back();
+                      }, 500);
+                    })
+                    .catch(myAlert);
+                });
+              }}
+            >
+              <Text style={{ color: "#E12A2A", fontSize: 16 }}>删除</Text>
+            </Pressable>
+          </Animated.View>
         </View>
       </ScrollView>
     </SafeAreaView>
