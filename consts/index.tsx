@@ -1,38 +1,52 @@
-import { ImageSourcePropType } from "react-native";
+import { ColorValue, ImageSourcePropType } from "react-native";
 
-export const MoodObj: {
-  [key: number]: {
-    unPic: () => ImageSourcePropType;
-    pic: () => ImageSourcePropType;
-    descirption: string;
-    icon: string;
-  };
-} = {
-  0: {
+export const HAPPY = 0;
+export const SAD = 1;
+export const COOL = 2;
+export const ANGRY = 3;
+
+type MoodArrRow = {
+  Id: number;
+  unPic: () => ImageSourcePropType;
+  pic: () => ImageSourcePropType;
+  descirption: string;
+  icon: string;
+  color: ColorValue;
+};
+export const MoodArr: MoodArrRow[] = [
+  {
+    Id: HAPPY,
     unPic: () => require("../assets/images/addPage/happy_un.png"),
     pic: () => require("../assets/images/addPage/happy.png"),
     descirption: "开心",
     icon: "emoticon-happy-outline",
+    color: "#F0AD5B",
   },
-  1: {
+  {
+    Id: SAD,
     unPic: () => require("../assets/images/addPage/sad_un.png"),
     pic: () => require("../assets/images/addPage/sad.png"),
     descirption: "伤心",
     icon: "emoticon-sad-outline",
+    color: "#1F80A3",
   },
-  2: {
+  {
+    Id: COOL,
     unPic: () => require("../assets/images/addPage/wink_un.png"),
     pic: () => require("../assets/images/addPage/wink.png"),
     descirption: "得意",
     icon: "emoticon-cool-outline",
+    color: "#9FA8F5",
   },
-  3: {
+  {
+    Id: ANGRY,
     unPic: () => require("../assets/images/addPage/angry_un.png"),
     pic: () => require("../assets/images/addPage/angry.png"),
     descirption: "生气",
     icon: "emoticon-angry-outline",
+    color: "#F57165",
   },
-};
+];
 
 type effortType = {
   s1: string;

@@ -24,7 +24,7 @@ import { Icon, TouchableRipple } from "react-native-paper";
 import Svg, { Line } from "react-native-svg";
 
 import sportArr from "@/consts/sportType";
-import { effortArr, MoodObj } from "@/consts";
+import { effortArr, MoodArr } from "@/consts";
 import MyScrollView from "./myScrollView";
 import { getDatesInWeek } from "@/utility/datetool";
 import { dayDescription } from "../consts/dayDescription";
@@ -123,7 +123,13 @@ function Header({ style }: { style?: StyleProp<ViewStyle> }) {
       <Text style={{ fontWeight: 700, fontSize: 20 }}>
         {d.getFullYear()}年{d.getMonth() + 1}月
       </Text>
-      <CalIcon />
+      <Pressable
+        onPress={() => {
+          router.push("/statistic");
+        }}
+      >
+        <CalIcon />
+      </Pressable>
     </View>
   );
 }
@@ -372,7 +378,7 @@ function SportBlockRight({
               marginTop: 5,
             }}
           >
-            <Icon source={MoodObj[data.moodId].icon} size={20} />
+            <Icon source={MoodArr[data.moodId].icon} size={20} />
             <Text style={{ fontSize: 22, fontWeight: 500, color: "#131315" }}>
               {" " + getGapTimeString(data.timeend - data.timestart) + " "}
             </Text>

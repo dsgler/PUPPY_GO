@@ -114,8 +114,8 @@ export default function RootLayout() {
               <ThemeProvider theme={MYTHEME}>
                 <PaperProvider>
                   <ThemeProvider theme={MYTHEME}>
-                    <Stack>
-                      <Stack.Screen
+                    <Stack screenOptions={{ headerShown: false }}>
+                      {/* <Stack.Screen
                         name="(tabs)"
                         options={{ headerShown: false }}
                       />
@@ -126,7 +126,7 @@ export default function RootLayout() {
                       <Stack.Screen
                         name="editTarget"
                         options={{ headerShown: false }}
-                      />
+                      /> */}
                       <Stack.Screen name="+not-found" />
                     </Stack>
                     {dialogV ? (
