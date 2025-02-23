@@ -23,13 +23,13 @@ import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import React, { useState, useContext } from "react";
 
-import sports from "../consts/sportType";
+import sportArr from "../consts/sportType";
 import BackIcon from "@/assets/images/addPage/back";
 import Line from "@/assets/images/addPage/line";
 
 import { insertData, addDataType, getDB } from "../sqls/indexSql";
 import { getmulti } from "@/utility/datetool";
-import { effortArr, MoodObj } from "@/consts";
+import { effortArr, MoodArr } from "@/consts";
 import { useImmer } from "use-immer";
 
 import { MyAlertCtx } from "@/app/_layout";
@@ -73,16 +73,14 @@ const styles = StyleSheet.create({
   },
 });
 
-function requireRunningDog() {
-  return require("../assets/images/addPage/runningDog.png");
-}
+export const requireRunningDog = require("../assets/images/addPage/runningDog.png");
 
 const MAIN = 0;
 const CONTENT = 1;
 const TAG = 2;
 
 export default function AddPage() {
-  const [chosenSportId, setChosenSportId] = useState(-1);
+  const [sportId, setSportId] = useState(-1);
   const [exTime, setExTime] = useState("60");
   const [moodId, setMoodId] = useState(-1);
   const [effort, setEffort] = useState(0);
@@ -153,7 +151,7 @@ export default function AddPage() {
                   handleSubmit(
                     {
                       ...getmulti(Number(exTime)),
-                      sportId: chosenSportId,
+                      sportId: sportId,
                       moodId,
                       effort,
                       Tags: JSON.stringify(tags),
@@ -192,20 +190,7 @@ export default function AddPage() {
             </View>
             <View style={{ display: pageState === MAIN ? "flex" : "none" }}>
               <MainText>请选择运动的类型</MainText>
-              <FlatList
-                style={{ paddingVertical: 10 }}
-                horizontal={true}
-                data={sports}
-                renderItem={({ item, index }) => (
-                  <ColorfulTag
-                    Message={item.sportName}
-                    Color={item.color}
-                    isChosen={chosenSportId === item.id}
-                    onPressF={() => setChosenSportId(item.id)}
-                  />
-                )}
-                showsHorizontalScrollIndicator={false}
-              />
+              <ChooseSport sportId={sportId} setSportId={setSportId} />
               <MainText>请选择运动的时长</MainText>
               <View
                 style={{
@@ -298,28 +283,28 @@ export default function AddPage() {
                   <View
                     style={{
                       width: contentWidth / 4,
-                      backgroundColor: "#ffd0a9",
+                      backgroundColor: effortArr[1].color,
                       height: 15,
                     }}
                   ></View>
                   <View
                     style={{
                       width: contentWidth / 4,
-                      backgroundColor: "#ffa772",
+                      backgroundColor: effortArr[2].color,
                       height: 15,
                     }}
                   ></View>
                   <View
                     style={{
                       width: contentWidth / 4,
-                      backgroundColor: "#f17527",
+                      backgroundColor: effortArr[3].color,
                       height: 15,
                     }}
                   ></View>
                   <View
                     style={{
                       width: contentWidth / 4,
-                      backgroundColor: "#d25203",
+                      backgroundColor: effortArr[4].color,
                       height: 15,
                     }}
                   ></View>
@@ -338,7 +323,7 @@ export default function AddPage() {
                   Position={(contentWidth / 4) * 4 - 15}
                 />
                 <Image
-                  source={requireRunningDog()}
+                  source={requireRunningDog}
                   style={[
                     styles.dogImg,
                     {
@@ -558,7 +543,7 @@ export default function AddPage() {
     if (effort === n) {
       return (
         <Image
-          source={requireRunningDog()}
+          source={requireRunningDog}
           style={[styles.dogImg, { top: -28, left: p - 22 }]}
         />
       );
@@ -582,6 +567,31 @@ export default function AddPage() {
       );
     }
   }
+}
+
+export function ChooseSport({
+  sportId,
+  setSportId,
+}: {
+  sportId: number;
+  setSportId: React.Dispatch<React.SetStateAction<number>>;
+}) {
+  return (
+    <FlatList
+      style={{ paddingVertical: 10 }}
+      horizontal={true}
+      data={sportArr}
+      renderItem={({ item, index }) => (
+        <ColorfulTag
+          Message={item.sportName}
+          Color={item.color}
+          isChosen={sportId === item.id}
+          onPressF={() => setSportId(item.id)}
+        />
+      )}
+      showsHorizontalScrollIndicator={false}
+    />
+  );
 }
 
 function MainText({
@@ -659,14 +669,14 @@ function MoodContainer({
             if (currentMoodId === ImoodId) {
               return (
                 <Image
-                  source={MoodObj[ImoodId].pic()}
+                  source={MoodArr[ImoodId].pic}
                   style={{ height: 85, aspectRatio: 1 }}
                 />
               );
             } else {
               return (
                 <Image
-                  source={MoodObj[ImoodId].unPic()}
+                  source={MoodArr[ImoodId].unPic}
                   style={{ height: 70, aspectRatio: 1 }}
                 />
               );
@@ -675,7 +685,7 @@ function MoodContainer({
         </View>
       </Pressable>
       <Text style={{ textAlign: "center", fontSize: 15 }}>
-        {MoodObj[ImoodId].descirption}
+        {MoodArr[ImoodId].descirption}
       </Text>
     </View>
   );

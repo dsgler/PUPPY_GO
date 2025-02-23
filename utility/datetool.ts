@@ -74,3 +74,31 @@ export function getDatesInMonth(t: Date | number): Date[] {
   }
   return ret;
 }
+
+export type withDate = { date: Date };
+export function divideMonthIntoWeek<T>(src: (T & withDate)[]) {
+  // console.log("重新计算");
+  const arr: ((T & withDate) | undefined)[][] = [];
+
+  for (const ele of src) {
+    if (ele.date.getDate() === 1) {
+      const temp: ((T & withDate) | undefined)[] = [];
+      for (let j = (ele.date.getDay() + 6) % 7; j > 0; j--) {
+        temp.push(undefined);
+      }
+      temp.push(ele);
+      arr.push(temp);
+      continue;
+    }
+
+    if (ele.date.getDay() === 1) {
+      arr.push([]);
+    }
+
+    arr[arr.length - 1].push(ele);
+  }
+  for (let i = 7 - arr[arr.length - 1].length; i > 0; i--) {
+    arr[arr.length - 1].push(undefined);
+  }
+  return arr;
+}

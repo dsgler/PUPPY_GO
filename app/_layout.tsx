@@ -20,6 +20,7 @@ import { ThemeProvider } from "react-native-paper";
 import { Text, StyleSheet, View } from "react-native";
 import { MYTHEME } from "@/consts/themeObj";
 import * as NavigationBar from "expo-navigation-bar";
+import { useFonts } from "expo-font";
 
 export const defaultError = () => {
   throw TypeError("不应为初值");
@@ -104,6 +105,8 @@ export default function RootLayout() {
   useEffect(() => {
     NavigationBar.setBackgroundColorAsync("rgba(0, 0, 0, 0)");
   }, []);
+
+  useFonts({ AaTianNiuNai: require("@/assets/fonts/AaTianNiuNai.ttf") });
 
   return (
     <>

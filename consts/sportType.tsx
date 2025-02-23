@@ -4,7 +4,7 @@ export type sportItemType = {
   color: string;
   emoji: string;
 };
-const sports: sportItemType[] = [
+const sportArr: sportItemType[] = [
   {
     id: 0,
     sportName: "跑步",
@@ -67,4 +67,4 @@ const sports: sportItemType[] = [
   },
 ];
 
-export default sports;
+export default sportArr;

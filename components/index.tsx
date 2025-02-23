@@ -260,7 +260,12 @@ function SportList({ sportArr }: { sportArr: addDataType[] }) {
       }}
       onLayout={(e) => setHeight(e.nativeEvent.layout.height)}
     >
-      <MyScrollView marginTop={marginTop} style={{ flex: 1 }} bounce={20}>
+      <MyScrollView
+        marginTop={marginTop}
+        style={{ flex: 1 }}
+        bounce={20}
+        viewHeight={height}
+      >
         <View
           style={{
             paddingTop: 10,

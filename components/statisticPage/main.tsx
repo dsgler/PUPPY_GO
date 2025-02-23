@@ -2,36 +2,90 @@ import { View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Header } from "./Header";
 import * as pageType_consts from "./pageType";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ChooseIcon } from "./ChooseIcon";
-import PieChart from "react-native-pie-chart";
-import { CustomeMonthBlock } from "./month";
+import { MonthSwitcher } from "./month";
+import ChooseSport from "./ChooseSport";
+import Part2View from "./part2/part2";
+import { addDataType } from "@/sqls/indexSql";
+import { useSQLiteContext } from "expo-sqlite";
+import { getDateNumber, getDatesInMonth } from "@/utility/datetool";
+import { getRows } from "./sql";
+
+import * as echarts from "echarts/core";
+import { PieChart, BarChart } from "echarts/charts";
+import {
+  GridComponent,
+  LegendComponent,
+  TitleComponent,
+} from "echarts/components";
+import { SkiaRenderer } from "@wuba/react-native-echarts";
+
+echarts.use([
+  SkiaRenderer,
+  GridComponent,
+  PieChart,
+  BarChart,
+  LegendComponent,
+  TitleComponent,
+]);
 
 export default function Page() {
   const [pageType, setPageType] = useState(pageType_consts.MOOD);
-  // const widthAndHeight = 250;
+  const [sportId, setSportId] = useState(-1);
+  const d = new Date();
+  const db = useSQLiteContext();
 
-  // const series = [
-  //   { value: 430, color: "#fbd203" },
-  //   { value: 321, color: "#ffb300" },
-  //   { value: 185, color: "#ff9100" },
-  //   { value: 0, color: "#ff6c00" },
-  // ];
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const date = useMemo(() => d, [d.getDate()]);
+  const isDateChanged = date.getMonth();
+  const thisMonth = useMemo(
+    () => getDatesInMonth(date),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [isDateChanged]
+  );
+
+  const [datas, setDatas] = useState<addDataType[]>([]);
+  useEffect(() => {
+    getRows(
+      db,
+      getDateNumber(thisMonth[0]),
+      getDateNumber(thisMonth[thisMonth.length - 1]),
+      sportId
+    ).then((v) => {
+      setDatas(v);
+    });
+  }, [db, sportId, thisMonth]);
+
+  const [upperHeight, setUpperHeight] = useState(0);
 
   return (
-    <View
-      style={{ flex: 1, paddingHorizontal: 16, backgroundColor: "#EFAC5B" }}
-    >
-      <SafeAreaView>
-        <Header />
-        <ChooseIcon pageType={pageType} setPageType={setPageType} />
-        {/* <PieChart
-          widthAndHeight={widthAndHeight}
-          series={series}
-          cover={0.45}
-        /> */}
-        <CustomeMonthBlock date={new Date()} />
-      </SafeAreaView>
-    </View>
+    <SafeAreaView style={{ flex: 1 }}>
+      <View style={{ flex: 1, paddingHorizontal: 16 }}>
+        <View
+          onLayout={(e) => {
+            setUpperHeight(e.nativeEvent.layout.height);
+          }}
+        >
+          <Header />
+          <View style={{ height: 10 }}></View>
+          <ChooseIcon pageType={pageType} setPageType={setPageType} />
+          <MonthSwitcher
+            date={date}
+            datas={datas}
+            thisMonth={thisMonth}
+            pageType={pageType}
+          />
+          <ChooseSport sportId={sportId} setSportId={setSportId} />
+          <View style={{ height: 20 }}></View>
+        </View>
+        <Part2View
+          upperHeight={upperHeight}
+          datas={datas}
+          pageType={pageType}
+          thisMonth={thisMonth}
+        />
+      </View>
+    </SafeAreaView>
   );
 }

@@ -71,7 +71,7 @@ import {
   setCheck,
   targetRow,
 } from "@/sqls/targetSql2";
-import sports from "@/consts/sportType";
+import sportArr from "@/consts/sportType";
 import {
   defaultError,
   MyAlertCtx,
@@ -92,7 +92,7 @@ export function getDescription(v: {
 }) {
   return v.sportId === -1
     ? v.description
-    : `${sports[v.sportId].sportName}${getGapTimeString(v.duration)}`;
+    : `${sportArr[v.sportId].sportName}${getGapTimeString(v.duration)}`;
 }
 
 const MenuCtx = createContext<[menuObjType, (menuobj: menuObjType) => void]>([
@@ -1658,7 +1658,7 @@ async function showData(
             typeName={
               data.sportId === -1
                 ? data.description
-                : `${sports[data.sportId].sportName}${getGapTimeString(
+                : `${sportArr[data.sportId].sportName}${getGapTimeString(
                     data.duration
                   )}`
             }
