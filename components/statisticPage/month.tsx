@@ -1,7 +1,11 @@
 import { addDataType } from "@/sqls/indexSql";
-import { divideMonthIntoWeek, withDate } from "@/utility/datetool";
+import {
+  divideMonthIntoWeek,
+  getDateNumber,
+  withDate,
+} from "@/utility/datetool";
 import { useContext, useEffect, useMemo, useRef } from "react";
-import { StyleProp, TextStyle } from "react-native";
+import { Pressable, StyleProp, TextStyle } from "react-native";
 import { View, Text, StyleSheet } from "react-native";
 import OldPieChart, { Slice } from "react-native-pie-chart";
 import { effortArr, MoodArr } from "@/consts";
@@ -11,6 +15,7 @@ import { SkiaChart } from "@wuba/react-native-echarts";
 import sportArr from "@/consts/sportType";
 import * as pageType_consts from "./pageType";
 import { MyAlertCtx } from "@/app/_layout";
+import { ChosenDateArrCtx } from "./main";
 
 const CustomeBlockStyle = StyleSheet.create({
   container: {
@@ -57,10 +62,10 @@ function CustomeMonthBlock({
   date,
   dividedArr,
 }: {
-  chosen?: number[];
-  setChosen?: (arr: number[]) => void;
+  chosen?: number;
+  setChosen?: (id: number) => void;
   date: Date;
-  dividedArr: (CircleBlockProp | undefined)[][];
+  dividedArr: ((CircleBlockProp & withDate) | undefined)[][];
 }) {
   return (
     <View style={CustomeBlockStyle.container}>
@@ -78,7 +83,18 @@ function CustomeMonthBlock({
           <View key={k} style={{ flexDirection: "row", gap: 3 }}>
             {row.map((v, k) => (
               <View style={CustomeBlockStyle.emptyblock} key={k}>
-                {v && <EchartsCircleBlock {...v} />}
+                {v && (
+                  <Pressable
+                    onPress={() => {
+                      setChosen && setChosen(getDateNumber(v.date));
+                    }}
+                  >
+                    <EchartsCircleBlock
+                      {...v}
+                      hasOuterRing={getDateNumber(v.date) === chosen}
+                    />
+                  </Pressable>
+                )}
               </View>
             ))}
           </View>
@@ -93,6 +109,7 @@ type CircleBlockProp = {
   width: number;
   text: string | number;
   textStyle?: StyleProp<TextStyle>;
+  hasOuterRing?: boolean;
 };
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function CircleBlock({ series, width, text, textStyle }: CircleBlockProp) {
@@ -129,6 +146,7 @@ function EchartsCircleBlock({
   width,
   text,
   textStyle,
+  hasOuterRing = false,
 }: CircleBlockProp) {
   const skiaRef = useRef<any>(null);
   useEffect(() => {
@@ -142,6 +160,7 @@ function EchartsCircleBlock({
           })),
           radius: ["70%", "100%"],
           label: { show: false },
+          silent: true,
         },
       ],
     };
@@ -168,6 +187,20 @@ function EchartsCircleBlock({
       >
         <Text style={[{ textAlign: "center" }, textStyle]}>{text}</Text>
       </View>
+      {hasOuterRing && (
+        <View
+          style={[
+            StyleSheet.absoluteFill,
+            { justifyContent: "center", alignItems: "center" },
+          ]}
+        >
+          <OldPieChart
+            widthAndHeight={42}
+            series={[{ value: 1, color: "#FF960B" }]}
+            cover={0.9}
+          />
+        </View>
+      )}
     </View>
   );
 }
@@ -353,8 +386,16 @@ export function TagWrapper({
     () => divideMonthIntoWeek(composedArr),
     [composedArr]
   );
+  const [chosen, setChosen] = useContext(ChosenDateArrCtx);
 
-  return <CustomeMonthBlock date={date} dividedArr={dividedArr} />;
+  return (
+    <CustomeMonthBlock
+      date={date}
+      dividedArr={dividedArr}
+      chosen={chosen}
+      setChosen={setChosen}
+    />
+  );
 }
 
 export function MonthSwitcher({

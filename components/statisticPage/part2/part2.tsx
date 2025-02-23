@@ -8,6 +8,7 @@ import * as pageType_consts from "../pageType";
 import MoodView from "./Mood";
 import DurationView from "./duration";
 import EffortView from "./effort";
+import TagView from "./tag";
 
 export default function F({
   upperHeight,
@@ -84,6 +85,7 @@ function Switcher({
     case pageType_consts.EFFORT:
       return <EffortView datas={datas} width={width} />;
     case pageType_consts.TAG:
+      return <TagView />;
     default:
       myAlert("pageType不存在");
       return null;

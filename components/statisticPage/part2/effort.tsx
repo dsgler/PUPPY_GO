@@ -162,16 +162,36 @@ function MypieChart({ width, counts }: { width: number; counts: number[] }) {
 
   useEffect(() => {
     const option = {
+      legend: {
+        icon: "circle",
+        orient: "vertical",
+        right: 0,
+        top: "bottom",
+      },
       series: [
         {
           type: "pie",
-          data: counts.map((v, k) => ({
-            value: v,
-            itemStyle: { color: effortArr[k].color },
-            name: v,
-          })),
-          itemStyle: { borderRadius: 5 },
-          label: { position: "inside" },
+          data: counts
+            .map((v, k) => ({
+              value: v,
+              itemStyle: { color: effortArr[k].color },
+              name: effortArr[k].s1,
+            }))
+            .filter((v) => v.value !== 0),
+          itemStyle: {
+            opacity: 0.9,
+            borderRadius: 5,
+            borderWidth: 2,
+            borderColor: "white",
+          },
+          left: "left",
+          center: ["40%", "50%"],
+          label: {
+            color: "black",
+            fontSize: 16,
+            formatter: (data: any) => data.value,
+            position: "inside",
+          },
         },
       ],
     };

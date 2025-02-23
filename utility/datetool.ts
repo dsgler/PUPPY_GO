@@ -57,6 +57,14 @@ export function getDateNumber(t: number | Date) {
   return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
 }
 
+export function dateNumberToDate(t: number) {
+  return new Date(
+    Math.floor(t / 10000),
+    Math.floor((t / 100) % 100),
+    Math.floor(t % 100)
+  );
+}
+
 export function getDatesInMonth(t: Date | number): Date[] {
   let d = new Date(t);
   let month = d.getMonth();

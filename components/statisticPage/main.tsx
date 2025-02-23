@@ -2,7 +2,7 @@ import { View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Header } from "./Header";
 import * as pageType_consts from "./pageType";
-import { useEffect, useMemo, useState } from "react";
+import { createContext, useEffect, useMemo, useState } from "react";
 import { ChooseIcon } from "./ChooseIcon";
 import { MonthSwitcher } from "./month";
 import ChooseSport from "./ChooseSport";
@@ -28,6 +28,15 @@ echarts.use([
   BarChart,
   LegendComponent,
   TitleComponent,
+]);
+
+export const ChosenDateArrCtx = createContext<
+  [number, React.Dispatch<React.SetStateAction<number>>]
+>([
+  -1,
+  () => {
+    throw Error("请提供chosenDateArr");
+  },
 ]);
 
 export default function Page() {
@@ -58,34 +67,37 @@ export default function Page() {
   }, [db, sportId, thisMonth]);
 
   const [upperHeight, setUpperHeight] = useState(0);
+  const chosenDateArr = useState(-1);
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      <View style={{ flex: 1, paddingHorizontal: 16 }}>
-        <View
-          onLayout={(e) => {
-            setUpperHeight(e.nativeEvent.layout.height);
-          }}
-        >
-          <Header />
-          <View style={{ height: 10 }}></View>
-          <ChooseIcon pageType={pageType} setPageType={setPageType} />
-          <MonthSwitcher
-            date={date}
+      <ChosenDateArrCtx.Provider value={chosenDateArr}>
+        <View style={{ flex: 1, paddingHorizontal: 16 }}>
+          <View
+            onLayout={(e) => {
+              setUpperHeight(e.nativeEvent.layout.height);
+            }}
+          >
+            <Header />
+            <View style={{ height: 10 }}></View>
+            <ChooseIcon pageType={pageType} setPageType={setPageType} />
+            <MonthSwitcher
+              date={date}
+              datas={datas}
+              thisMonth={thisMonth}
+              pageType={pageType}
+            />
+            <ChooseSport sportId={sportId} setSportId={setSportId} />
+            <View style={{ height: 20 }}></View>
+          </View>
+          <Part2View
+            upperHeight={upperHeight}
             datas={datas}
-            thisMonth={thisMonth}
             pageType={pageType}
+            thisMonth={thisMonth}
           />
-          <ChooseSport sportId={sportId} setSportId={setSportId} />
-          <View style={{ height: 20 }}></View>
         </View>
-        <Part2View
-          upperHeight={upperHeight}
-          datas={datas}
-          pageType={pageType}
-          thisMonth={thisMonth}
-        />
-      </View>
+      </ChosenDateArrCtx.Provider>
     </SafeAreaView>
   );
 }
