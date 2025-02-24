@@ -8,13 +8,18 @@ import {
   FlatList,
 } from "react-native";
 import { router, useFocusEffect } from "expo-router";
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import CalIcon from "@/assets/images/index/calendar";
 import { BrandColor, unChoseColor } from "@/consts/tabs";
 import AiPlan from "./AiPlan";
 
-import { addDataType, GetDataByDate, getDB } from "../sqls/indexSql";
+import {
+  addDataType,
+  askForReply,
+  GetDataByDate,
+  getDB,
+} from "../sqls/indexSql";
 import {
   getDateNumber,
   getTimeString,
@@ -24,10 +29,11 @@ import { Icon, TouchableRipple } from "react-native-paper";
 import Svg, { Line } from "react-native-svg";
 
 import sportArr from "@/consts/sportType";
-import { effortArr, MoodArr } from "@/consts";
+import { effortArr, MoodArr, thinkingStr } from "@/consts";
 import MyScrollView from "./myScrollView";
 import { getDatesInWeek } from "@/utility/datetool";
 import { dayDescription } from "../consts/dayDescription";
+import { useSQLiteContext } from "expo-sqlite";
 
 export default function Index() {
   console.log("index渲染");
@@ -556,7 +562,7 @@ function SportBlockRight({
             marginRight: 5,
           }}
         >
-          <Text>{data.reply}</Text>
+          <ReplyStream data={data} />
         </View>
         <Image
           source={require("@/assets/images/index/doghead.png")}
@@ -565,6 +571,21 @@ function SportBlockRight({
       </View>
     </View>
   );
+}
+
+function ReplyStream({ data }: { data: addDataType }) {
+  const db = useSQLiteContext();
+  const [reply, setReply] = useState(thinkingStr);
+  useEffect(() => {
+    if (data.reply === thinkingStr) {
+      askForReply(db, data, setReply);
+    }
+  }, [data, db]);
+  if (data.reply !== thinkingStr) {
+    return <Text>{data.reply}</Text>;
+  } else {
+    return <Text>{reply}</Text>;
+  }
 }
 
 function SolidTag({

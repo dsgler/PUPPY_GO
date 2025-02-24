@@ -1,6 +1,13 @@
+import { effortArr, MoodArr, systemPrompt } from "@/consts";
+import { apiKey } from "@/consts/key";
+import sportArr from "@/consts/sportType";
+import { getGapTimeString } from "@/utility/datetool";
+import { getAllOnce } from "@/utility/sql";
 import * as SQLite from "expo-sqlite";
+import OpenAI from "openai-react-native";
 
 export type addDataType = {
+  id?: number;
   date: number;
   timestart: number;
   timeend: number;
@@ -82,7 +89,7 @@ export async function GetDataByDate(
   console.log(date);
   await createTable(db);
   const statement = await db.prepareAsync(
-    `SELECT date, timestart, timeend, sportId, moodId, effort, Tags, title, content, reply 
+    `SELECT * 
      FROM myTable 
      WHERE date = ?`
   );
@@ -96,4 +103,100 @@ export async function GetDataByDate(
   } finally {
     await statement.finalizeAsync();
   }
+}
+
+type reqStrTyp = {
+  运动: string;
+  时间: string;
+  心情: string;
+  耗力: string;
+  标签: string;
+  日记标题: string;
+  日记内容: string;
+};
+export async function askForReply(
+  db: SQLite.SQLiteDatabase,
+  data: addDataType,
+  setReply: React.Dispatch<React.SetStateAction<string>>
+) {
+  console.log("准备发送请求");
+  const aiclient = new OpenAI({
+    apiKey: apiKey,
+    baseURL: "https://api.siliconflow.cn/v1",
+    // host: "https://api.siliconflow.cn/v1",
+  });
+
+  const reqObj: reqStrTyp = {
+    运动: sportArr[data.sportId].sportName,
+    时间: getGapTimeString(data.timeend - data.timeend),
+    心情: MoodArr[data.moodId].descirption,
+    耗力: effortArr[data.effort].s1,
+    标签: data.Tags,
+    日记标题: data.title,
+    日记内容: data.content,
+  };
+  const reqStr = JSON.stringify(reqObj);
+  console.log("发送请求");
+  // aiclient.chat.completions
+  //   .create({
+  //     // model: "deepseek-ai/DeepSeek-R1",
+  //     model: "deepseek-ai/DeepSeek-R1-Distill-Llama-8B",
+  //     messages: [
+  //       { role: "system", content: systemPrompt },
+  //       { role: "user", content: reqStr },
+  //     ],
+  //   })
+  //   .then((v) => {
+  //     console.log(v);
+  //     const str = v.choices[0].message.content!;
+  //     setStr(str);
+  //     updateReply(db, data.id!, str);
+  //   })
+  //   .catch((e) => {
+  //     console.log(e);
+  //     setStr("请求失败" + e);
+  //   });
+
+  aiclient.chat.completions.stream(
+    {
+      model: "deepseek-ai/DeepSeek-R1-Distill-Llama-8B",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: reqStr },
+      ],
+      max_tokens: 256,
+      temperature: 0.3,
+    },
+    (data) => {
+      const c = data.choices[0].delta.content;
+      if (c && c.trim() !== "") {
+        setReply((prev) => prev + c);
+      }
+    },
+    {
+      onError: (error) => {
+        console.error("SSE Error:", error); // Handle any errors here
+      },
+      onOpen: () => {
+        console.log("SSE connection for completion opened."); // Handle when the connection is opened
+        setReply("");
+      },
+    }
+  );
+}
+
+export async function updateReply(
+  db: SQLite.SQLiteDatabase,
+  id: number,
+  reply: string
+) {
+  return await getAllOnce(
+    db,
+    `UPDATE myTable
+SET
+  reply = ?
+WHERE
+  id = ?;`,
+    [reply, id]
+  );
 }
