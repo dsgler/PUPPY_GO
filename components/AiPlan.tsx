@@ -1,19 +1,22 @@
 import { unChoseColor } from "@/consts/tabs";
 import { router } from "expo-router";
-import { View, Image, Text } from "react-native";
+import { View, Image, Text, StyleProp, ViewStyle } from "react-native";
 import { TouchableRipple, Icon } from "react-native-paper";
 
-export default function AiPlan() {
+export default function AiPlan({ style }: { style?: StyleProp<ViewStyle> }) {
   return (
     <View
-      style={{
-        height: 120,
-        backgroundColor: "white",
-        borderRadius: 10,
-        marginTop: 10,
-        boxShadow: "0 4 4 rgba(0,0,0,0.25)",
-        flexDirection: "row",
-      }}
+      style={[
+        {
+          height: 120,
+          backgroundColor: "white",
+          borderRadius: 10,
+          marginTop: 10,
+          boxShadow: "0 4 4 rgba(0,0,0,0.25)",
+          flexDirection: "row",
+        },
+        style,
+      ]}
     >
       <Image
         source={require("@/assets/images/index/dog.png")}

@@ -4,9 +4,26 @@ import { SkiaChart } from "@wuba/react-native-echarts";
 import { useEffect, useMemo, useRef } from "react";
 import { View, Text, Image, ColorValue, StyleSheet } from "react-native";
 import * as echarts from "echarts/core";
+import AiPlan from "@/components/AiPlan";
+import { DogsayGroup } from "./dogsay";
+import { moodSystemPrompt } from "@/consts/propmts";
+import React from "react";
 
-export default function MoodView({ datas }: { datas: addDataType[] }) {
+const MoodView = ({
+  datas,
+}: // shouldShow,
+{
+  datas: addDataType[];
+  // shouldShow: boolean;
+}) => {
   const MybarChartDatas = useMemo(() => MybarChartDataComposer(datas), [datas]);
+  const reqStr = useMemo(() => {
+    const reqArr = MoodArr.map(
+      (v, k) => `${v.descirption}:${MybarChartDatas[k].value}`
+    );
+    const reqStr = JSON.stringify(reqArr);
+    return reqStr;
+  }, [MybarChartDatas]);
 
   return (
     <>
@@ -19,11 +36,15 @@ export default function MoodView({ datas }: { datas: addDataType[] }) {
         <MypieChartGroup datas={MybarChartDatas} />
         <MybarChart datas={MybarChartDatas} />
       </View>
+      {/* <DogsayGroup reqStr={reqStr} SystemPrompt={moodSystemPrompt} /> */}
+      <AiPlan
+        style={{ height: 130, marginVertical: 20, marginHorizontal: 20 }}
+      />
     </>
   );
-}
+};
 
-type MybarChartRow = { value: number; itemStyle: { color: ColorValue } };
+export type MybarChartRow = { value: number; itemStyle: { color: ColorValue } };
 
 function MybarChartDataComposer(datas: addDataType[]): MybarChartRow[] {
   const values: MybarChartRow[] = MoodArr.map((v) => ({
@@ -38,7 +59,7 @@ function MybarChartDataComposer(datas: addDataType[]): MybarChartRow[] {
   return values;
 }
 
-function MybarChart({ datas }: { datas: MybarChartRow[] }) {
+const MybarChart = React.memo(({ datas }: { datas: MybarChartRow[] }) => {
   const skiaRef = useRef<any>(null);
   useEffect(() => {
     const option = {
@@ -91,7 +112,7 @@ function MybarChart({ datas }: { datas: MybarChartRow[] }) {
   }, [datas]);
 
   return <SkiaChart ref={skiaRef} />;
-}
+});
 
 type MypieChartProps = {
   total: number;
@@ -106,6 +127,7 @@ function MypieChart({ total, has, moodId }: MypieChartProps) {
       series: [
         {
           type: "pie",
+          silent: true,
           data: [
             {
               value: has,
@@ -167,7 +189,7 @@ function MypieChart({ total, has, moodId }: MypieChartProps) {
   );
 }
 
-function MypieChartGroup({ datas }: { datas: MybarChartRow[] }) {
+const MypieChartGroup = React.memo(({ datas }: { datas: MybarChartRow[] }) => {
   let total = datas.reduce((p, c) => p + c.value, 0);
   total = total || 1;
   return (
@@ -177,4 +199,6 @@ function MypieChartGroup({ datas }: { datas: MybarChartRow[] }) {
       ))}
     </View>
   );
-}
+});
+
+export default React.memo(MoodView);

@@ -45,11 +45,16 @@ export function getTimeString(t: number) {
   return `${hours}:${minutes}`;
 }
 
-export function getGapTimeString(t: number) {
+export function getGapTimeString(t: number, isChinese: boolean = false) {
   let totalMinutes = Math.floor(t / 60000); // 将毫秒转换为分钟
   let hours = Math.floor(totalMinutes / 60).toString(); // 计算小时数并补零
   let minutes = (totalMinutes % 60).toString().padStart(2, "0"); // 计算剩余分钟数并补零
-  return `${hours}:${minutes}`;
+
+  if (isChinese) {
+    return `${hours}小时${minutes}分钟`;
+  } else {
+    return `${hours}:${minutes}`;
+  }
 }
 
 export function getDateNumber(t: number | Date) {

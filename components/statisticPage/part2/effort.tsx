@@ -5,6 +5,8 @@ import { useEffect, useMemo, useRef } from "react";
 import { View, Image, Text } from "react-native";
 import { SkiaChart } from "@wuba/react-native-echarts";
 import * as echarts from "echarts/core";
+import { DogsayGroup } from "./dogsay";
+import { effortSystemPrompt } from "@/consts/propmts";
 
 export default function EffortView({
   datas,
@@ -21,6 +23,14 @@ export default function EffortView({
     return counts;
   }, [datas]);
 
+  const reqStr = useMemo(() => {
+    const reqArr = effortArr
+      .map((v, k) => `${v.s1}:${counts[k]}`)
+      .filter((v, k) => k !== 0);
+    return JSON.stringify(reqArr);
+  }, [counts]);
+  console.log(reqStr);
+
   return (
     <View style={{ paddingHorizontal: 16 }}>
       <View
@@ -36,6 +46,7 @@ export default function EffortView({
       </View>
       <DogLine width={width - 32} counts={counts} />
       <MypieChart width={width - 32} counts={counts} />
+      {/* <DogsayGroup reqStr={reqStr} SystemPrompt={effortSystemPrompt} /> */}
     </View>
   );
 }

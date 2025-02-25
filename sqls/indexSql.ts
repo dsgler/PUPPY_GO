@@ -1,10 +1,11 @@
-import { effortArr, MoodArr, systemPrompt } from "@/consts";
-import { apiKey } from "@/consts/key";
+import { effortArr, MoodArr } from "@/consts";
+import { apiKey, baseURL, model } from "@/consts/key";
 import sportArr from "@/consts/sportType";
 import { getGapTimeString } from "@/utility/datetool";
 import { getAllOnce } from "@/utility/sql";
 import * as SQLite from "expo-sqlite";
 import OpenAI from "@/utility/Openai";
+import { replySystemPrompt, reqStrTyp } from "@/consts/propmts";
 
 export type addDataType = {
   id?: number;
@@ -105,25 +106,14 @@ export async function GetDataByDate(
   }
 }
 
-type reqStrTyp = {
-  运动: string;
-  时间: string;
-  心情: string;
-  耗力: string;
-  标签: string;
-  日记标题: string;
-  日记内容: string;
-};
 export async function askForReply(
   db: SQLite.SQLiteDatabase,
   data: addDataType,
   setReply: React.Dispatch<React.SetStateAction<string>>
 ) {
-  console.log("准备发送请求");
   const aiclient = new OpenAI({
     apiKey: apiKey,
-    baseURL: "http://10.19.128.22:11434/v1",
-    // host: "https://api.siliconflow.cn/v1",
+    baseURL: baseURL,
   });
 
   const reqObj: reqStrTyp = {
@@ -137,42 +127,22 @@ export async function askForReply(
   };
   const reqStr = JSON.stringify(reqObj);
   console.log("发送请求");
-  // aiclient.chat.completions
-  //   .create({
-  //     // model: "deepseek-ai/DeepSeek-R1",
-  //     model: "deepseek-ai/DeepSeek-R1-Distill-Llama-8B",
-  //     messages: [
-  //       { role: "system", content: systemPrompt },
-  //       { role: "user", content: reqStr },
-  //     ],
-  //   })
-  //   .then((v) => {
-  //     console.log(v);
-  //     const str = v.choices[0].message.content!;
-  //     setStr(str);
-  //     updateReply(db, data.id!, str);
-  //   })
-  //   .catch((e) => {
-  //     console.log(e);
-  //     setStr("请求失败" + e);
-  //   });
 
   let fullAnswer = "";
+  // 保存用于close
   const es = aiclient.chat.completions.stream(
     {
-      // model: "deepseek-ai/DeepSeek-R1",
-      // model: "deepseek-ai/DeepSeek-R1-Distill-Llama-8B",
-      model: "deepseek-r1:8b",
+      model: model,
       messages: [
-        { role: "system", content: systemPrompt },
+        { role: "system", content: replySystemPrompt },
         { role: "user", content: reqStr },
       ],
       // max_tokens: 256,
-      temperature: 0.3,
+      temperature: 0.6,
     },
     (data) => {
-      console.log(data);
       const c = data.choices[0].delta.content;
+      console.log(c);
       if (c && c.trim() !== "" && c !== "\n") {
         fullAnswer += c;
         fullAnswer = fullAnswer.replaceAll("\n", "");
@@ -190,7 +160,7 @@ export async function askForReply(
       },
       onDone: () => {
         console.log("done", fullAnswer);
-        fullAnswer.replace(/<think>[^<]+<\/think>/, "");
+        fullAnswer = fullAnswer.replace(/<think>[^<]+<\/think>/, "");
         setReply(fullAnswer);
         updateReply(db, data.id!, fullAnswer);
       },

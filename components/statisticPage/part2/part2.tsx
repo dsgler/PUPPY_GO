@@ -1,9 +1,8 @@
 import { StyleSheet, View } from "react-native";
 import MyScrollView from "../../myScrollView";
-import React, { useContext, useState } from "react";
+import React, { useRef, useState } from "react";
 
 import { addDataType } from "@/sqls/indexSql";
-import { MyAlertCtx } from "@/app/_layout";
 import * as pageType_consts from "../pageType";
 import MoodView from "./Mood";
 import DurationView from "./duration";
@@ -65,6 +64,7 @@ export default function F({
   );
 }
 
+// 太天才了
 function Switcher({
   datas,
   pageType,
@@ -76,18 +76,43 @@ function Switcher({
   thisMonth: Date[];
   width: number;
 }) {
-  const myAlert = useContext(MyAlertCtx);
-  switch (pageType) {
-    case pageType_consts.MOOD:
-      return <MoodView datas={datas} />;
-    case pageType_consts.DURATION:
-      return <DurationView datas={datas} thisMonth={thisMonth} width={width} />;
-    case pageType_consts.EFFORT:
-      return <EffortView datas={datas} width={width} />;
-    case pageType_consts.TAG:
-      return <TagView />;
-    default:
-      myAlert("pageType不存在");
-      return null;
-  }
+  const hasShown = useRef(new Set());
+  hasShown.current.add(pageType);
+
+  return (
+    <>
+      <View
+        style={{ display: pageType === pageType_consts.MOOD ? "flex" : "none" }}
+      >
+        <MoodView datas={datas} />
+      </View>
+      {hasShown.current.has(pageType_consts.DURATION) && (
+        <View
+          style={{
+            display: pageType === pageType_consts.DURATION ? "flex" : "none",
+          }}
+        >
+          <DurationView datas={datas} thisMonth={thisMonth} width={width} />
+        </View>
+      )}
+      {hasShown.current.has(pageType_consts.EFFORT) && (
+        <View
+          style={{
+            display: pageType === pageType_consts.EFFORT ? "flex" : "none",
+          }}
+        >
+          <EffortView datas={datas} width={width} />
+        </View>
+      )}
+      {hasShown.current.has(pageType_consts.TAG) && (
+        <View
+          style={{
+            display: pageType === pageType_consts.TAG ? "flex" : "none",
+          }}
+        >
+          <TagView />
+        </View>
+      )}
+    </>
+  );
 }

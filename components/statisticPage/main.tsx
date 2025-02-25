@@ -65,6 +65,9 @@ export default function Page() {
       setDatas(v);
     });
   }, [db, sportId, thisMonth]);
+  useEffect(() => {
+    console.log("datas changed");
+  }, [datas]);
 
   const [upperHeight, setUpperHeight] = useState(0);
   const chosenDateArr = useState(-1);

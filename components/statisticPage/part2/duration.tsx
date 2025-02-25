@@ -4,6 +4,9 @@ import { useRef, useEffect, useMemo } from "react";
 import { View, Text } from "react-native";
 import sportArr from "@/consts/sportType";
 import { addDataType } from "@/sqls/indexSql";
+import { getGapTimeString } from "@/utility/datetool";
+import { DogsayGroup } from "./dogsay";
+import { durationSystemPrompt } from "@/consts/propmts";
 
 export default function DurationView({
   datas,
@@ -14,8 +17,34 @@ export default function DurationView({
   thisMonth: Date[];
   width: number;
 }) {
+  const [data, total] = useMemo(() => {
+    const data = sportArr.map((v) => ({
+      value: 0,
+      name: v.sportName,
+      itemStyle: { color: v.color },
+    }));
+    let total = 0;
+    for (const ele of datas) {
+      const minute = (ele.timeend - ele.timestart) / 60000;
+      data[ele.sportId].value += minute;
+      total += minute;
+    }
+    return [data.filter((v) => v.value !== 0), total];
+  }, [datas]);
+
+  const reqStr = useMemo(() => {
+    const reqArr = datas.map((v) => ({
+      日期: v.date,
+      开始时间: new Date(v.timestart).toString(),
+      结束时间: new Date(v.timeend).toString(),
+      总时间: getGapTimeString(v.timeend - v.timestart, true),
+      运动类型: sportArr[v.sportId].sportName,
+    }));
+    return JSON.stringify(reqArr);
+  }, [datas]);
+
   return (
-    <View style={{ paddingHorizontal: 16, alignItems: "center" }}>
+    <View style={{ paddingHorizontal: 16 }}>
       <View style={{ flexDirection: "row", justifyContent: "center" }}>
         <Text style={{ fontFamily: "AaTianNiuNai", fontSize: 18 }}>
           时间分布
@@ -27,7 +56,13 @@ export default function DurationView({
           总时间比例
         </Text>
       </View>
-      <MypieChart datas={datas} thisMonth={thisMonth} width={width - 32} />
+      <MypieChart
+        thisMonth={thisMonth}
+        width={width - 32}
+        data={data}
+        total={total}
+      />
+      {/* <DogsayGroup reqStr={reqStr} SystemPrompt={durationSystemPrompt} /> */}
     </View>
   );
 }
@@ -114,30 +149,24 @@ function MybarChart({
 }
 
 function MypieChart({
-  datas,
+  // datas,
   thisMonth,
   width,
+  data,
+  total,
 }: {
-  datas: addDataType[];
   thisMonth: Date[];
   width: number;
+  data: {
+    value: number;
+    name: string;
+    itemStyle: {
+      color: string;
+    };
+  }[];
+  total: number;
 }) {
   const skiaRef = useRef<any>(null);
-
-  const [data, total] = useMemo(() => {
-    const data = sportArr.map((v) => ({
-      value: 0,
-      name: v.sportName,
-      itemStyle: { color: v.color },
-    }));
-    let total = 0;
-    for (const ele of datas) {
-      const minute = (ele.timeend - ele.timestart) / 60000;
-      data[ele.sportId].value += minute;
-      total += minute;
-    }
-    return [data.filter((v) => v.value !== 0), total];
-  }, [datas]);
 
   useEffect(() => {
     const option = {
@@ -165,7 +194,7 @@ function MypieChart({
       chart.setOption(option);
     }
     return () => chart?.dispose();
-  }, [data, datas, thisMonth, total, width]);
+  }, [data, thisMonth, total, width]);
 
   return (
     <View
