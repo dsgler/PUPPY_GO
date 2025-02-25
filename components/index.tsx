@@ -578,7 +578,12 @@ function ReplyStream({ data }: { data: addDataType }) {
   const [reply, setReply] = useState(thinkingStr);
   useEffect(() => {
     if (data.reply === thinkingStr) {
-      askForReply(db, data, setReply);
+      const es = askForReply(db, data, setReply);
+      return () => {
+        es.then((v) => {
+          v.close();
+        });
+      };
     }
   }, [data, db]);
   if (data.reply !== thinkingStr) {

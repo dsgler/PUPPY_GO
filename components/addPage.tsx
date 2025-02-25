@@ -29,7 +29,7 @@ import Line from "@/assets/images/addPage/line";
 
 import { insertData, addDataType, getDB } from "../sqls/indexSql";
 import { getmulti } from "@/utility/datetool";
-import { effortArr, MoodArr } from "@/consts";
+import { effortArr, MoodArr, thinkingStr } from "@/consts";
 import { useImmer } from "use-immer";
 
 import { MyAlertCtx } from "@/app/_layout";
@@ -157,7 +157,7 @@ export default function AddPage() {
                       Tags: JSON.stringify(tags),
                       title: title.trim(),
                       content: content.trim(),
-                      reply: "这是一个reply",
+                      reply: thinkingStr,
                     },
                     myAlert
                   );

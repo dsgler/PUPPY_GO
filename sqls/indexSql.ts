@@ -4,7 +4,7 @@ import sportArr from "@/consts/sportType";
 import { getGapTimeString } from "@/utility/datetool";
 import { getAllOnce } from "@/utility/sql";
 import * as SQLite from "expo-sqlite";
-import OpenAI from "openai-react-native";
+import OpenAI from "@/utility/Openai";
 
 export type addDataType = {
   id?: number;
@@ -122,7 +122,7 @@ export async function askForReply(
   console.log("准备发送请求");
   const aiclient = new OpenAI({
     apiKey: apiKey,
-    baseURL: "https://api.siliconflow.cn/v1",
+    baseURL: "http://10.19.128.22:11434/v1",
     // host: "https://api.siliconflow.cn/v1",
   });
 
@@ -157,32 +157,47 @@ export async function askForReply(
   //     setStr("请求失败" + e);
   //   });
 
-  aiclient.chat.completions.stream(
+  let fullAnswer = "";
+  const es = aiclient.chat.completions.stream(
     {
-      model: "deepseek-ai/DeepSeek-R1-Distill-Llama-8B",
+      // model: "deepseek-ai/DeepSeek-R1",
+      // model: "deepseek-ai/DeepSeek-R1-Distill-Llama-8B",
+      model: "deepseek-r1:8b",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: reqStr },
       ],
-      max_tokens: 256,
+      // max_tokens: 256,
       temperature: 0.3,
     },
     (data) => {
+      console.log(data);
       const c = data.choices[0].delta.content;
-      if (c && c.trim() !== "") {
-        setReply((prev) => prev + c);
+      if (c && c.trim() !== "" && c !== "\n") {
+        fullAnswer += c;
+        fullAnswer = fullAnswer.replaceAll("\n", "");
+        setReply(fullAnswer + "_");
       }
     },
     {
       onError: (error) => {
         console.error("SSE Error:", error); // Handle any errors here
+        setReply(error);
       },
       onOpen: () => {
         console.log("SSE connection for completion opened."); // Handle when the connection is opened
-        setReply("");
+        setReply("(思考中)_");
+      },
+      onDone: () => {
+        console.log("done", fullAnswer);
+        fullAnswer.replace(/<think>[^<]+<\/think>/, "");
+        setReply(fullAnswer);
+        updateReply(db, data.id!, fullAnswer);
       },
     }
   );
+
+  return es;
 }
 
 export async function updateReply(
