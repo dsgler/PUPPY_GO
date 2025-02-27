@@ -1,5 +1,5 @@
 import { StyleSheet, View } from "react-native";
-import MyScrollView from "../../myScrollView";
+import MyScrollView from "../../public/myScrollView";
 import React, { useRef, useState } from "react";
 
 import { addDataType } from "@/sqls/indexSql";

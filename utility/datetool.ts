@@ -28,12 +28,15 @@ export function getDatesInWeek(d: Date): Date[] {
   }
   return dateArr;
 }
-export function getmulti(Minutes: number, d: Date = new Date()) {
+export function getmulti(Minutes: number, timeend: Date = new Date()) {
   // month 从0开始多少有点逆天
   let obj = {
-    date: d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate(),
-    timeend: d.getTime(),
-    timestart: d.getTime() - 60 * 1000 * Minutes,
+    date:
+      timeend.getFullYear() * 10000 +
+      (timeend.getMonth() + 1) * 100 +
+      timeend.getDate(),
+    timeend: timeend.getTime(),
+    timestart: timeend.getTime() - 60 * 1000 * Minutes,
   };
   return obj;
 }

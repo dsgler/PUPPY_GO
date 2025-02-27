@@ -1,4 +1,4 @@
-import { showData } from "@/components";
+import { showData } from "@/components/index";
 import React, { useContext, useEffect, useState } from "react";
 import { ChosenDateArrCtx } from "../main";
 import { View } from "react-native";

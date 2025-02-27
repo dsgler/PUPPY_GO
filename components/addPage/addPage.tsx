@@ -19,15 +19,15 @@ import {
   IconButton,
   Snackbar,
 } from "react-native-paper";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import React, { useState, useContext } from "react";
 
-import sportArr from "../consts/sportType";
+import sportArr from "@/consts/sportType";
 import BackIcon from "@/assets/images/addPage/back";
 import Line from "@/assets/images/addPage/line";
 
-import { insertData, addDataType, getDB } from "../sqls/indexSql";
+import { insertData, addDataType, getDB } from "@/sqls/indexSql";
 import { getmulti } from "@/utility/datetool";
 import { effortArr, MoodArr, thinkingStr } from "@/consts";
 import { useImmer } from "use-immer";
@@ -73,13 +73,22 @@ const styles = StyleSheet.create({
   },
 });
 
-export const requireRunningDog = require("../assets/images/addPage/runningDog.png");
+export const requireRunningDog = require("@/assets/images/addPage/runningDog.png");
 
 const MAIN = 0;
 const CONTENT = 1;
 const TAG = 2;
 
 export default function AddPage() {
+  const { date: dateStr } = useLocalSearchParams<{
+    date: string;
+  }>();
+
+  let date = Number(dateStr);
+  if (isNaN(date) || date < 1577808000000 || date > 33134716800000) {
+    date = Date.now();
+  }
+
   const [sportId, setSportId] = useState(-1);
   const [exTime, setExTime] = useState("60");
   const [moodId, setMoodId] = useState(-1);
@@ -94,7 +103,7 @@ export default function AddPage() {
 
   const [pageState, setPageState] = useState(MAIN);
 
-  console.log("add渲染");
+  console.log("add渲染,dateStr:", dateStr, "date:", date);
 
   // 这个useCallback好像意义不大
   const myAlert = useContext(MyAlertCtx);
@@ -150,7 +159,7 @@ export default function AddPage() {
 
                   handleSubmit(
                     {
-                      ...getmulti(Number(exTime)),
+                      ...getmulti(Number(exTime), new Date(date)),
                       sportId: sportId,
                       moodId,
                       effort,

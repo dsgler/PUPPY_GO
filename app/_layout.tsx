@@ -21,6 +21,9 @@ import { Text, StyleSheet, View } from "react-native";
 import { MYTHEME } from "@/consts/themeObj";
 import * as NavigationBar from "expo-navigation-bar";
 import { useFonts } from "expo-font";
+import { enableMapSet } from "immer";
+
+enableMapSet();
 
 export const defaultError = () => {
   throw TypeError("不应为初值");

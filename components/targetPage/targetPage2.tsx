@@ -45,7 +45,7 @@ import {
 } from "react";
 import { useImmer } from "use-immer";
 import { Modal, Portal, TouchableRipple } from "react-native-paper";
-import PressableText from "./PressableText";
+import PressableText from "@/components/public/PressableText";
 
 import * as consts_duration from "@/consts/duration";
 import { useSQLiteContext } from "expo-sqlite";
@@ -80,7 +80,10 @@ import {
 } from "@/app/_layout";
 import { dayDescriptionChina } from "@/consts/dayDescription";
 import * as consts_frequency from "@/consts/frequency";
-import { CustomeMonthBlock, CustomeWeekBlock } from "./CustomeMonthBlock";
+import {
+  CustomeMonthBlock,
+  CustomeWeekBlock,
+} from "@/components/public/CustomeMonthBlock";
 import { repeatList } from "@/consts/repeatList";
 import { router, useFocusEffect } from "expo-router";
 // import { myFadeIn, myFadeOut, myLayoutTransition } from "@/consts/anime";

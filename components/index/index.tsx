@@ -19,7 +19,7 @@ import {
   askForReply,
   GetDataByDate,
   getDB,
-} from "../sqls/indexSql";
+} from "../../sqls/indexSql";
 import {
   getDateNumber,
   getTimeString,
@@ -30,9 +30,9 @@ import Svg, { Line } from "react-native-svg";
 
 import sportArr from "@/consts/sportType";
 import { effortArr, MoodArr, thinkingStr } from "@/consts";
-import MyScrollView from "./myScrollView";
+import MyScrollView from "../public/myScrollView";
 import { getDatesInWeek } from "@/utility/datetool";
-import { dayDescription } from "../consts/dayDescription";
+import { dayDescription } from "../../consts/dayDescription";
 import { useSQLiteContext } from "expo-sqlite";
 
 export default function Index() {
@@ -65,7 +65,8 @@ export default function Index() {
     </View>
   );
 }
-function EmptyDog() {
+function EmptyDog({ date }: { date: number }) {
+  console.log("dogdate:", date);
   return (
     <>
       <Image
@@ -81,7 +82,10 @@ function EmptyDog() {
       </Text>
       <TouchableRipple
         borderless={true}
-        onPress={useCallback(() => router.push("/addPage"), [])}
+        onPress={useCallback(
+          () => router.push({ pathname: "/addPage", params: { date } }),
+          [date]
+        )}
         style={{ borderRadius: 15, marginTop: 10, overflow: "hidden" }}
       >
         <View
@@ -248,7 +252,7 @@ export async function showData(
             marginBottom: 20,
           }}
         >
-          <EmptyDog />
+          <EmptyDog date={t instanceof Date ? t.getTime() : t} />
         </View>
       );
     } else {
@@ -265,7 +269,7 @@ export async function showData(
             justifyContent: "center",
           }}
         >
-          <EmptyDog />
+          <EmptyDog date={t instanceof Date ? t.getTime() : t} />
         </View>
       );
     }
@@ -576,6 +580,8 @@ function SportBlockRight({
 function ReplyStream({ data }: { data: addDataType }) {
   const db = useSQLiteContext();
   const [reply, setReply] = useState(thinkingStr);
+  return <Text>{reply}</Text>;
+
   useEffect(() => {
     if (data.reply === thinkingStr) {
       const es = askForReply(db, data, setReply);

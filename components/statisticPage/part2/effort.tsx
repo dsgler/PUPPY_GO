@@ -1,4 +1,4 @@
-import { requireRunningDog } from "@/components/addPage";
+import { requireRunningDog } from "@/components/addPage/addPage";
 import { effortArr } from "@/consts";
 import { addDataType } from "@/sqls/indexSql";
 import { useEffect, useMemo, useRef } from "react";

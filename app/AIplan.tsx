@@ -1,12 +1,11 @@
-import React from "react";
-import Index from "@/components/index";
+import AIplanPage from "@/components/AIplanPage/AIplanPage";
 import LinearBackground from "@/components/public/LinearBackground";
 
-export default function App() {
+export default function Page() {
   return (
     <>
       <LinearBackground />
-      <Index />
+      <AIplanPage />
     </>
   );
 }

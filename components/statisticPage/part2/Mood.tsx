@@ -4,7 +4,7 @@ import { SkiaChart } from "@wuba/react-native-echarts";
 import { useEffect, useMemo, useRef } from "react";
 import { View, Text, Image, ColorValue, StyleSheet } from "react-native";
 import * as echarts from "echarts/core";
-import AiPlan from "@/components/AiPlan";
+import AiPlan from "@/components/index/AiPlan";
 import { DogsayGroup } from "./dogsay";
 import { moodSystemPrompt } from "@/consts/propmts";
 import React from "react";

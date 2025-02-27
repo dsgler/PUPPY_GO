@@ -25,7 +25,10 @@ import {
 } from "@/sqls/targetSql2";
 import { useSQLiteContext } from "expo-sqlite";
 import RepeatIcon from "@/assets/images/targetPage/repeat";
-import { CustomeMonthBlock, CustomeWeekBlock } from "./CustomeMonthBlock";
+import {
+  CustomeMonthBlock,
+  CustomeWeekBlock,
+} from "./public/CustomeMonthBlock";
 import * as consts_frequency from "@/consts/frequency";
 import { useImmer } from "use-immer";
 import { MyAlertCtx, MyConfirmCtx, MyHintCtx } from "@/app/_layout";
@@ -36,7 +39,7 @@ import {
   myFadeIn,
   myFadeOut,
   myLayoutTransition,
-} from "@/components/targetPage2";
+} from "@/components/targetPage/targetPage2";
 import { BrandColor } from "@/consts/tabs";
 import { router, useLocalSearchParams } from "expo-router";
 

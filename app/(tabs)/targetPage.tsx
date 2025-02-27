@@ -1,20 +1,11 @@
-import Page from "@/components/targetPage2";
+import Page from "@/components/targetPage/targetPage2";
 import React from "react";
-import { LinearGradient } from "expo-linear-gradient";
+import LinearBackground from "@/components/public/LinearBackground";
 
 export default function App() {
   return (
     <>
-      <LinearGradient
-        colors={["#FFCC8E", "#FFF0DE"]}
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-        }}
-      />
+      <LinearBackground />
       <Page />
     </>
   );
