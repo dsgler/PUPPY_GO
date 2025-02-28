@@ -15,7 +15,7 @@ import { SkiaChart } from "@wuba/react-native-echarts";
 import sportArr from "@/consts/sportType";
 import * as pageType_consts from "./pageType";
 import { MyAlertCtx } from "@/app/_layout";
-import { ChosenDateArrCtx } from "./main";
+import { ChosenDateArrCtx } from "./public";
 
 const CustomeBlockStyle = StyleSheet.create({
   container: {

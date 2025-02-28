@@ -2,7 +2,6 @@ import { BrandColor, textColor } from "@/consts/tabs";
 import {
   View,
   Text,
-  ScrollView,
   Image,
   Pressable,
   StyleProp,
@@ -52,7 +51,7 @@ import { useSQLiteContext } from "expo-sqlite";
 import * as SQLite from "expo-sqlite";
 import { getGapTimeString } from "@/utility/datetool";
 import {
-  addGroup,
+  addGroupOrGetGroupId,
   addTarget,
   cancelCheck,
   changeGroupName,
@@ -186,7 +185,7 @@ export default function Page() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <RefreshFnCtx.Provider value={RefreshFn}>
         <SafeAreaView>
-          <ScrollView style={{ paddingHorizontal: 20 }}>
+          <Animated.ScrollView style={{ paddingHorizontal: 20 }}>
             <TopBar
               durationType={durationType}
               setDurationType={setDurationType}
@@ -203,7 +202,7 @@ export default function Page() {
               {dataComponent}
             </MenuCtx.Provider>
             <View style={{ height: 10 }}></View>
-          </ScrollView>
+          </Animated.ScrollView>
         </SafeAreaView>
         {isEmpty && durationType === consts_duration.DAILY && (
           <View
@@ -245,7 +244,10 @@ export default function Page() {
                 }}
                 dismissable={false}
               >
-                <ScrollView keyboardShouldPersistTaps={"always"}>
+                <Animated.ScrollView
+                  keyboardShouldPersistTaps={"always"}
+                  layout={myLayoutTransition}
+                >
                   <View
                     style={{
                       backgroundColor: "#F4F4F4",
@@ -260,7 +262,7 @@ export default function Page() {
                       setInsertModalV={setInsertModalV}
                     />
                   </View>
-                </ScrollView>
+                </Animated.ScrollView>
               </Modal>
             </MenuCtx.Provider>
           </RefreshFnCtx.Provider>
@@ -419,7 +421,7 @@ function ModalComponent0({
               return;
             }
             if (isAdd) {
-              addGroup(db, t)
+              addGroupOrGetGroupId(db, t)
                 .then(() => {
                   myHint("添加成功");
                   setInsertModalV(false);

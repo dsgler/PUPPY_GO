@@ -5,7 +5,7 @@ import { getGapTimeString } from "@/utility/datetool";
 import { getAllOnce } from "@/utility/sql";
 import * as SQLite from "expo-sqlite";
 import OpenAI from "@/utility/Openai";
-import { replySystemPrompt, reqStrTyp } from "@/consts/propmts";
+import { isUseAI, replySystemPrompt, reqStrTyp } from "@/consts/propmts";
 
 export type addDataType = {
   id?: number;
@@ -111,6 +111,10 @@ export async function askForReply(
   data: addDataType,
   setReply: React.Dispatch<React.SetStateAction<string>>
 ) {
+  if (!isUseAI) {
+    return;
+  }
+
   const aiclient = new OpenAI({
     apiKey: apiKey,
     baseURL: baseURL,
@@ -142,7 +146,6 @@ export async function askForReply(
     },
     (data) => {
       const c = data.choices[0].delta.content;
-      console.log(c);
       if (c && c.trim() !== "" && c !== "\n") {
         fullAnswer += c;
         fullAnswer = fullAnswer.replaceAll("\n", "");

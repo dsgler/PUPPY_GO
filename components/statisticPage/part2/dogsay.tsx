@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { View, Text, Image } from "react-native";
 import { apiKey, baseURL, model } from "@/consts/key";
 import OpenAI from "@/utility/Openai";
+import { isUseAI } from "@/consts/propmts";
 
 export function DogsayRow({
   message,
@@ -55,7 +56,7 @@ export function DogsayGroup({
     const es = askForReply({ reqMessage: reqStr, setRaw, SystemPrompt });
     return () => {
       es.then((v) => {
-        v.close();
+        v?.close();
       });
     };
   }, [SystemPrompt, reqStr]);
@@ -81,6 +82,10 @@ export async function askForReply({
   SystemPrompt: string;
   setRaw: React.Dispatch<React.SetStateAction<string>>;
 }) {
+  if (!isUseAI) {
+    return;
+  }
+
   const aiclient = new OpenAI({
     apiKey: apiKey,
     baseURL: baseURL,
@@ -102,7 +107,6 @@ export async function askForReply({
     },
     (data) => {
       const c = data.choices[0].delta.content;
-      // console.log(c);
       if (c) {
         fullAnswer += c;
         //   fullAnswer = fullAnswer.replaceAll("\n", "");

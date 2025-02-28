@@ -46,7 +46,7 @@ export default function EffortView({
       </View>
       <DogLine width={width - 32} counts={counts} />
       <MypieChart width={width - 32} counts={counts} />
-      {/* <DogsayGroup reqStr={reqStr} SystemPrompt={effortSystemPrompt} /> */}
+      <DogsayGroup reqStr={reqStr} SystemPrompt={effortSystemPrompt} />
     </View>
   );
 }

@@ -1,7 +1,7 @@
 import { showData } from "@/components/index";
 import React, { useContext, useEffect, useState } from "react";
-import { ChosenDateArrCtx } from "../main";
 import { View } from "react-native";
+import { ChosenDateArrCtx } from "../public";
 
 export default function TagView() {
   const [dataComponent, setDataComponent] = useState<React.ReactNode>(null);

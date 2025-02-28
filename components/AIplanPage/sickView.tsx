@@ -1,7 +1,5 @@
-import { View, Text, Pressable, TextInput } from "react-native";
-import { InfoObjStateCtx, ViewStyle } from "./AIplanPage";
-import AntIcon from "react-native-vector-icons/AntDesign";
-import FeaIcon from "react-native-vector-icons/Feather";
+import { View, Text, TextInput } from "react-native";
+import { ChooseRow, InfoObjStateCtx, ViewStyle } from "./public";
 import { sickArr } from "@/consts/AIplanPage";
 import { useContext } from "react";
 import { BrandColor } from "@/consts/tabs";
@@ -51,30 +49,5 @@ export default function SickView() {
         若无伤病可直接前往下一步
       </Text>
     </View>
-  );
-}
-
-export function ChooseRow({
-  isChosen,
-  toggleIsChosen,
-  children,
-}: {
-  children?: React.ReactNode;
-  isChosen: boolean;
-  toggleIsChosen: () => void;
-}) {
-  return (
-    <Pressable onPress={toggleIsChosen} style={ViewStyle.row}>
-      <View style={{ flex: 1 }}>{children}</View>
-      <View>
-        {isChosen ? (
-          /* @ts-ignore */
-          <AntIcon name="checkcircle" size={24} color="#FFCC8E" />
-        ) : (
-          /* @ts-ignore */
-          <FeaIcon name="circle" size={24} color="#DCDCDC" />
-        )}
-      </View>
-    </Pressable>
   );
 }

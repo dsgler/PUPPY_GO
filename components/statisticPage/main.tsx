@@ -2,7 +2,7 @@ import { View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Header } from "./Header";
 import * as pageType_consts from "./pageType";
-import { createContext, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ChooseIcon } from "./ChooseIcon";
 import { MonthSwitcher } from "./month";
 import ChooseSport from "./ChooseSport";
@@ -20,6 +20,7 @@ import {
   TitleComponent,
 } from "echarts/components";
 import { SkiaRenderer } from "@wuba/react-native-echarts";
+import { ChosenDateArrCtx } from "./public";
 
 echarts.use([
   SkiaRenderer,
@@ -28,15 +29,6 @@ echarts.use([
   BarChart,
   LegendComponent,
   TitleComponent,
-]);
-
-export const ChosenDateArrCtx = createContext<
-  [number, React.Dispatch<React.SetStateAction<number>>]
->([
-  -1,
-  () => {
-    throw Error("请提供chosenDateArr");
-  },
 ]);
 
 export default function Page() {

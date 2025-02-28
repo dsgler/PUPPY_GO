@@ -399,7 +399,33 @@ export async function cancelCheck(
   ]);
 }
 
-export async function addGroup(db: SQLite.SQLiteDatabase, groupName: string) {
+export async function addGroupOrGetGroupId(
+  db: SQLite.SQLiteDatabase,
+  groupName: string
+): Promise<number> {
+  const groupArr = await _getGroupIdByName(db, groupName);
+  if (groupArr.length !== 0) {
+    return groupArr[0].groupId;
+  }
+
+  await _addGroup(db, groupName);
+  return (await _getGroupIdByName(db, groupName))[0].groupId;
+}
+
+async function _getGroupIdByName(db: SQLite.SQLiteDatabase, groupName: string) {
+  return (await getAllOnce(
+    db,
+    `SELECT
+  *
+FROM
+  groupName
+WHERE
+  groupName = ?;`,
+    [groupName]
+  )) as groupNameRow[];
+}
+
+async function _addGroup(db: SQLite.SQLiteDatabase, groupName: string) {
   return await getAllOnce(db, `INSERT INTO groupName (groupName) VALUES (?);`, [
     groupName,
   ]);

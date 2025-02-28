@@ -1,9 +1,9 @@
 import { View, Text, TextInput } from "react-native";
-import { InfoObjStateCtx, ViewStyle } from "./AIplanPage";
-import { sickArr } from "@/consts/AIplanPage";
+import { InfoObjStateCtx, ViewStyle } from "./public";
+import { BodyImproveArr } from "@/consts/AIplanPage";
 import { useContext } from "react";
 import { BrandColor } from "@/consts/tabs";
-import { ChooseRow } from "./sickView";
+import { ChooseRow } from "./public";
 
 export default function BodyImproveView() {
   const [InfoObj, updateInfoObj] = useContext(InfoObjStateCtx);
@@ -13,7 +13,7 @@ export default function BodyImproveView() {
       <Text style={ViewStyle.mainText}>重点想改善哪一个部位</Text>
       <Text style={ViewStyle.subText}>将根据您的偏好为您生成合适的目标</Text>
       <View style={{ height: 20 }}></View>
-      {sickArr.map((v) => (
+      {BodyImproveArr.map((v) => (
         <ChooseRow
           isChosen={InfoObj.bodyImprove.chosen.has(v.id)}
           toggleIsChosen={() => {
@@ -25,19 +25,18 @@ export default function BodyImproveView() {
           }}
           key={v.id}
         >
-          <View>
-            <Text style={ViewStyle.Text}>{v.s1}</Text>
-            <Text style={ViewStyle.subText}>{v.s2}</Text>
-          </View>
+          <Text style={[ViewStyle.Text, { marginVertical: 8 }]}>
+            {v.description}
+          </Text>
         </ChooseRow>
       ))}
       <View style={ViewStyle.row}>
         <TextInput
           cursorColor={BrandColor}
-          value={InfoObj.sick.attach}
+          value={InfoObj.bodyImprove.attach}
           onChangeText={(text) => {
             updateInfoObj((InfoObj) => {
-              InfoObj.sick.attach = text;
+              InfoObj.bodyImprove.attach = text;
             });
           }}
           placeholder="其他需求"

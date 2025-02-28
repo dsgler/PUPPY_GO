@@ -2,7 +2,9 @@ import { MyAlertCtx } from "@/app/_layout";
 import { BrandColor } from "@/consts/tabs";
 import { useContext } from "react";
 import { StyleSheet, View, Pressable, Text } from "react-native";
-import { checkValid, InfoObjStateCtx } from "./AIplanPage";
+import { checkValid } from "./public";
+import { InfoObjStateCtx } from "./public";
+// import { END } from "@/consts/AIplanPage";
 
 const FooterStyle = StyleSheet.create({
   block: {
@@ -20,7 +22,7 @@ export function Footer({
   StepState: [number, React.Dispatch<React.SetStateAction<number>>];
 }) {
   const isStart = Step <= 0;
-  const isEnd = Step >= 2;
+  // const isEnd = Step >= END;
   const myAlert = useContext(MyAlertCtx);
   const [InfoObj] = useContext(InfoObjStateCtx);
 

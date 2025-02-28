@@ -233,7 +233,6 @@ export async function showData(
   isRaw: boolean = false
 ) {
   const db = await getDB();
-  console.log("获得DB");
   let dateNumber: number;
   if (typeof t === "number" && t / 100000000 < 1) {
     dateNumber = t;
@@ -329,7 +328,7 @@ function SportList({
 
 function SportBlock({ data }: { data: addDataType }) {
   const [contentHeight, setContentHeight] = useState(50);
-  // console.log("height" + contentHeight);
+
   return (
     <View
       style={{
@@ -355,7 +354,6 @@ function SportBlockLeft({
   height: number;
   data: addDataType;
 }) {
-  // console.log(height);
   return (
     <View
       style={{
@@ -580,14 +578,13 @@ function SportBlockRight({
 function ReplyStream({ data }: { data: addDataType }) {
   const db = useSQLiteContext();
   const [reply, setReply] = useState(thinkingStr);
-  return <Text>{reply}</Text>;
 
   useEffect(() => {
     if (data.reply === thinkingStr) {
       const es = askForReply(db, data, setReply);
       return () => {
         es.then((v) => {
-          v.close();
+          v?.close();
         });
       };
     }

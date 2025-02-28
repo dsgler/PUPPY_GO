@@ -5981,13 +5981,6 @@ expo-drizzle-studio-plugin@^0.1.1:
   dependencies:
     expo-sqlite "^15.0.3"
 
-expo-file-system@^18.0.7:
-  version "18.0.11"
-  resolved "https://mirrors.huaweicloud.com/repository/npm/expo-file-system/-/expo-file-system-18.0.11.tgz#4e602d6d0a3928810b98666ab11872fafe411170"
-  integrity sha512-yDwYfEzWgPXsBZHJW2RJ8Q66ceiFN9Wa5D20pp3fjXVkzPBDwxnYwiPWk4pVmCa5g4X5KYMoMne1pUrsL4OEpg==
-  dependencies:
-    web-streams-polyfill "^3.3.2"
-
 expo-file-system@~18.0.6:
   version "18.0.6"
   resolved "https://mirrors.huaweicloud.com/repository/npm/expo-file-system/-/expo-file-system-18.0.6.tgz#43f7718530d0e2aa1f49bca7ccb721007acabf2c"
@@ -9499,16 +9492,7 @@ open@^8.0.4:
     is-docker "^2.1.1"
     is-wsl "^2.2.0"
 
-openai-react-native@^0.3.7:
-  version "0.3.7"
-  resolved "https://mirrors.huaweicloud.com/repository/npm/openai-react-native/-/openai-react-native-0.3.7.tgz#3babac7fa12d56c5c8603ccdea7b81152c185082"
-  integrity sha512-RvDVRuxmTzPK2kzny9dduMS28Zhykd2Ctvbeh66Vytm87/qUlwWjbf6gr780pvaqB3Qhvty6ejuSWVVg0dDeDg==
-  dependencies:
-    expo-file-system "^18.0.7"
-    openai "^4.79.1"
-    react-native-sse "^1.2.1"
-
-openai@^4.79.1, openai@^4.85.4:
+openai@^4.85.4:
   version "4.85.4"
   resolved "https://mirrors.huaweicloud.com/repository/npm/openai/-/openai-4.85.4.tgz#fdf9d3228967b87221a112993501fa33a98f5d18"
   integrity sha512-Nki51PBSu+Aryo7WKbdXvfm0X/iKkQS2fq3O0Uqb/O3b4exOZFid2te1BZ52bbO5UwxQZ5eeHJDCTqtrJLPw0w==
@@ -10140,11 +10124,6 @@ react-native-is-edge-to-edge@^1.1.6:
   resolved "https://mirrors.huaweicloud.com/repository/npm/react-native-is-edge-to-edge/-/react-native-is-edge-to-edge-1.1.6.tgz#69ec13f70d76e9245e275eed4140d0873a78f902"
   integrity sha512-1pHnFTlBahins6UAajXUqeCOHew9l9C2C8tErnpGC3IyLJzvxD+TpYAixnCbrVS52f7+NvMttbiSI290XfwN0w==
 
-react-native-openai@^0.6.2:
-  version "0.6.2"
-  resolved "https://mirrors.huaweicloud.com/repository/npm/react-native-openai/-/react-native-openai-0.6.2.tgz#496f8a414824bbf4a8fe81072e19a4dcfbc27516"
-  integrity sha512-m55c7EdxNnUNI38P8TUjXWsfjSPJDYCHS+ybY0DYcGYwHpffwaVj/+3RCFvpUFK+MDcSpfWMTnUpu85FqsRxQQ==
-
 react-native-paper@^5.12.5:
   version "5.12.5"
   resolved "https://mirrors.huaweicloud.com/repository/npm/react-native-paper/-/react-native-paper-5.12.5.tgz#e255c47f7bf2deb2dd90eaf3831473ef33e400b8"
@@ -10190,11 +10169,6 @@ react-native-screens@~4.1.0:
   dependencies:
     react-freeze "^1.0.0"
     warn-once "^0.1.0"
-
-react-native-sse@^1.2.1:
-  version "1.2.1"
-  resolved "https://mirrors.huaweicloud.com/repository/npm/react-native-sse/-/react-native-sse-1.2.1.tgz#d7d063173bf5f3cd2cb6978141ec5d57591dff4b"
-  integrity sha512-zejanlScF+IB9tYnbdry0MT34qjBXbiV/E72qGz33W/tX1bx8MXsbB4lxiuPETc9v/008vYZ60yjIstW22VlVg==
 
 react-native-svg@^15.10.1:
   version "15.10.1"

@@ -62,7 +62,7 @@ export default function DurationView({
         data={data}
         total={total}
       />
-      {/* <DogsayGroup reqStr={reqStr} SystemPrompt={durationSystemPrompt} /> */}
+      <DogsayGroup reqStr={reqStr} SystemPrompt={durationSystemPrompt} />
     </View>
   );
 }

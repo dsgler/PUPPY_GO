@@ -1,4 +1,5 @@
-import { View, Text } from "react-native";
+import { router } from "expo-router";
+import { View, Text, Pressable } from "react-native";
 import AntIcon from "react-native-vector-icons/AntDesign";
 
 export function Header() {
@@ -12,10 +13,15 @@ export function Header() {
           alignItems: "center",
         }}
       >
-        <View style={{ flex: 1, flexDirection: "row", alignItems: "center" }}>
+        <Pressable
+          style={{ flex: 1, flexDirection: "row", alignItems: "center" }}
+          onPress={() => {
+            router.back();
+          }}
+        >
           {/* @ts-ignore */}
           <AntIcon name="close" size={16} />
-        </View>
+        </Pressable>
         <View style={{ flexDirection: "row", alignItems: "center" }}>
           <Text style={{ fontSize: 17, fontWeight: 700 }}>
             {d.getFullYear()}年{d.getMonth() + 1}月{" "}

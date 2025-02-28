@@ -36,7 +36,7 @@ const MoodView = ({
         <MypieChartGroup datas={MybarChartDatas} />
         <MybarChart datas={MybarChartDatas} />
       </View>
-      {/* <DogsayGroup reqStr={reqStr} SystemPrompt={moodSystemPrompt} /> */}
+      <DogsayGroup reqStr={reqStr} SystemPrompt={moodSystemPrompt} />
       <AiPlan
         style={{ height: 130, marginVertical: 20, marginHorizontal: 20 }}
       />

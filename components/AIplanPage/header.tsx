@@ -10,6 +10,7 @@ export default function Header() {
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
+        paddingHorizontal: 16,
       }}
     >
       <Pressable
