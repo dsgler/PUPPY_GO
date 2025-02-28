@@ -37,6 +37,5 @@ export function getArr(rawStr: string) {
     arr.push(rawStr.substring(startPosi + 1, endPosi));
     posi = endPosi + 1;
   }
-  console.log(arr);
   return arr;
 }
