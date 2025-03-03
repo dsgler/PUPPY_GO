@@ -5,13 +5,14 @@ import { Pressable, StyleSheet, View } from "react-native";
 import AntIcon from "react-native-vector-icons/AntDesign";
 import FeaIcon from "react-native-vector-icons/Feather";
 import { HeightAndWeight } from "@/consts/AIplanPage";
+import { planReplyType } from "@/consts/propmts";
 
 export type InfoObjType = {
   heightRaw: string;
   weightRaw: string;
   sick: { chosen: Set<number>; attach: string };
   bodyImprove: { chosen: Set<number>; attach: string };
-  raw: string;
+  retArr: planReplyType;
 };
 
 export const InfoObjDefault: InfoObjType = {
@@ -19,7 +20,7 @@ export const InfoObjDefault: InfoObjType = {
   weightRaw: "",
   sick: { chosen: new Set(), attach: "" },
   bodyImprove: { chosen: new Set(), attach: "" },
-  raw: "",
+  retArr: [],
 };
 
 export const InfoObjStateCtx = createContext<ImmerHook<InfoObjType>>([
@@ -30,7 +31,7 @@ export const InfoObjStateCtx = createContext<ImmerHook<InfoObjType>>([
 export const ViewStyle = StyleSheet.create({
   Text: { fontSize: 16 },
   preInputText: { width: 80, fontSize: 16 },
-  Input: { flex: 1, fontSize: 16 },
+  Input: { flex: 1, fontSize: 16, lineHeight: 24 },
   row: {
     flexDirection: "row",
     alignItems: "center",

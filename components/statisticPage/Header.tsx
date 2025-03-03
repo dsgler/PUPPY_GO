@@ -1,9 +1,15 @@
 import { router } from "expo-router";
-import { View, Text, Pressable } from "react-native";
+import { View, Text, Pressable, Platform } from "react-native";
 import AntIcon from "react-native-vector-icons/AntDesign";
+import { DatePickerModal } from "react-native-paper-dates";
 
-export function Header() {
-  let d = new Date();
+export function Header({
+  date,
+  ShowDatePicker,
+}: {
+  date: Date;
+  ShowDatePicker: () => void;
+}) {
   return (
     <View>
       <View
@@ -24,7 +30,7 @@ export function Header() {
         </Pressable>
         <View style={{ flexDirection: "row", alignItems: "center" }}>
           <Text style={{ fontSize: 17, fontWeight: 700 }}>
-            {d.getFullYear()}年{d.getMonth() + 1}月{" "}
+            {date.getFullYear()}年{date.getMonth() + 1}月{" "}
           </Text>
           <View
             style={{
@@ -33,8 +39,10 @@ export function Header() {
               padding: 2,
             }}
           >
-            {/* @ts-ignore */}
-            <AntIcon name="down" size={10} />
+            <Pressable onPress={ShowDatePicker}>
+              {/* @ts-ignore */}
+              <AntIcon name="down" size={10} />
+            </Pressable>
           </View>
         </View>
         <View style={{ flex: 1 }}></View>

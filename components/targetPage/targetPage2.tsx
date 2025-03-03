@@ -1,6 +1,5 @@
 import { BrandColor, textColor } from "@/consts/tabs";
 import {
-  View,
   Text,
   Image,
   Pressable,
@@ -11,6 +10,7 @@ import {
   GestureResponderEvent,
   TextStyle,
   ColorValue,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AntIcon from "react-native-vector-icons/AntDesign";
@@ -42,7 +42,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import { useImmer } from "use-immer";
+import { ImmerHook, useImmer } from "use-immer";
 import { Modal, Portal, TouchableRipple } from "react-native-paper";
 import PressableText from "@/components/public/PressableText";
 
@@ -85,7 +85,7 @@ import {
 } from "@/components/public/CustomeMonthBlock";
 import { repeatList } from "@/consts/repeatList";
 import { router, useFocusEffect } from "expo-router";
-// import { myFadeIn, myFadeOut, myLayoutTransition } from "@/consts/anime";
+// const View = Animated.View;
 
 export function getDescription(v: {
   sportId: number;
@@ -119,8 +119,37 @@ type menuObjType = {
 };
 
 const RefreshFnCtx = createContext<() => void>(() => {
-  throw Error("获取错误");
+  throw Error("不应获取默认值");
 });
+
+const ShowAddTargetCtx =
+  createContext<
+    (
+      isClear?: boolean,
+      afterClear?: (AddTargetStates: AddTargetStates) => void
+    ) => void
+  >(defaultError);
+const ShowAddGroupCtx = createContext<() => void>(defaultError);
+type AddTargetStates = {
+  frequencyState: ImmerHook<frequencyType>;
+  dataState: ImmerHook<targetRow>;
+};
+// const AddTargetStatesCtx = createContext<AddTargetStates>(null as any);
+const AddTarget_frequencyStateDefault = {
+  typeId: consts_frequency.DAILY,
+  content: [],
+};
+const AddTarget_dataStateDefault = {
+  Id: -1,
+  groupId: -1,
+  description: "",
+  makeTime: -1,
+  duration: 0,
+  count: 0,
+  frequency: "",
+  sportId: -1,
+  endTime: -1,
+};
 
 export const myFadeIn = FadeIn.duration(300).easing(Easing.inOut(Easing.quad));
 export const myFadeOut = FadeOut.duration(300).easing(
@@ -176,10 +205,36 @@ export default function Page() {
     setModalType(ADD_GROUP);
     setInsertModalV(true);
   }, [setMenuobj]);
-  const showAddTarget = useCallback(() => {
-    setModalType(ADD_TARGET);
-    setInsertModalV(true);
-  }, []);
+
+  const AddTarget_frequencyState = useImmer<frequencyType>(
+    AddTarget_frequencyStateDefault
+  );
+  const AddTarget_dataState = useImmer<targetRow>(AddTarget_dataStateDefault);
+  const AddTargetStates: AddTargetStates = useMemo(
+    () => ({
+      frequencyState: AddTarget_frequencyState,
+      dataState: AddTarget_dataState,
+    }),
+    [AddTarget_dataState, AddTarget_frequencyState]
+  );
+
+  const showAddTarget = useCallback(
+    (
+      isClear: boolean = true,
+      afterClear?: (AddTargetStates: AddTargetStates) => void
+    ) => {
+      if (isClear) {
+        AddTarget_dataState[1](AddTarget_dataStateDefault);
+        AddTarget_frequencyState[1](AddTarget_frequencyStateDefault);
+      }
+      setModalType(ADD_TARGET);
+      if (afterClear) {
+        afterClear(AddTargetStates);
+      }
+      setInsertModalV(true);
+    },
+    [AddTargetStates, AddTarget_dataState, AddTarget_frequencyState]
+  );
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -190,6 +245,7 @@ export default function Page() {
               durationType={durationType}
               setDurationType={setDurationType}
             />
+            {/* 在不为空的情况下在日界面显示 */}
             {(isEmpty && durationType === consts_duration.DAILY) || <Tip />}
             {(isEmpty && durationType === consts_duration.DAILY) ||
               (durationType === consts_duration.DAILY ? (
@@ -199,7 +255,11 @@ export default function Page() {
               ))}
             <View style={{ height: 10 }} />
             <MenuCtx.Provider value={[menuobj, setMenuobj]}>
-              {dataComponent}
+              <ShowAddTargetCtx.Provider value={showAddTarget}>
+                <ShowAddGroupCtx.Provider value={showAddGroup}>
+                  {dataComponent}
+                </ShowAddGroupCtx.Provider>
+              </ShowAddTargetCtx.Provider>
             </MenuCtx.Provider>
             <View style={{ height: 10 }}></View>
           </Animated.ScrollView>
@@ -228,7 +288,9 @@ export default function Page() {
                 paddingVertical: 6,
                 marginTop: 10,
               }}
-              onPress={showAddTarget}
+              onPress={() => {
+                showAddTarget();
+              }}
             >
               <Text style={{ fontSize: 16, color: "#FFFFFF" }}>去添加</Text>
             </Pressable>
@@ -260,6 +322,7 @@ export default function Page() {
                     <ModalComponentSwitcher
                       modalType={modalType}
                       setInsertModalV={setInsertModalV}
+                      AddTargetStates={AddTargetStates}
                     />
                   </View>
                 </Animated.ScrollView>
@@ -356,14 +419,21 @@ const ADD_TARGET = 1;
 function ModalComponentSwitcher({
   modalType,
   setInsertModalV,
+  AddTargetStates,
 }: {
   modalType: number;
   setInsertModalV: React.Dispatch<React.SetStateAction<boolean>>;
+  AddTargetStates: AddTargetStates;
 }) {
   if (modalType === ADD_GROUP) {
     return <ModalComponent0 setInsertModalV={setInsertModalV} />;
   } else if (modalType === ADD_TARGET) {
-    return <ModalComponent1 setInsertModalV={setInsertModalV} />;
+    return (
+      <ModalComponent1
+        setInsertModalV={setInsertModalV}
+        AddTargetStates={AddTargetStates}
+      />
+    );
   } else {
     throw Error("未知的modalType:" + modalType);
   }
@@ -487,8 +557,10 @@ const ModalComponent1Style = StyleSheet.create({
 
 function ModalComponent1({
   setInsertModalV,
+  AddTargetStates,
 }: {
   setInsertModalV: React.Dispatch<React.SetStateAction<boolean>>;
+  AddTargetStates: AddTargetStates;
 }) {
   const [targetName, setTargetName] = useState("");
   const db = useSQLiteContext();
@@ -496,34 +568,23 @@ function ModalComponent1({
   const myHint = useContext(MyHintCtx);
   const RefreshFn = useContext(RefreshFnCtx);
   const [groups, setGroups] = useState<groupNameRow[]>([]);
-  useEffect(() => {
+  const updateGroups = useCallback(() => {
     getGroups(db)
       .then((v) => {
         setGroups(v);
       })
       .catch(myAlert);
   }, [db, myAlert]);
+  useEffect(updateGroups, [updateGroups]);
   const groupList = useMemo<ListChooseListRowType[]>(
     () => groups.map((v) => ({ name: v.groupName, Id: v.groupId })),
     [groups]
   );
   // const repeatList: ListChooseListRowType[] = repeatList;
-
-  const [frequency, updateFrequency] = useImmer<frequencyType>({
-    typeId: consts_frequency.DAILY,
-    content: [],
-  });
-  const [data, updatedata] = useImmer<targetRow>({
-    Id: -1,
-    groupId: -1,
-    description: "",
-    makeTime: -1,
-    duration: 0,
-    count: 0,
-    frequency: "",
-    sportId: -1,
-    endTime: -1,
-  });
+  const {
+    frequencyState: [frequency, updateFrequency],
+    dataState: [data, updatedata],
+  } = AddTargetStates;
 
   const MAIN = 0;
   const CHOOSE_GROUP = 1;
@@ -622,9 +683,13 @@ function ModalComponent1({
             onPress={() => {
               setPageType(REPEAT);
             }}
-            style={ModalComponent1Style.block}
+            style={[
+              ModalComponent1Style.block,
+              { flexDirection: "row", alignItems: "center" },
+            ]}
           >
             <RepeatIcon />
+            <Text style={{ fontSize: 16, marginLeft: 3 }}>重复</Text>
           </Pressable>
           <Pressable
             onPress={() => {
@@ -646,30 +711,73 @@ function ModalComponent1({
       </View>
     );
   } else if (pageType === CHOOSE_GROUP) {
-    return (
-      <View>
-        <View style={{ flexDirection: "row" }}>
-          <PressableText
-            message="返回"
-            color={BrandColor}
-            highlightColor="#ffd399"
-            TextStyle={{ fontSize: 16 }}
-            onPress={() => {
-              setPageType(MAIN);
+    const F = () => {
+      const [text, setText] = useState("");
+
+      return (
+        <View>
+          <View style={{ flexDirection: "row" }}>
+            <PressableText
+              message="返回"
+              color={BrandColor}
+              highlightColor="#ffd399"
+              TextStyle={{ fontSize: 16 }}
+              onPress={() => {
+                setPageType(MAIN);
+              }}
+            />
+          </View>
+          <ListChoose
+            list={groupList}
+            chosenId={data.groupId}
+            setId={(newId) => {
+              updatedata((data) => {
+                data.groupId = newId;
+              });
             }}
           />
+          <View
+            style={{
+              backgroundColor: "white",
+              borderRadius: 10,
+              // paddingVertical: 10,
+              paddingLeft: 16,
+              paddingRight: 16,
+              flexDirection: "row",
+              alignItems: "center",
+              height: 45,
+            }}
+          >
+            <TextInput
+              value={text}
+              onChangeText={setText}
+              style={{ lineHeight: 25, flex: 1 }}
+              cursorColor={BrandColor}
+              placeholder="添加新分组"
+            ></TextInput>
+            <PressableText
+              message="添加"
+              color={BrandColor}
+              highlightColor="#ffd399"
+              TextStyle={{ fontSize: 16 }}
+              onPress={() => {
+                if (text.trim() === "") {
+                  myAlert("请输入分组名");
+                  return;
+                }
+                addGroupOrGetGroupId(db, text)
+                  .then(() => {
+                    myHint("添加成功");
+                    return updateGroups();
+                  })
+                  .catch(myAlert);
+              }}
+            />
+          </View>
         </View>
-        <ListChoose
-          list={groupList}
-          chosenId={data.groupId}
-          setId={(newId) => {
-            updatedata((data) => {
-              data.groupId = newId;
-            });
-          }}
-        />
-      </View>
-    );
+      );
+    };
+    return <F />;
   } else if (pageType === REPEAT) {
     return (
       <View>
@@ -1104,10 +1212,7 @@ function AddTarget({
   onPress,
   style,
 }: {
-  onPress?:
-    | (((event: GestureResponderEvent) => void) &
-        ((e: GestureResponderEvent) => void))
-    | undefined;
+  onPress?: Function;
   style?: StyleProp<ViewStyle>;
 }) {
   return (
@@ -1119,7 +1224,11 @@ function AddTarget({
         boxShadow: "0 4 4 rgba(0,0,0,0.1)",
       }}
       borderless={true}
-      onPress={onPress}
+      onPress={() => {
+        if (onPress) {
+          onPress();
+        }
+      }}
     >
       <View
         style={[
@@ -1183,8 +1292,14 @@ function TaskItemRow({
   const db = useSQLiteContext();
   const myAlert = useContext(MyAlertCtx);
   const RefreshFn = useContext(RefreshFnCtx);
+  const myConfirm = useContext(MyConfirmCtx);
   return (
-    <View style={style}>
+    <Animated.View
+      style={style}
+      // entering={myFadeIn}
+      // exiting={myFadeOut}
+      layout={myLayoutTransition}
+    >
       <GestureDetector gesture={myGesture}>
         <Animated.View
           style={[
@@ -1231,9 +1346,17 @@ function TaskItemRow({
               {typeName}
             </Text>
           </View>
-          <View style={{ marginRight: 26 }}>
+          <Pressable
+            style={{ marginRight: 26 }}
+            onPress={() => {
+              router.push({
+                pathname: "/editTarget",
+                params: { targetId: targetId },
+              });
+            }}
+          >
             <Pencil />
-          </View>
+          </Pressable>
         </Animated.View>
       </GestureDetector>
 
@@ -1254,12 +1377,19 @@ function TaskItemRow({
           zIndex: -1,
         }}
       >
-        <Pressable style={{ marginRight: 16 }} onPress={() => {}}>
+        <Pressable
+          style={{ marginRight: 16 }}
+          onPress={() => {
+            myConfirm("确定删除吗？", () => {
+              deleteTarget(db, targetId).then(RefreshFn).catch(myAlert);
+            });
+          }}
+        >
           {/* @ts-ignore */}
           <FeaIcon name="trash-2" size={24} color={"white"} />
         </Pressable>
       </View>
-    </View>
+    </Animated.View>
   );
 }
 
@@ -1267,6 +1397,7 @@ function WeekGroup({ data }: { data: getProgressByWeekRetRow }) {
   const [isFolded, setIsFolded] = useState(
     new Date().getDay() === (data.day + 1) % 7 ? false : true
   );
+  const showAddTarget = useContext(ShowAddTargetCtx);
 
   return (
     <Animated.View
@@ -1306,13 +1437,26 @@ function WeekGroup({ data }: { data: getProgressByWeekRetRow }) {
           achieved={data.finished}
           style={{ height: 25, flex: 1 }}
         />
-        <View style={{ marginLeft: 10 }}>
+        <Pressable
+          style={{ marginLeft: 10 }}
+          onPress={() => {
+            showAddTarget(true, (AddTargetStates) => {
+              const {
+                frequencyState: [, updateFrequency],
+              } = AddTargetStates;
+              updateFrequency((v) => {
+                v.typeId = consts_frequency.COSTUM_WEEK;
+                v.content = [data.day];
+              });
+            });
+          }}
+        >
           {/* @ts-ignore */}
           <AntIcon name="pluscircle" size={21} color={BrandColor} />
-        </View>
+        </Pressable>
       </View>
       {isFolded ? null : (
-        <Animated.View entering={myFadeIn} exiting={myFadeOut}>
+        <Animated.View entering={myFadeIn}>
           {data.children.map((v) => {
             return (
               <View
@@ -1357,6 +1501,7 @@ function MonthGroup({ data }: { data: getProgressByMonthRetRow }) {
       bgColor.value = withTiming("#FFFFFF", { duration: duration });
     }
   }, [bgColor, menuObj.visibility]);
+  const showAddTarget = useContext(ShowAddTargetCtx);
 
   return (
     <Animated.View
@@ -1426,13 +1571,25 @@ function MonthGroup({ data }: { data: getProgressByMonthRetRow }) {
           achieved={data.progress}
           style={{ height: 25, flex: 1 }}
         />
-        <View style={{ marginLeft: 10 }}>
+        <Pressable
+          style={{ marginLeft: 10 }}
+          onPress={() => {
+            showAddTarget(true, (AddTargetStates) => {
+              const {
+                dataState: [, updatedata],
+              } = AddTargetStates;
+              updatedata((_data) => {
+                _data.groupId = data.groupId;
+              });
+            });
+          }}
+        >
           {/* @ts-ignore */}
           <AntIcon name="pluscircle" size={21} color={BrandColor} />
-        </View>
+        </Pressable>
       </View>
       {isFolded ? null : (
-        <Animated.View entering={myFadeIn} exiting={myFadeOut}>
+        <Animated.View entering={myFadeIn}>
           {data.children.map((data) => (
             <MonthgroupChildRow data={data} key={data.Id} />
           ))}
@@ -1657,7 +1814,7 @@ async function showData(
 
     setIsEmpty(false);
     setDataComponent(
-      <View>
+      <Animated.View layout={myLayoutTransition}>
         {datas.map((data) => (
           <TaskItemRow
             typeName={
@@ -1673,7 +1830,7 @@ async function showData(
             style={{ marginTop: 10 }}
           />
         ))}
-      </View>
+      </Animated.View>
     );
   } else if (durationType === consts_duration.WEEKLY) {
     const datas = await getProgressByWeek(db, d);

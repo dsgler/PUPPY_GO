@@ -96,6 +96,22 @@ export default function AddPage() {
   const [contentWidth, setContentWidth] = useState(0);
   const [tags, updateTags] = useImmer<string[]>([]);
   const [tagContent, setTagContent] = useState("");
+  const onTagContentChange = (text: string) => {
+    if (text === "") {
+      setTagContent("");
+      return;
+    }
+    const endChar = text[text.length - 1];
+    if (endChar === " " || endChar === "\n") {
+      updateTags((tags) => {
+        tags.push(text.trim());
+      });
+      setTagContent("");
+      return;
+    }
+
+    setTagContent(text);
+  };
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
 
@@ -171,7 +187,10 @@ export default function AddPage() {
                     myAlert
                   );
                 }}
-                style={styles.submit}
+                style={[
+                  styles.submit,
+                  { display: pageState === MAIN ? "flex" : "none" },
+                ]}
                 borderless={true}
               >
                 <View
@@ -384,10 +403,11 @@ export default function AddPage() {
                 style={{
                   display: pageState === TAG ? "flex" : "none",
                   fontSize: 15,
+                  lineHeight: 26,
                 }}
-                placeholder="用几个简单的关键词概况一下本次运动吧"
+                placeholder="(输入完成空格添加)"
                 value={tagContent}
-                onChangeText={setTagContent}
+                onChangeText={onTagContentChange}
                 autoFocus={true}
               ></TextInput>
             ) : undefined}
@@ -407,18 +427,19 @@ export default function AddPage() {
                       Color="#ff960b"
                       isChosen={false}
                       key={k}
-                      onPressF={EmptyF}
+                      onPress={EmptyF}
                       style={{ marginVertical: 3 }}
+                      onLongPress={() => {
+                        updateTags(tags.filter((v1) => v1 !== v));
+                      }}
                     />
                   );
                 })}
                 <ColorfulTag
-                  Message={
-                    pageState === TAG ? "点击添加状态词" : "点击填写状态词"
-                  }
+                  Message="点击添加状态词"
                   Color="#ff960b"
                   isChosen={false}
-                  onPressF={() => {
+                  onPress={() => {
                     if (pageState === MAIN) {
                       setPageState(TAG);
                     } else {
@@ -432,7 +453,10 @@ export default function AddPage() {
                       setTagContent("");
                     }
                   }}
-                  style={{ marginVertical: 3 }}
+                  style={{
+                    marginVertical: 3,
+                    display: pageState === MAIN ? "flex" : "none",
+                  }}
                 ></ColorfulTag>
               </View>
             </View>
@@ -595,7 +619,7 @@ export function ChooseSport({
           Message={item.sportName}
           Color={item.color}
           isChosen={sportId === item.id}
-          onPressF={() => setSportId(item.id)}
+          onPress={() => setSportId(item.id)}
         />
       )}
       showsHorizontalScrollIndicator={false}
@@ -704,24 +728,27 @@ function ColorfulTag({
   Message,
   Color,
   isChosen,
-  onPressF,
+  onPress,
+  onLongPress,
   style,
 }: {
   Message: string;
   Color: string;
   isChosen: boolean;
-  onPressF?: (event: GestureResponderEvent) => void;
+  onPress?: (event: GestureResponderEvent) => void;
+  onLongPress?: (event: GestureResponderEvent) => void;
   style?: StyleProp<ViewStyle>;
 }) {
   if (!isChosen) {
     return (
       <TouchableRipple
-        onPress={onPressF}
+        onPress={onPress}
         style={[
           { marginHorizontal: 8, borderRadius: 5, overflow: "hidden" },
           style,
         ]}
         borderless={true}
+        onLongPress={onLongPress}
       >
         <View
           style={[
@@ -809,14 +836,14 @@ async function handleSubmit(
     myAlert("请选择耗力");
     return;
   }
-  if (data.title === "") {
-    myAlert("请输入标题");
-    return;
-  }
-  if (data.content === "") {
-    myAlert("请输入标题");
-    return;
-  }
+  // if (data.title === "") {
+  //   myAlert("请输入标题");
+  //   return;
+  // }
+  // if (data.content === "") {
+  //   myAlert("请输入内容");
+  //   return;
+  // }
 
   let db = await getDB();
   await insertData(db, data);

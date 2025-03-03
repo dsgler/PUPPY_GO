@@ -537,6 +537,7 @@ function SportBlockRight({
           marginTop: 10,
           paddingVertical: 15,
           paddingHorizontal: 12,
+          display: data.title === "" && data.content === "" ? "none" : "flex",
         }}
       >
         <Text
@@ -546,11 +547,20 @@ function SportBlockRight({
             fontSize: 20,
             marginBottom: 5,
             paddingBottom: 2,
+            display: data.title === "" ? "none" : "flex",
           }}
         >
           {data.title}
         </Text>
-        <Text style={{ color: "#131315", fontSize: 15 }}>{data.content}</Text>
+        <Text
+          style={{
+            color: "#131315",
+            fontSize: 15,
+            display: data.content === "" ? "none" : "flex",
+          }}
+        >
+          {data.content}
+        </Text>
       </View>
       <View style={{ flexDirection: "row", marginTop: 15 }}>
         <View

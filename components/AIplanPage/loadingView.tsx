@@ -52,10 +52,10 @@ export default function LoadingView({
       伤病: sick,
       希望重点加强部位: impo,
     };
-    askForPlan(db, JSON.stringify(messageObj), (raw) => {
+    askForPlan(db, JSON.stringify(messageObj), (retArr) => {
       setStep(END);
       updateInfoObj((InfoObj) => {
-        InfoObj.raw = raw;
+        InfoObj.retArr = retArr;
       });
     }).catch(myAlert);
   }, [InfoObj, db, myAlert, setStep, updateInfoObj]);
@@ -84,9 +84,10 @@ export default function LoadingView({
 async function askForPlan(
   db: SQLiteDatabase,
   message: string,
-  onSuccess: (raw: string) => void
+  onSuccess: (retObj: planReplyType) => void
 ) {
   if (!isUseAI) {
+    onSuccess([]);
     return;
   }
 
@@ -107,12 +108,13 @@ async function askForPlan(
   if (raw === null) {
     throw Error(JSON.stringify(cp));
   }
+  // 寻找[]（数组）包裹的json
   const re = /\[.+]/gs;
-  const arr = Array.from(raw.matchAll(re));
-  const obj = JSON.parse(arr[0][0]) as planReplyType;
-  console.log(obj);
+  const reArr = Array.from(raw.matchAll(re));
+  const retArr = JSON.parse(reArr[0][0]) as planReplyType;
+  console.log(retArr);
 
-  for (const group of obj) {
+  for (const group of retArr) {
     const groupId = await addGroupOrGetGroupId(db, group.组名);
     for (const target of group.训练项目) {
       const getFreId = (raw: string): number => {
@@ -144,5 +146,5 @@ async function askForPlan(
     }
   }
 
-  onSuccess(raw);
+  onSuccess(retArr);
 }

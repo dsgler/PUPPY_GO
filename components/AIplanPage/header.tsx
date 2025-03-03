@@ -21,7 +21,10 @@ export default function Header() {
         {/* @ts-ignore */}
         <AntIcon name="leftcircle" size={30} color="#E8A838" />
       </Pressable>
-      <View
+      <Pressable
+        onPress={() => {
+          router.push("/targetPage");
+        }}
         style={{
           flexDirection: "row",
           alignItems: "center",
@@ -35,7 +38,7 @@ export default function Header() {
       >
         <Location />
         <Text style={{ fontSize: 14, color: "white" }}>我的目标</Text>
-      </View>
+      </Pressable>
     </View>
   );
 }

@@ -48,7 +48,21 @@ export default function EndView() {
             justifyContent: "center",
           }}
           onPress={() => {
-            Share.share({ message: InfoObj.raw });
+            Share.share({
+              message: InfoObj.retArr
+                .map(
+                  (v) =>
+                    `组名:${v.组名}\n训练项目:\n${v.训练项目
+                      .map(
+                        (m, k) =>
+                          `${k + 1}.\n  项目名:${m.项目名}\n  训练频率:${
+                            m.训练频率
+                          }\n  每月目标训练次数:${m.每月目标训练次数}\n`
+                      )
+                      .join(" \n")}`
+                )
+                .join("\n \n"),
+            });
           }}
         >
           {/* @ts-ignore */}

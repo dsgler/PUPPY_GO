@@ -73,6 +73,8 @@ export async function addTarget(
     endTime,
   }: targetRow
 ) {
+  await createTable(db);
+
   return await getAllOnce(
     db,
     `INSERT INTO targetRow (
@@ -145,6 +147,8 @@ export async function deleteTarget(db: SQLite.SQLiteDatabase, Id: number) {
 }
 
 export async function getTargetsByDay(db: SQLite.SQLiteDatabase, d: Date) {
+  await createTable(db);
+
   let rows = (await getAllOnce(
     db,
     `SELECT * FROM targetRow;`,
@@ -196,6 +200,8 @@ export async function getTargetsByDay(db: SQLite.SQLiteDatabase, d: Date) {
  * 但 index=0 是周日
  */
 export async function getTargetsByWeek(db: SQLite.SQLiteDatabase, d: Date) {
+  await createTable(db);
+
   let rows = (await getAllOnce(
     db,
     `SELECT * FROM targetRow;`,
@@ -258,6 +264,8 @@ export async function getProgressByDay(
   db: SQLite.SQLiteDatabase,
   d: Date
 ): Promise<getProgressByDayRetRow[]> {
+  await createTable(db);
+
   let date = getDateNumber(d);
   let src = (await getAllOnce(db, `SELECT * FROM targetCheck WHERE date=?;`, [
     date,
@@ -282,6 +290,8 @@ export type getProgressByWeekRetRow = {
   children: getProgressByDayRetRow[];
 };
 export async function getProgressByWeek(db: SQLite.SQLiteDatabase, d: Date) {
+  await createTable(db);
+
   let dates = getDatesInWeek(d);
   let ret: getProgressByWeekRetRow[] = Array.from({ length: dates.length });
   for (let i = 0; i < dates.length; i++) {
@@ -306,6 +316,8 @@ export type getProgressByMonthRetRow = {
 };
 
 export async function getGroups(db: SQLite.SQLiteDatabase) {
+  await createTable(db);
+
   return (await getAllOnce(
     db,
     `SELECT * FROM groupName;`,
@@ -316,6 +328,8 @@ export async function getGroups(db: SQLite.SQLiteDatabase) {
 export type childrenRow = targetRow & { times: number };
 
 export async function getProgressByMonth(db: SQLite.SQLiteDatabase) {
+  await createTable(db);
+
   let d = new Date();
   let groups = await getGroups(db);
   let targets = (await getAllOnce(
@@ -372,6 +386,8 @@ export async function setCheck(
   targetId: number,
   date: number = getDateNumber(Date.now())
 ) {
+  await createTable(db);
+
   let ret = await getAllOnce(
     db,
     `SELECT * FROM targetCheck WHERE date=? AND targetId=?;`,
@@ -403,6 +419,8 @@ export async function addGroupOrGetGroupId(
   db: SQLite.SQLiteDatabase,
   groupName: string
 ): Promise<number> {
+  await createTable(db);
+
   const groupArr = await _getGroupIdByName(db, groupName);
   if (groupArr.length !== 0) {
     return groupArr[0].groupId;

@@ -2617,6 +2617,13 @@
     prompts "^2.4.2"
     semver "^7.5.2"
 
+"@react-native-community/datetimepicker@^8.3.0":
+  version "8.3.0"
+  resolved "https://mirrors.huaweicloud.com/repository/npm/@react-native-community/datetimepicker/-/datetimepicker-8.3.0.tgz#d734a77ae5fdf9585ea2eba0d2b5cf47404c0a09"
+  integrity sha512-K/KgaJbLtjMpx4PaG4efrVIcSe6+DbLufeX1lwPB5YY8i3sq9dOh6WcAcMTLbaRTUpurebQTkl7puHPFm9GalA==
+  dependencies:
+    invariant "^2.2.4"
+
 "@react-native/assets-registry@0.76.5":
   version "0.76.5"
   resolved "https://mirrors.huaweicloud.com/repository/npm/@react-native/assets-registry/-/assets-registry-0.76.5.tgz#3343338813aa6354df9fec52af50d0b5f7f3d013"
@@ -10123,6 +10130,13 @@ react-native-is-edge-to-edge@^1.1.6:
   version "1.1.6"
   resolved "https://mirrors.huaweicloud.com/repository/npm/react-native-is-edge-to-edge/-/react-native-is-edge-to-edge-1.1.6.tgz#69ec13f70d76e9245e275eed4140d0873a78f902"
   integrity sha512-1pHnFTlBahins6UAajXUqeCOHew9l9C2C8tErnpGC3IyLJzvxD+TpYAixnCbrVS52f7+NvMttbiSI290XfwN0w==
+
+react-native-paper-dates@^0.22.34:
+  version "0.22.34"
+  resolved "https://mirrors.huaweicloud.com/repository/npm/react-native-paper-dates/-/react-native-paper-dates-0.22.34.tgz#3b64a7b7834e15a425a1f4e759ab80c396066627"
+  integrity sha512-znn51Wfi/5zCMD+8iVheRsoWLji+83qlHXZzsoLEZit5Fl7XcxhOFW4+MjCWGjIh66NtsTE1pV1ED/1khSHznQ==
+  dependencies:
+    color "^4.2.3"
 
 react-native-paper@^5.12.5:
   version "5.12.5"

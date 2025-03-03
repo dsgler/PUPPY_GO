@@ -21,6 +21,8 @@ import {
 } from "echarts/components";
 import { SkiaRenderer } from "@wuba/react-native-echarts";
 import { ChosenDateArrCtx } from "./public";
+import { Modal, Portal } from "react-native-paper";
+import { DatePickerModal } from "react-native-paper-dates";
 
 echarts.use([
   SkiaRenderer,
@@ -34,17 +36,19 @@ echarts.use([
 export default function Page() {
   const [pageType, setPageType] = useState(pageType_consts.MOOD);
   const [sportId, setSportId] = useState(-1);
-  const d = new Date();
   const db = useSQLiteContext();
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const date = useMemo(() => d, [d.getDate()]);
+  // const date = useMemo(() => d, [d.getDate()]);
+  const [date, setDate] = useState(new Date());
   const isDateChanged = date.getMonth();
   const thisMonth = useMemo(
     () => getDatesInMonth(date),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [isDateChanged]
   );
+
+  const [isShowDatePicker, setIsShowDatePicker] = useState(false);
 
   const [datas, setDatas] = useState<addDataType[]>([]);
   useEffect(() => {
@@ -65,34 +69,56 @@ export default function Page() {
   const chosenDateArr = useState(-1);
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <ChosenDateArrCtx.Provider value={chosenDateArr}>
-        <View style={{ flex: 1, paddingHorizontal: 16 }}>
-          <View
-            onLayout={(e) => {
-              setUpperHeight(e.nativeEvent.layout.height);
-            }}
-          >
-            <Header />
-            <View style={{ height: 10 }}></View>
-            <ChooseIcon pageType={pageType} setPageType={setPageType} />
-            <MonthSwitcher
-              date={date}
+    <>
+      <SafeAreaView style={{ flex: 1 }}>
+        <ChosenDateArrCtx.Provider value={chosenDateArr}>
+          <View style={{ flex: 1, paddingHorizontal: 16 }}>
+            <View
+              onLayout={(e) => {
+                setUpperHeight(e.nativeEvent.layout.height);
+              }}
+            >
+              <Header
+                date={date}
+                ShowDatePicker={() => {
+                  setIsShowDatePicker(true);
+                }}
+              />
+              <View style={{ height: 10 }}></View>
+              <ChooseIcon pageType={pageType} setPageType={setPageType} />
+              <MonthSwitcher
+                date={date}
+                datas={datas}
+                thisMonth={thisMonth}
+                pageType={pageType}
+              />
+              <ChooseSport sportId={sportId} setSportId={setSportId} />
+              <View style={{ height: 20 }}></View>
+            </View>
+            <Part2View
+              upperHeight={upperHeight}
               datas={datas}
-              thisMonth={thisMonth}
               pageType={pageType}
+              thisMonth={thisMonth}
             />
-            <ChooseSport sportId={sportId} setSportId={setSportId} />
-            <View style={{ height: 20 }}></View>
           </View>
-          <Part2View
-            upperHeight={upperHeight}
-            datas={datas}
-            pageType={pageType}
-            thisMonth={thisMonth}
-          />
-        </View>
-      </ChosenDateArrCtx.Provider>
-    </SafeAreaView>
+        </ChosenDateArrCtx.Provider>
+      </SafeAreaView>
+      <Portal>
+        <DatePickerModal
+          visible={isShowDatePicker}
+          locale="zh"
+          mode="single"
+          onDismiss={() => {
+            setIsShowDatePicker(false);
+          }}
+          date={date}
+          onConfirm={({ date: newDate }) => {
+            setDate(newDate ?? date);
+            setIsShowDatePicker(false);
+          }}
+        />
+      </Portal>
+    </>
   );
 }
