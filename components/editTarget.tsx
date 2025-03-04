@@ -30,7 +30,7 @@ import {
   CustomeWeekBlock,
 } from "./public/CustomeMonthBlock";
 import * as consts_frequency from "@/consts/frequency";
-import { useImmer } from "use-immer";
+import { Updater, useImmer } from "use-immer";
 import { MyAlertCtx, MyConfirmCtx, MyHintCtx } from "@/app/_layout";
 
 import { repeatList } from "@/consts/repeatList";
@@ -159,18 +159,7 @@ export default function Page() {
       <ScrollView style={{ paddingHorizontal: 16 }}>
         <Header />
         <View style={{ gap: 10 }}>
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <Text style={[{ fontSize: 17 }, ColoredRowStyle.bold]}>
-              {data.description}
-            </Text>
-            <Pencil />
-          </View>
+          <PencilRow data={data} updateData={updateData} />
           <ColoredRow
             title={<Text style={ColoredRowStyle.title}>所属列表</Text>}
             backgroundColor={bgYellow}
@@ -408,7 +397,7 @@ function Header() {
       <Pressable
         style={{ position: "absolute", left: 0 }}
         onPress={() => {
-          myConfirm("确定退出？", () => {
+          myConfirm("确定不保存退出？", () => {
             router.back();
           });
         }}
@@ -512,3 +501,62 @@ function ColoredRow({
     </Animated.View>
   );
 }
+
+const PencilRow = ({
+  data,
+  updateData,
+}: {
+  data: targetRow;
+  updateData: Updater<targetRow>;
+}) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [t, setT] = useState(data.description);
+  console.log("isEditing:", isEditing);
+
+  return (
+    <View
+      style={{
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+      }}
+    >
+      {isEditing ? (
+        <TextInput
+          value={t}
+          onChangeText={(text) => {
+            setT(text);
+            updateData((data) => {
+              data.description = text;
+            });
+          }}
+          style={[
+            { fontSize: 17, flex: 1, height: 30, lineHeight: 30, padding: 0 },
+            ColoredRowStyle.bold,
+          ]}
+          autoFocus={true}
+          cursorColor={BrandColor}
+          onBlur={() => {
+            setIsEditing(false);
+          }}
+        />
+      ) : (
+        <Text
+          style={[
+            { fontSize: 17, flex: 1, height: 30, lineHeight: 30 },
+            ColoredRowStyle.bold,
+          ]}
+        >
+          {data.description}
+        </Text>
+      )}
+      <Pressable
+        onPress={() => {
+          setIsEditing(!isEditing);
+        }}
+      >
+        <Pencil />
+      </Pressable>
+    </View>
+  );
+};

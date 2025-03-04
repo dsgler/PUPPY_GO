@@ -105,6 +105,7 @@ async function askForPlan(
   });
 
   const raw = cp.choices[0].message.content;
+  console.log(raw);
   if (raw === null) {
     throw Error(JSON.stringify(cp));
   }
@@ -117,21 +118,41 @@ async function askForPlan(
   for (const group of retArr) {
     const groupId = await addGroupOrGetGroupId(db, group.组名);
     for (const target of group.训练项目) {
-      const getFreId = (raw: string): number => {
+      const getFreId = (raw: string): frequencyType => {
         if (raw.includes("每天")) {
-          return frequencyConsts.DAILY;
+          return { typeId: frequencyConsts.DAILY, content: [] };
         } else if (raw.includes("周中")) {
-          return frequencyConsts.WEEKDAY;
+          return { typeId: frequencyConsts.WEEKDAY, content: [] };
         } else if (raw.includes("周末")) {
-          return frequencyConsts.WEEKEND;
+          return { typeId: frequencyConsts.WEEKEND, content: [] };
+        } else if (
+          raw.includes("[") ||
+          raw.includes("每") ||
+          raw.includes("、") ||
+          raw.includes("，") ||
+          raw.includes(",")
+        ) {
+          const content: number[] = [];
+          for (const [k, str] of [
+            "日",
+            "一",
+            "二",
+            "三",
+            "四",
+            "五",
+            "六",
+          ].entries()) {
+            if (raw.includes(str)) {
+              content.push(k);
+            }
+          }
+
+          return { typeId: frequencyConsts.COSTUM_WEEK, content };
         }
 
-        return frequencyConsts.DAILY;
+        return { typeId: frequencyConsts.DAILY, content: [] };
       };
-      const frequency: frequencyType = {
-        typeId: getFreId(target.训练频率),
-        content: [],
-      };
+      const frequency: frequencyType = getFreId(target.训练频率);
       await addTarget(db, {
         groupId,
         description: target.项目名,

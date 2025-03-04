@@ -31,7 +31,7 @@ export const InfoObjStateCtx = createContext<ImmerHook<InfoObjType>>([
 export const ViewStyle = StyleSheet.create({
   Text: { fontSize: 16 },
   preInputText: { width: 80, fontSize: 16 },
-  Input: { flex: 1, fontSize: 16, lineHeight: 24 },
+  Input: { flex: 1, fontSize: 16, lineHeight: 36, padding: 0 },
   row: {
     flexDirection: "row",
     alignItems: "center",

@@ -525,7 +525,7 @@ function ModalComponent0({
         <TextInput
           cursorColor={BrandColor}
           autoFocus={true}
-          style={{ fontSize: 16 }}
+          style={{ fontSize: 16, padding: 0 }}
           value={groupName}
           onChangeText={setGroupName}
           placeholder="请输入分组名"
@@ -751,7 +751,7 @@ function ModalComponent1({
             <TextInput
               value={text}
               onChangeText={setText}
-              style={{ lineHeight: 25, flex: 1 }}
+              style={{ lineHeight: 25, flex: 1, padding: 0, fontSize: 16 }}
               cursorColor={BrandColor}
               placeholder="添加新分组"
             ></TextInput>
@@ -1306,7 +1306,7 @@ function TaskItemRow({
             {
               // display: "none",
               flexDirection: "row",
-              height: 60,
+              minHeight: 60,
               alignItems: "center",
               backgroundColor: "white",
               borderRadius: 10,
@@ -1335,12 +1335,12 @@ function TaskItemRow({
               )}
             </Pressable>
           </View>
-          <View style={{ flex: 1 }}>
+          <View style={{ flex: 1, marginRight: 5 }}>
             <Text
               style={{
                 color: isFinished ? "rgba(0,0,0,0.25)" : textColor,
                 fontSize: 16,
-                lineHeight: 60,
+                // lineHeight: 60,
               }}
             >
               {typeName}
@@ -1641,12 +1641,12 @@ function MonthgroupChildRow({ data }: { data: childrenRow }) {
       }}
     >
       <Animated.View style={bgStyle}>
-        <View
+        <Text
           style={{
             flexDirection: "row",
             alignItems: "center",
             marginTop: 10,
-            height: 24,
+            minHeight: 24,
           }}
         >
           <View>
@@ -1679,7 +1679,7 @@ function MonthgroupChildRow({ data }: { data: childrenRow }) {
               </Text>
             </View>
           ) : null}
-        </View>
+        </Text>
         <View
           style={{
             height: 22,
