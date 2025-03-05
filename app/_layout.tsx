@@ -17,12 +17,14 @@ import { StatusBar } from "expo-status-bar";
 import { useDrizzleStudio } from "expo-drizzle-studio-plugin";
 import * as SQLite from "expo-sqlite";
 import { ThemeProvider } from "react-native-paper";
-import { Text, StyleSheet, View } from "react-native";
+import { Text, StyleSheet, View, Pressable } from "react-native";
 import { MYTHEME } from "@/consts/themeObj";
 import * as NavigationBar from "expo-navigation-bar";
 import { useFonts } from "expo-font";
 import { enableMapSet } from "immer";
+import { ImmerHook, useImmer } from "use-immer";
 
+// 启用 immer 的 map 和 set 支持
 enableMapSet();
 
 export const defaultError = () => {
@@ -57,6 +59,23 @@ export const MyConfirmCtx =
   createContext<
     (message: React.JSX.Element | string | Error, onConfirm: () => void) => void
   >(defaultError);
+
+const SpotlightPosiDefault = {
+  x: 0,
+  y: 0,
+  w: 0,
+  h: 0,
+  guideStep: -1,
+};
+export const SpotlightPosiCtx = createContext<
+  ImmerHook<{
+    x: number;
+    y: number;
+    w: number;
+    h: number;
+    guideStep: number;
+  }>
+>([SpotlightPosiDefault, defaultError]);
 
 export default function RootLayout() {
   useDrizzleStudio(SQLite.openDatabaseSync("myDatabase.db"));
@@ -111,85 +130,100 @@ export default function RootLayout() {
 
   useFonts({ AaTianNiuNai: require("@/assets/fonts/AaTianNiuNai.ttf") });
 
+  const spotlightPosiState = useImmer(SpotlightPosiDefault);
+
   return (
     <>
       <SQLite.SQLiteProvider databaseName="myDatabase.db">
         <MyAlertCtx.Provider value={myAlert}>
           <MyHintCtx.Provider value={myHint}>
             <MyConfirmCtx.Provider value={myConfirm}>
-              <ThemeProvider theme={MYTHEME}>
-                <PaperProvider>
-                  <ThemeProvider theme={MYTHEME}>
-                    <Stack screenOptions={{ headerShown: false }}>
-                      {/* <Stack.Screen
-                        name="(tabs)"
-                        options={{ headerShown: false }}
-                      />
-                      <Stack.Screen
-                        name="addPage"
-                        options={{ headerShown: false }}
-                      />
-                      <Stack.Screen
-                        name="editTarget"
-                        options={{ headerShown: false }}
-                      /> */}
-                      <Stack.Screen name="+not-found" />
-                    </Stack>
-                    {dialogV ? (
-                      <Portal>
-                        <View style={StyleSheet.absoluteFill}>
-                          <Dialog
-                            visible={dialogV}
-                            onDismiss={() => setDialogV(false)}
-                          >
-                            <Dialog.Content>{dialogC}</Dialog.Content>
-                            <Dialog.Actions>
-                              {isComFirm ? (
-                                <>
+              <SpotlightPosiCtx.Provider value={spotlightPosiState}>
+                <ThemeProvider theme={MYTHEME}>
+                  <PaperProvider>
+                    <ThemeProvider theme={MYTHEME}>
+                      <Stack screenOptions={{ headerShown: false }}></Stack>
+                      {spotlightPosiState[0].guideStep !== -1 && (
+                        <Pressable style={[StyleSheet.absoluteFill]}>
+                          <View
+                            style={{
+                              position: "absolute",
+                              top: spotlightPosiState[0].y,
+                              left: spotlightPosiState[0].x,
+                              width: spotlightPosiState[0].w,
+                              height: spotlightPosiState[0].h,
+                              boxShadow: "0 0 0 3000 rgba(0, 0, 0, 0.5)",
+                              borderRadius: 5,
+                            }}
+                          ></View>
+                          <Pressable
+                            style={{
+                              width: 50,
+                              height: 50,
+                              backgroundColor: "white",
+                            }}
+                            onPress={() => {
+                              spotlightPosiState[1](SpotlightPosiDefault);
+                            }}
+                          ></Pressable>
+                        </Pressable>
+                      )}
+                      {dialogV ? (
+                        <Portal>
+                          <View style={StyleSheet.absoluteFill}>
+                            <Dialog
+                              visible={dialogV}
+                              onDismiss={() => setDialogV(false)}
+                            >
+                              <Dialog.Content>{dialogC}</Dialog.Content>
+                              <Dialog.Actions>
+                                {isComFirm ? (
+                                  <>
+                                    <Button onPress={() => setDialogV(false)}>
+                                      取消
+                                    </Button>
+                                    <Button
+                                      onPress={() => {
+                                        onConfirmRef.current();
+                                        setDialogV(false);
+                                      }}
+                                    >
+                                      确定
+                                    </Button>
+                                  </>
+                                ) : (
                                   <Button onPress={() => setDialogV(false)}>
-                                    取消
+                                    好的
                                   </Button>
-                                  <Button
-                                    onPress={() => {
-                                      onConfirmRef.current();
-                                      setDialogV(false);
-                                    }}
-                                  >
-                                    确定
-                                  </Button>
-                                </>
-                              ) : (
-                                <Button onPress={() => setDialogV(false)}>
-                                  好的
-                                </Button>
-                              )}
-                            </Dialog.Actions>
-                          </Dialog>
-                        </View>
-                      </Portal>
-                    ) : null}
-                    {SnackbarV ? (
-                      <Portal>
-                        <Snackbar
-                          visible={SnackbarV}
-                          onDismiss={() => {
-                            setSnackbarV(false);
-                          }}
-                          action={{
-                            label: "确定",
-                            onPress: () => {
+                                )}
+                              </Dialog.Actions>
+                            </Dialog>
+                          </View>
+                        </Portal>
+                      ) : null}
+                      {SnackbarV ? (
+                        <Portal>
+                          <Snackbar
+                            visible={SnackbarV}
+                            onDismiss={() => {
                               setSnackbarV(false);
-                            },
-                          }}
-                          duration={500}
-                        >
-                          {SnackbarC}
-                        </Snackbar>
-                      </Portal>
-                    ) : null}
-                  </ThemeProvider>
-                </PaperProvider>
-              </ThemeProvider>
+                            }}
+                            action={{
+                              label: "确定",
+                              onPress: () => {
+                                setSnackbarV(false);
+                              },
+                            }}
+                            duration={500}
+                          >
+                            {SnackbarC}
+                          </Snackbar>
+                        </Portal>
+                      ) : null}
+                    </ThemeProvider>
+                  </PaperProvider>
+                </ThemeProvider>
+              </SpotlightPosiCtx.Provider>
             </MyConfirmCtx.Provider>
           </MyHintCtx.Provider>
         </MyAlertCtx.Provider>

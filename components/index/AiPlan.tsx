@@ -39,7 +39,8 @@ export default function AiPlan({ style }: { style?: StyleProp<ViewStyle> }) {
         </Text>
         <TouchableRipple
           onPress={() => {
-            router.push({ pathname: "/AIplan" });
+            router.push({ pathname: "/guidePage" });
+            // router.push({ pathname: "/AIplan" });
           }}
           borderless={true}
           style={{ borderRadius: 10, overflow: "hidden", marginTop: 5 }}
