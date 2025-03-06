@@ -34,7 +34,7 @@ import {
   getTimeString,
   getGapTimeString,
 } from "@/utility/datetool";
-import { Icon, TouchableRipple } from "react-native-paper";
+import { Icon } from "react-native-paper";
 import Svg, { Line } from "react-native-svg";
 
 import sportArr from "@/consts/sportType";
@@ -45,6 +45,7 @@ import { dayDescription } from "../../consts/dayDescription";
 import { useSQLiteContext } from "expo-sqlite";
 import { SpotlightPosiCtx } from "@/app/_layout";
 import { createTable as createTable2 } from "@/sqls/targetSql2";
+import { EmptyDog } from "./EmptyDog";
 
 export default function Index() {
   console.log("index渲染");
@@ -83,46 +84,6 @@ export default function Index() {
         </View>
       </SafeAreaView>
     </View>
-  );
-}
-
-function EmptyDog({ date }: { date: number }) {
-  console.log("dogdate:", date);
-  return (
-    <>
-      <Image
-        source={require("@/assets/images/index/nothing.png")}
-        resizeMode="center"
-        style={{ width: 240, height: 187 }}
-      ></Image>
-      <Text style={{ textAlign: "center", color: "#828287" }}>
-        还没有记录哦……
-      </Text>
-      <Text style={{ textAlign: "center", color: "#828287" }}>
-        小狗会一直等着你的
-      </Text>
-      <TouchableRipple
-        borderless={true}
-        onPress={useCallback(
-          () => router.push({ pathname: "/addPage", params: { date } }),
-          [date]
-        )}
-        style={{ borderRadius: 15, marginTop: 10, overflow: "hidden" }}
-      >
-        <View
-          style={{
-            width: 80,
-            height: 32,
-            backgroundColor: "#FF960B",
-            justifyContent: "center",
-          }}
-        >
-          <Text style={{ fontSize: 16, textAlign: "center", color: "white" }}>
-            去记录
-          </Text>
-        </View>
-      </TouchableRipple>
-    </>
   );
 }
 

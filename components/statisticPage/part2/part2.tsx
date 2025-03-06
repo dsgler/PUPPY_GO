@@ -8,8 +8,10 @@ import MoodView from "./Mood";
 import DurationView from "./duration";
 import EffortView from "./effort";
 import TagView from "./tag";
+import { EmptyDog } from "@/components/index/EmptyDog";
+import { getDateNumber } from "@/utility/datetool";
 
-function F({
+function Page({
   upperHeight,
   datas,
   pageType,
@@ -63,7 +65,7 @@ function F({
     </View>
   );
 }
-export default React.memo(F);
+export default React.memo(Page);
 
 // 太天才了
 function Switcher({
@@ -82,6 +84,20 @@ function Switcher({
     hasShown.current.clear();
   }, [datas]);
   hasShown.current.add(pageType);
+
+  if (datas.length === 0) {
+    return (
+      <View
+        style={{
+          alignItems: "center",
+          justifyContent: "center",
+          marginBottom: 20,
+        }}
+      >
+        <EmptyDog date={getDateNumber(Date.now())} />
+      </View>
+    );
+  }
 
   return (
     <>
