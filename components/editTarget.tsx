@@ -35,13 +35,9 @@ import { MyAlertCtx, MyConfirmCtx, MyHintCtx } from "@/app/_layout";
 
 import { repeatList } from "@/consts/repeatList";
 import Animated from "react-native-reanimated";
-import {
-  myFadeIn,
-  myFadeOut,
-  myLayoutTransition,
-} from "@/components/targetPage/targetPage2";
 import { BrandColor } from "@/consts/tabs";
 import { router, useLocalSearchParams } from "expo-router";
+import { myFadeIn, myFadeOut, myLayoutTransition } from "@/consts/anime";
 
 const bgYellow = "#FEE6CE";
 const bgRed = "#FECECE";

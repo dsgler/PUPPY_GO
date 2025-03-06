@@ -121,7 +121,6 @@ export default function AddPage() {
 
   console.log("add渲染,dateStr:", dateStr, "date:", date);
 
-  // 这个useCallback好像意义不大
   const myAlert = useContext(MyAlertCtx);
 
   return (
@@ -593,7 +592,7 @@ export default function AddPage() {
             },
           ]}
         >
-          <Pressable onPress={() => setEffort(n)}>
+          <Pressable onPress={() => setEffort(n)} hitSlop={20}>
             <Icon source="circle" size={15} color="white"></Icon>
           </Pressable>
         </View>

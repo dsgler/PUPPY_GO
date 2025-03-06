@@ -1,4 +1,4 @@
-import { View } from "react-native";
+import { Platform, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Header } from "./Header";
 import * as pageType_consts from "./pageType";
@@ -21,9 +21,7 @@ import {
 } from "echarts/components";
 import { SkiaRenderer } from "@wuba/react-native-echarts";
 import { ChosenDateArrCtx } from "./public";
-import { Portal } from "react-native-paper";
-import { DatePickerModal } from "react-native-paper-dates";
-import { zh, registerTranslation } from "react-native-paper-dates";
+import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
 
 echarts.use([
   SkiaRenderer,
@@ -33,7 +31,6 @@ echarts.use([
   LegendComponent,
   TitleComponent,
 ]);
-registerTranslation("zh", zh);
 
 export default function Page() {
   const [pageType, setPageType] = useState(pageType_consts.MOOD);
@@ -49,8 +46,6 @@ export default function Page() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [isDateChanged]
   );
-
-  const [isShowDatePicker, setIsShowDatePicker] = useState(false);
 
   const [datas, setDatas] = useState<addDataType[]>([]);
   useEffect(() => {
@@ -68,7 +63,7 @@ export default function Page() {
   }, [datas]);
 
   const [upperHeight, setUpperHeight] = useState(0);
-  const chosenDateArr = useState(-1);
+  const chosenDateArr = useState(getDateNumber(date));
 
   return (
     <>
@@ -83,7 +78,17 @@ export default function Page() {
               <Header
                 date={date}
                 ShowDatePicker={() => {
-                  setIsShowDatePicker(true);
+                  if (Platform.OS === "android") {
+                    DateTimePickerAndroid.open({
+                      value: date,
+                      mode: "date",
+                      onChange: (e) => {
+                        if (e.type === "set") {
+                          setDate(new Date(e.nativeEvent.timestamp));
+                        }
+                      },
+                    });
+                  }
                 }}
               />
               <View style={{ height: 10 }}></View>
@@ -106,27 +111,13 @@ export default function Page() {
           </View>
         </ChosenDateArrCtx.Provider>
       </SafeAreaView>
-      {isShowDatePicker && (
+      {/* {isShowDatePicker && (
         <Portal>
-          <DatePickerModal
-            visible={isShowDatePicker}
-            locale="zh"
-            mode="single"
-            onDismiss={() => {
-              setIsShowDatePicker(false);
-            }}
-            date={date}
-            onConfirm={({ date: newDate }) => {
-              if (newDate) {
-                setDate(newDate);
-              }
-              setIsShowDatePicker(false);
-            }}
-            startWeekOnMonday={true}
-            presentationStyle="pageSheet"
-          />
+        <Modal visible={isShowDatePicker}>
+          <RNDateTimePicker
+        </Modal>
         </Portal>
-      )}
+      )} */}
     </>
   );
 }

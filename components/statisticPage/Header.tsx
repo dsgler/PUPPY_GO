@@ -1,7 +1,6 @@
 import { router } from "expo-router";
-import { View, Text, Pressable, Platform } from "react-native";
+import { View, Text, Pressable } from "react-native";
 import AntIcon from "react-native-vector-icons/AntDesign";
-import { DatePickerModal } from "react-native-paper-dates";
 
 export function Header({
   date,
@@ -24,6 +23,7 @@ export function Header({
           onPress={() => {
             router.back();
           }}
+          hitSlop={10}
         >
           {/* @ts-ignore */}
           <AntIcon name="close" size={16} />

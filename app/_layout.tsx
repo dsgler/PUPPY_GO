@@ -41,15 +41,23 @@ export const defaultError = () => {
   throw TypeError("不应为初值");
 };
 
-const message2dataComponent = (message: React.JSX.Element | string | Error) => {
+const message2dataComponent = (
+  message: React.ReactNode | string | { message: string }
+) => {
   let dataComponent: React.JSX.Element;
 
-  if (typeof message === "string") {
+  if (React.isValidElement(message)) {
+    dataComponent = message;
+  } else if (typeof message === "string") {
     dataComponent = <Text>{message}</Text>;
-  } else if (message instanceof Error) {
+  } else if (
+    typeof message === "object" &&
+    message !== null &&
+    "message" in message
+  ) {
     dataComponent = <Text>{message.message}</Text>;
   } else {
-    dataComponent = message;
+    throw Error("未预期的错误类型");
   }
 
   return dataComponent;

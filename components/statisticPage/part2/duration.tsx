@@ -77,6 +77,13 @@ function MybarChart({
   width: number;
 }) {
   const skiaRef = useRef<any>(null);
+  const hasSports = useMemo(() => {
+    let m = new Set();
+    for (const ele of datas) {
+      m.add(sportArr[ele.sportId].sportName);
+    }
+    return m;
+  }, [datas]);
   const series = useMemo(() => {
     const series = sportArr.map((v) => ({
       data: thisMonth.map(() => 0),
@@ -89,15 +96,18 @@ function MybarChart({
       series[ele.sportId].data[(ele.date % 100) - 1] +=
         (ele.timeend - ele.timestart) / 60000;
     }
-    return series;
-  }, [datas, thisMonth]);
+    return series.filter((v) => hasSports.has(v.name));
+  }, [datas, hasSports, thisMonth]);
+
   useEffect(() => {
     const option = {
       legend: {
-        data: sportArr.map((v) => ({
-          name: v.sportName,
-          itemStyle: { color: v.color },
-        })),
+        data: sportArr
+          .map((v) => ({
+            name: v.sportName,
+            itemStyle: { color: v.color },
+          }))
+          .filter((v) => hasSports.has(v.name)),
         icon: "circle",
         show: true,
         // left: "right",
@@ -133,7 +143,7 @@ function MybarChart({
       chart.setOption(option);
     }
     return () => chart?.dispose();
-  }, [datas, series, thisMonth, width]);
+  }, [datas, hasSports, series, thisMonth, width]);
 
   return (
     <View

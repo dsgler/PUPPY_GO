@@ -1,9 +1,10 @@
 import { getArr } from "@/utility/getByKey";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { View, Text, Image } from "react-native";
 import { apiKey, baseURL, model } from "@/consts/key";
 import OpenAI from "@/utility/Openai";
 import { isUseAI } from "@/consts/propmts";
+import { MyAlertCtx } from "@/app/_layout";
 
 export function DogsayRow({
   message,
@@ -51,15 +52,21 @@ export function DogsayGroup({
   SystemPrompt: string;
 }) {
   const [raw, setRaw] = useState("");
+  const myAlert = useContext(MyAlertCtx);
 
   useEffect(() => {
-    const es = askForReply({ reqMessage: reqStr, setRaw, SystemPrompt });
+    const es = askForReply({
+      reqMessage: reqStr,
+      setRaw,
+      SystemPrompt,
+      onError: myAlert,
+    }).catch(myAlert);
     return () => {
       es.then((v) => {
         v?.close();
       });
     };
-  }, [SystemPrompt, reqStr]);
+  }, [SystemPrompt, myAlert, reqStr]);
 
   let isLeft = false;
   const filteredArr = getArr(raw).map((v, k) => {
@@ -77,10 +84,12 @@ export async function askForReply({
   reqMessage,
   setRaw,
   SystemPrompt,
+  onError,
 }: {
   reqMessage: string;
   SystemPrompt: string;
   setRaw: React.Dispatch<React.SetStateAction<string>>;
+  onError: (err: Error) => void;
 }) {
   if (!isUseAI) {
     return;
@@ -114,10 +123,7 @@ export async function askForReply({
       }
     },
     {
-      onError: (error) => {
-        console.error("SSE Error:", error); // Handle any errors here
-        // setReply(error);
-      },
+      onError: onError,
       onOpen: () => {
         console.log("SSE connection for completion opened."); // Handle when the connection is opened
         setRaw("(思考中)_");
