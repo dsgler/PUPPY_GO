@@ -21,8 +21,9 @@ import {
 } from "echarts/components";
 import { SkiaRenderer } from "@wuba/react-native-echarts";
 import { ChosenDateArrCtx } from "./public";
-import { Modal, Portal } from "react-native-paper";
+import { Portal } from "react-native-paper";
 import { DatePickerModal } from "react-native-paper-dates";
+import { zh, registerTranslation } from "react-native-paper-dates";
 
 echarts.use([
   SkiaRenderer,
@@ -32,6 +33,7 @@ echarts.use([
   LegendComponent,
   TitleComponent,
 ]);
+registerTranslation("zh", zh);
 
 export default function Page() {
   const [pageType, setPageType] = useState(pageType_consts.MOOD);
@@ -104,21 +106,27 @@ export default function Page() {
           </View>
         </ChosenDateArrCtx.Provider>
       </SafeAreaView>
-      <Portal>
-        <DatePickerModal
-          visible={isShowDatePicker}
-          locale="zh"
-          mode="single"
-          onDismiss={() => {
-            setIsShowDatePicker(false);
-          }}
-          date={date}
-          onConfirm={({ date: newDate }) => {
-            setDate(newDate ?? date);
-            setIsShowDatePicker(false);
-          }}
-        />
-      </Portal>
+      {isShowDatePicker && (
+        <Portal>
+          <DatePickerModal
+            visible={isShowDatePicker}
+            locale="zh"
+            mode="single"
+            onDismiss={() => {
+              setIsShowDatePicker(false);
+            }}
+            date={date}
+            onConfirm={({ date: newDate }) => {
+              if (newDate) {
+                setDate(newDate);
+              }
+              setIsShowDatePicker(false);
+            }}
+            startWeekOnMonday={true}
+            presentationStyle="pageSheet"
+          />
+        </Portal>
+      )}
     </>
   );
 }

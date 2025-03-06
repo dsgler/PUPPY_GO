@@ -40,6 +40,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { ImmerHook, useImmer } from "use-immer";
@@ -76,6 +77,7 @@ import {
   MyAlertCtx,
   MyConfirmCtx,
   MyHintCtx,
+  SpotlightPosiCtx,
 } from "@/app/_layout";
 import { dayDescriptionChina } from "@/consts/dayDescription";
 import * as consts_frequency from "@/consts/frequency";
@@ -84,7 +86,7 @@ import {
   CustomeWeekBlock,
 } from "@/components/public/CustomeMonthBlock";
 import { repeatList } from "@/consts/repeatList";
-import { router, useFocusEffect } from "expo-router";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 // const View = Animated.View;
 
 export function getDescription(v: {
@@ -159,12 +161,26 @@ export const myLayoutTransition = LinearTransition.duration(300);
 
 export default function Page() {
   console.log("渲染targetPage");
+  const { durationType: durationTypeString } = useLocalSearchParams<{
+    durationType: string;
+  }>();
+
+  let _durationType: number | undefined = Number(durationTypeString);
+  if (![0, 1, 2].includes(_durationType)) {
+    _durationType = undefined;
+  }
 
   const db = useSQLiteContext();
 
   const [insertModalV, setInsertModalV] = useState(false);
 
   const [durationType, setDurationType] = useState(consts_duration.DAILY);
+  useEffect(() => {
+    console.log(_durationType);
+    if (_durationType !== undefined) {
+      setDurationType(_durationType);
+    }
+  }, [_durationType]);
 
   const [dataComponent, setDataComponent] = useState<React.ReactNode>();
 
@@ -265,36 +281,7 @@ export default function Page() {
           </Animated.ScrollView>
         </SafeAreaView>
         {isEmpty && durationType === consts_duration.DAILY && (
-          <View
-            style={[
-              StyleSheet.absoluteFill,
-              { justifyContent: "center", alignItems: "center" },
-            ]}
-          >
-            <Image
-              source={require("@/assets/images/targetPage/empty.png")}
-              style={{ width: 233, height: 187 }}
-            />
-            <Text
-              style={{ color: "#828287", fontSize: 14, textAlign: "center" }}
-            >
-              {"还没有目标哦……\n先从一件小事开始吧"}
-            </Text>
-            <Pressable
-              style={{
-                backgroundColor: "#FF960B",
-                borderRadius: 15,
-                paddingHorizontal: 16,
-                paddingVertical: 6,
-                marginTop: 10,
-              }}
-              onPress={() => {
-                showAddTarget();
-              }}
-            >
-              <Text style={{ fontSize: 16, color: "#FFFFFF" }}>去添加</Text>
-            </Pressable>
-          </View>
+          <EmptyDog showAddTarget={showAddTarget} />
         )}
         <Portal>
           <RefreshFnCtx.Provider value={RefreshFn}>
@@ -415,6 +402,65 @@ export default function Page() {
 
 const ADD_GROUP = 0;
 const ADD_TARGET = 1;
+
+function EmptyDog({
+  showAddTarget,
+}: {
+  showAddTarget: (
+    isClear?: boolean,
+    afterClear?: (AddTargetStates: AddTargetStates) => void
+  ) => void;
+}) {
+  const [sptl, setsptl] = useContext(SpotlightPosiCtx);
+  const myRef = useRef<View>(null);
+  useEffect(() => {
+    if (sptl.guideStep === 4) {
+      myRef.current?.measure((x, y, width, height, pageX, pageY) => {
+        const o = {
+          x: pageX - 5,
+          y: pageY - 5,
+          w: width + 10,
+          h: height + 10,
+          guideStep: 4,
+        };
+        console.log(o);
+        setsptl(o);
+      });
+    }
+  }, [setsptl, sptl.guideStep]);
+
+  return (
+    <View
+      style={[
+        StyleSheet.absoluteFill,
+        { justifyContent: "center", alignItems: "center" },
+      ]}
+    >
+      <Image
+        source={require("@/assets/images/targetPage/empty.png")}
+        style={{ width: 233, height: 187 }}
+      />
+      <Text style={{ color: "#828287", fontSize: 14, textAlign: "center" }}>
+        {"还没有目标哦……\n先从一件小事开始吧"}
+      </Text>
+      <Pressable
+        style={{
+          backgroundColor: "#FF960B",
+          borderRadius: 15,
+          paddingHorizontal: 16,
+          paddingVertical: 6,
+          marginTop: 10,
+        }}
+        onPress={() => {
+          showAddTarget();
+        }}
+        ref={myRef}
+      >
+        <Text style={{ fontSize: 16, color: "#FFFFFF" }}>去添加</Text>
+      </Pressable>
+    </View>
+  );
+}
 
 function ModalComponentSwitcher({
   modalType,
@@ -1177,6 +1223,26 @@ function AddGroup({
     | undefined;
   style?: StyleProp<ViewStyle>;
 }) {
+  const [sptl, setsptl] = useContext(SpotlightPosiCtx);
+  const myRef = useRef<View>(null);
+  useEffect(() => {
+    if (sptl.guideStep === 3) {
+      setTimeout(() => {
+        myRef.current?.measure((x, y, width, height, pageX, pageY) => {
+          const o = {
+            x: pageX - 5,
+            y: pageY - 5,
+            w: width + 10,
+            h: height + 10,
+            guideStep: 3,
+          };
+          console.log(o);
+          setsptl(o);
+        });
+      }, 0);
+    }
+  }, [setsptl, sptl.guideStep]);
+
   return (
     <TouchableRipple
       style={{
@@ -1186,6 +1252,7 @@ function AddGroup({
       }}
       borderless={true}
       onPress={onPress}
+      ref={myRef}
     >
       <View
         style={[
@@ -1836,9 +1903,13 @@ async function showData(
     const datas = await getProgressByWeek(db, d);
     setDataComponent(
       <View>
-        {datas.map((data, key) => (
-          <WeekGroup data={data} key={key} />
-        ))}
+        {datas.map((data, key) => {
+          console.log(data);
+          if (data.children.length !== 0) {
+            return <WeekGroup data={data} key={key} />;
+          }
+          return undefined;
+        })}
       </View>
     );
   } else if (durationType === consts_duration.MONTHLY) {

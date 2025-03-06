@@ -5,24 +5,34 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { Stack } from "expo-router";
+import { router, Stack } from "expo-router";
 import {
   Button,
   Dialog,
   PaperProvider,
   Portal,
   Snackbar,
+  TouchableRipple,
 } from "react-native-paper";
 import { StatusBar } from "expo-status-bar";
 import { useDrizzleStudio } from "expo-drizzle-studio-plugin";
 import * as SQLite from "expo-sqlite";
 import { ThemeProvider } from "react-native-paper";
-import { Text, StyleSheet, View, Pressable } from "react-native";
+import {
+  Text,
+  StyleSheet,
+  View,
+  Pressable,
+  Image,
+  ViewStyle,
+} from "react-native";
 import { MYTHEME } from "@/consts/themeObj";
 import * as NavigationBar from "expo-navigation-bar";
 import { useFonts } from "expo-font";
 import { enableMapSet } from "immer";
 import { ImmerHook, useImmer } from "use-immer";
+import { StyleProp } from "react-native";
+import { END_STEP, guideArr } from "@/consts/guide";
 
 // 启用 immer 的 map 和 set 支持
 enableMapSet();
@@ -131,6 +141,21 @@ export default function RootLayout() {
   useFonts({ AaTianNiuNai: require("@/assets/fonts/AaTianNiuNai.ttf") });
 
   const spotlightPosiState = useImmer(SpotlightPosiDefault);
+  const spotlightPosi = spotlightPosiState[0];
+  const [dogsayPosi, setDogsayPosi] = useImmer<StyleProp<ViewStyle>>({});
+  useEffect(() => {
+    const step = spotlightPosi.guideStep;
+    if (step < 1 || step > 4) {
+      return;
+    }
+
+    const g = guideArr[step - 1];
+    setDogsayPosi({
+      top: spotlightPosi.y + g.topModifier,
+      left: g.leftModifier,
+    });
+  }, [setDogsayPosi, spotlightPosi]);
+  const isEnd = spotlightPosi.guideStep === END_STEP;
 
   return (
     <>
@@ -143,8 +168,10 @@ export default function RootLayout() {
                   <PaperProvider>
                     <ThemeProvider theme={MYTHEME}>
                       <Stack screenOptions={{ headerShown: false }}></Stack>
+                      {/* 引导 */}
                       {spotlightPosiState[0].guideStep !== -1 && (
                         <Pressable style={[StyleSheet.absoluteFill]}>
+                          {/* 通过boxShadow实现遮罩 */}
                           <View
                             style={{
                               position: "absolute",
@@ -156,18 +183,92 @@ export default function RootLayout() {
                               borderRadius: 5,
                             }}
                           ></View>
-                          <Pressable
-                            style={{
-                              width: 50,
-                              height: 50,
-                              backgroundColor: "white",
-                            }}
-                            onPress={() => {
-                              spotlightPosiState[1](SpotlightPosiDefault);
-                            }}
-                          ></Pressable>
+                          <View
+                            style={[
+                              {
+                                position: "absolute",
+                                left: 0,
+                                right: 20,
+                                flexDirection: "row",
+                                alignItems: "center",
+                                gap: 10,
+                              },
+                              dogsayPosi,
+                            ]}
+                          >
+                            <Image
+                              source={require("@/assets/images/index/dog.png")}
+                              style={{ height: 103, width: 103 }}
+                            />
+                            <View style={{ gap: 20, flex: 1 }}>
+                              <View
+                                style={{
+                                  paddingVertical: 12,
+                                  paddingHorizontal: 15,
+                                  backgroundColor: "white",
+                                  borderRadius: 15,
+                                }}
+                              >
+                                <Text
+                                  style={{ fontSize: 14, textAlign: "center" }}
+                                >
+                                  {
+                                    guideArr[spotlightPosi.guideStep - 1]
+                                      .description
+                                  }
+                                </Text>
+                              </View>
+                              <TouchableRipple
+                                style={{
+                                  width: 73,
+                                  height: 31,
+                                  overflow: "hidden",
+                                  flexDirection: "row",
+                                  justifyContent: "center",
+                                  alignItems: "center",
+                                  backgroundColor: "#FF960B",
+                                  borderRadius: 15,
+                                  alignSelf: "flex-end",
+                                }}
+                                borderless={true}
+                                onPress={() => {
+                                  const s = spotlightPosi.guideStep;
+                                  if (s === 1) {
+                                    spotlightPosiState[1]((v) => {
+                                      v.guideStep++;
+                                    });
+                                  } else if (s === 2) {
+                                    router.replace({
+                                      pathname: "/(tabs)/targetPage",
+                                      params: { durationType: 1 },
+                                    });
+                                    spotlightPosiState[1]((v) => {
+                                      v.guideStep++;
+                                    });
+                                  } else if (s === 3) {
+                                    router.replace({
+                                      pathname: "/(tabs)/targetPage",
+                                      params: { durationType: 0 },
+                                    });
+                                    spotlightPosiState[1]((v) => {
+                                      v.guideStep++;
+                                    });
+                                  } else if (s === 4) {
+                                    router.replace("/(tabs)");
+                                    spotlightPosiState[1](SpotlightPosiDefault);
+                                    console.log(111);
+                                  }
+                                }}
+                              >
+                                <Text style={{ fontSize: 16, color: "white" }}>
+                                  {isEnd ? "知道了" : "下一步"}
+                                </Text>
+                              </TouchableRipple>
+                            </View>
+                          </View>
                         </Pressable>
                       )}
+                      {/* 对话框 */}
                       {dialogV ? (
                         <Portal>
                           <View style={StyleSheet.absoluteFill}>

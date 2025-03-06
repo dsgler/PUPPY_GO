@@ -188,3 +188,14 @@ WHERE
     [reply, id]
   );
 }
+
+export async function checkIsFirstRun(db: SQLite.SQLiteDatabase) {
+  const ret = await getAllOnce(
+    db,
+    `SELECT name 
+FROM sqlite_master 
+WHERE type='table' AND name='myTable';`,
+    []
+  );
+  return ret.length === 0;
+}

@@ -1,6 +1,6 @@
 import { StyleSheet, View } from "react-native";
 import MyScrollView from "../../public/myScrollView";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import { addDataType } from "@/sqls/indexSql";
 import * as pageType_consts from "../pageType";
@@ -9,7 +9,7 @@ import DurationView from "./duration";
 import EffortView from "./effort";
 import TagView from "./tag";
 
-export default function F({
+function F({
   upperHeight,
   datas,
   pageType,
@@ -63,6 +63,7 @@ export default function F({
     </View>
   );
 }
+export default React.memo(F);
 
 // 太天才了
 function Switcher({
@@ -77,15 +78,22 @@ function Switcher({
   width: number;
 }) {
   const hasShown = useRef(new Set());
+  useEffect(() => {
+    hasShown.current.clear();
+  }, [datas]);
   hasShown.current.add(pageType);
 
   return (
     <>
-      <View
-        style={{ display: pageType === pageType_consts.MOOD ? "flex" : "none" }}
-      >
-        <MoodView datas={datas} />
-      </View>
+      {hasShown.current.has(pageType_consts.MOOD) && (
+        <View
+          style={{
+            display: pageType === pageType_consts.MOOD ? "flex" : "none",
+          }}
+        >
+          <MoodView datas={datas} />
+        </View>
+      )}
       {hasShown.current.has(pageType_consts.DURATION) && (
         <View
           style={{

@@ -1,5 +1,5 @@
 import { router } from "expo-router";
-import { View, Pressable, UIManager } from "react-native";
+import { View, Pressable } from "react-native";
 import { Surface } from "react-native-paper";
 import AddIcon from "@/assets/images/Footer/add";
 import LeftIcon from "@/assets/images/Footer/left";
@@ -15,8 +15,22 @@ import { SpotlightPosiCtx } from "@/app/_layout";
 export default function Footer({ props }: { props: BottomTabBarProps }) {
   // console.log("footer渲染");
   const [sptl, setsptl] = useContext(SpotlightPosiCtx);
-  const posi = useRef({ x: 0, y: 0, w: 0, h: 0 });
   const myRef = useRef<View>(null);
+  useEffect(() => {
+    if (sptl.guideStep === 1) {
+      myRef.current?.measure((x, y, width, height, pageX, pageY) => {
+        const o = {
+          x: pageX - 5,
+          y: pageY - 5,
+          w: width + 10,
+          h: height + 10,
+          guideStep: 1,
+        };
+        console.log(o);
+        setsptl(o);
+      });
+    }
+  }, [setsptl, sptl.guideStep]);
 
   let indexMap = new Map<string, number>();
   for (let i = 0; i < props.state.routes.length; i++) {
@@ -100,28 +114,7 @@ export default function Footer({ props }: { props: BottomTabBarProps }) {
         >
           <Pressable
             onPress={() => {
-              // if (sptl.guideStep === 1) {
-              myRef.current?.measure((x, y, width, height, pageX, pageY) => {
-                const o = {
-                  x: pageX - 5,
-                  y: pageY - 5,
-                  w: width + 10,
-                  h: height + 10,
-                  guideStep: 1,
-                };
-                console.log(o);
-                setsptl(o);
-              });
-              // const o = { guideStep: 1, ...posi.current };
-              // console.log(o);
-              // setsptl(o);
-              // }
-
-              // router.push("/addPage");
-            }}
-            onLayout={(e) => {
-              // const t = e.nativeEvent.layout;
-              // posi.current = { x: t.x, y: t.y, w: t.width, h: t.height };
+              router.push("/addPage");
             }}
             ref={myRef}
           >

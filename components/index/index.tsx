@@ -8,7 +8,14 @@ import {
   FlatList,
 } from "react-native";
 import { router, useFocusEffect } from "expo-router";
-import React, { useState, useCallback, useMemo, useEffect } from "react";
+import React, {
+  useState,
+  useCallback,
+  useMemo,
+  useEffect,
+  useContext,
+  useRef,
+} from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import CalIcon from "@/assets/images/index/calendar";
 import { BrandColor, unChoseColor } from "@/consts/tabs";
@@ -17,6 +24,8 @@ import AiPlan from "./AiPlan";
 import {
   addDataType,
   askForReply,
+  checkIsFirstRun,
+  createTable as createTable1,
   GetDataByDate,
   getDB,
 } from "../../sqls/indexSql";
@@ -34,20 +43,31 @@ import MyScrollView from "../public/myScrollView";
 import { getDatesInWeek } from "@/utility/datetool";
 import { dayDescription } from "../../consts/dayDescription";
 import { useSQLiteContext } from "expo-sqlite";
+import { SpotlightPosiCtx } from "@/app/_layout";
+import { createTable as createTable2 } from "@/sqls/targetSql2";
 
 export default function Index() {
   console.log("index渲染");
-  // 用于存储设置
 
   const [showT, setShowT] = useState(Date.now());
   const [dataComponent, setDataComponent] = useState<React.ReactNode>();
+  const db = useSQLiteContext();
 
   // 每次获得 focus 的时候都会刷新
   useFocusEffect(
     useCallback(() => {
-      console.log("focus渲染");
-      showData(setDataComponent, showT);
-    }, [showT])
+      checkIsFirstRun(db).then((ret) => {
+        if (ret) {
+          console.log(111);
+          createTable1(db);
+          createTable2(db);
+          router.push("/guidePage");
+        } else {
+          console.log("focus渲染");
+          showData(setDataComponent, showT);
+        }
+      });
+    }, [db, showT])
   );
 
   return (
@@ -55,7 +75,7 @@ export default function Index() {
       <SafeAreaView style={{ flex: 1 }}>
         <View style={{ flex: 1 }}>
           <View style={{ paddingHorizontal: 15 }}>
-            <Header />
+            <Header time={showT} />
             <WeekCalendar showT={showT} setShowT={setShowT} />
             <AiPlan />
           </View>
@@ -65,6 +85,7 @@ export default function Index() {
     </View>
   );
 }
+
 function EmptyDog({ date }: { date: number }) {
   console.log("dogdate:", date);
   return (
@@ -105,8 +126,32 @@ function EmptyDog({ date }: { date: number }) {
   );
 }
 
-function Header({ style }: { style?: StyleProp<ViewStyle> }) {
-  let d = new Date();
+function Header({
+  style,
+  time,
+}: {
+  style?: StyleProp<ViewStyle>;
+  time: number;
+}) {
+  let d = new Date(time);
+  const [sptl, setsptl] = useContext(SpotlightPosiCtx);
+  const myRef = useRef<View>(null);
+  useEffect(() => {
+    if (sptl.guideStep === 2) {
+      myRef.current?.measure((x, y, width, height, pageX, pageY) => {
+        const o = {
+          x: pageX - 5,
+          y: pageY - 5,
+          w: width + 10,
+          h: height + 10,
+          guideStep: 2,
+        };
+        console.log(o);
+        setsptl(o);
+      });
+    }
+  }, [setsptl, sptl.guideStep]);
+
   return (
     <View
       style={[
@@ -126,6 +171,7 @@ function Header({ style }: { style?: StyleProp<ViewStyle> }) {
         onPress={() => {
           router.push("/statistic");
         }}
+        ref={myRef}
       >
         <CalIcon />
       </Pressable>
