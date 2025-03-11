@@ -63,6 +63,8 @@ export default function MyScrollView({
   });
 
   const gestureHandler = Gesture.Pan()
+    .failOffsetX([-10, 10])
+    .activeOffsetY([-10, 10])
     .onStart((e) => {
       // console.log("开始滑动" + RootMarginTop.value);
       startTranslate.value = InnerTranslate.value;

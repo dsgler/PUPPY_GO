@@ -1,7 +1,7 @@
 import { router } from "expo-router";
 import { View, Pressable } from "react-native";
 import { Surface } from "react-native-paper";
-import AddIcon from "@/assets/images/Footer/add";
+// import AddIcon from "@/assets/images/Footer/add";
 import LeftIcon from "@/assets/images/Footer/left";
 import LeftHalfIcon from "@/assets/images/Footer/leftHalf";
 import LeftedIcon from "@/assets/images/Footer/lefted";
@@ -11,6 +11,7 @@ import RightedIcon from "@/assets/images/Footer/righted";
 import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { useState, useEffect, useContext, useRef } from "react";
 import { SpotlightPosiCtx } from "@/app/_layout";
+import AntIcon from "react-native-vector-icons/AntDesign";
 
 export default function Footer({ props }: { props: BottomTabBarProps }) {
   // console.log("footer渲染");
@@ -118,7 +119,9 @@ export default function Footer({ props }: { props: BottomTabBarProps }) {
             }}
             ref={myRef}
           >
-            <AddIcon />
+            {/* <AddIcon /> */}
+            {/* @ts-ignore */}
+            <AntIcon name="pluscircle" size={56} color="#FFB52B" />
           </Pressable>
         </View>
         <View

@@ -6,6 +6,7 @@ import {
   ViewStyle,
   Pressable,
   FlatList,
+  ScrollView,
 } from "react-native";
 import { router, useFocusEffect } from "expo-router";
 import React, {
@@ -400,6 +401,7 @@ function SportBlockRight({
 }) {
   const [contentWidth, setContentWidth] = useState<number>(0);
   const tags: string[] = useMemo(() => JSON.parse(data.Tags), [data]);
+  const rpadding = 132;
 
   return (
     <View
@@ -409,50 +411,83 @@ function SportBlockRight({
       }}
       style={{ flex: 1, alignItems: "flex-start", marginVertical: 20 }}
     >
-      <View style={{ height: 65, flexDirection: "row" }}>
+      <View style={{ height: 85, flexDirection: "row" }}>
         <View
           style={{
-            height: 65,
+            height: 85,
             width: 115,
             borderRadius: 10,
             backgroundColor: "#FFCC8E",
             marginRight: 5,
             padding: 5,
+            justifyContent: "center",
           }}
         >
-          <Text style={{ color: "#131315", fontSize: 16 }}>
-            {sportArr[data.sportId].emoji + sportArr[data.sportId].sportName}
-          </Text>
+          <ScrollView
+            horizontal={true}
+            style={{ flexGrow: 0 }}
+            showsHorizontalScrollIndicator={false}
+          >
+            <Text style={{ color: "#131315", fontSize: 16 }}>
+              {sportArr[data.sportId].emoji + sportArr[data.sportId].sportName}
+            </Text>
+          </ScrollView>
+          <ScrollView
+            horizontal={true}
+            style={{ height: 30, flexGrow: 0, marginTop: 5 }}
+            showsHorizontalScrollIndicator={false}
+          >
+            <View
+              style={{
+                flexDirection: "row",
+                height: 30,
+                alignItems: "baseline",
+                // marginTop: 5,
+              }}
+            >
+              <Icon source={MoodArr[data.moodId].icon} size={20} />
+              <Text style={{ fontSize: 22, fontWeight: 500, color: "#131315" }}>
+                {" " + getGapTimeString(data.timeend - data.timestart) + " "}
+              </Text>
+              <Text style={{ fontSize: 15, color: "#131315" }}>时长</Text>
+            </View>
+          </ScrollView>
+        </View>
+        <View style={{ height: 85, flex: 1, justifyContent: "space-between" }}>
+          <View
+            style={{ height: 30, flexDirection: "row", paddingTop: 7, flex: 1 }}
+          >
+            <FlatList
+              data={tags}
+              horizontal={true}
+              showsHorizontalScrollIndicator={false}
+              renderItem={({ item, index }) => (
+                <SolidTag text={item} key={index} style={{ marginRight: 10 }} />
+              )}
+              style={{ flex: 1 }}
+            />
+          </View>
           <View
             style={{
-              flexDirection: "row",
-              height: 30,
-              alignItems: "baseline",
-              marginTop: 5,
+              height: 35,
+              flexDirection: "column-reverse",
+              width: contentWidth - rpadding,
             }}
           >
-            <Icon source={MoodArr[data.moodId].icon} size={20} />
-            <Text style={{ fontSize: 22, fontWeight: 500, color: "#131315" }}>
-              {" " + getGapTimeString(data.timeend - data.timestart) + " "}
-            </Text>
-            <Text style={{ fontSize: 15, color: "#131315" }}>时长</Text>
-          </View>
-        </View>
-        <View style={{ height: 65, flex: 1 }}>
-          <View style={{ height: 35, flexDirection: "column-reverse" }}>
             <View
               style={{
                 height: 10,
                 borderRadius: 5,
                 overflow: "hidden",
-                width: ((contentWidth - 125) / 4) * data.effort,
+                width: ((contentWidth - rpadding) / 4) * data.effort,
                 flexDirection: "row",
+                zIndex: 1,
               }}
             >
               <View
                 style={{
                   height: 10,
-                  width: (contentWidth - 125) / 4,
+                  width: (contentWidth - rpadding) / 4,
                   backgroundColor: "#FFD0A9",
                   display: data.effort >= 0 ? "flex" : "none",
                 }}
@@ -460,7 +495,7 @@ function SportBlockRight({
               <View
                 style={{
                   height: 10,
-                  width: (contentWidth - 125) / 4,
+                  width: (contentWidth - rpadding) / 4,
                   backgroundColor: "#FFA772",
                   display: data.effort >= 1 ? "flex" : "none",
                 }}
@@ -468,7 +503,7 @@ function SportBlockRight({
               <View
                 style={{
                   height: 10,
-                  width: (contentWidth - 125) / 4,
+                  width: (contentWidth - rpadding) / 4,
                   backgroundColor: "#F27527",
                   display: data.effort >= 2 ? "flex" : "none",
                 }}
@@ -476,18 +511,32 @@ function SportBlockRight({
               <View
                 style={{
                   height: 10,
-                  width: (contentWidth - 125) / 4,
+                  width: (contentWidth - rpadding) / 4,
                   backgroundColor: "#D25203",
                   display: data.effort >= 3 ? "flex" : "none",
                 }}
               ></View>
             </View>
+            {/* 底层灰色 */}
+            <View
+              style={{
+                width: contentWidth - rpadding,
+                height: 10,
+                position: "absolute",
+                bottom: 0,
+                left: 0,
+                backgroundColor: "#E7E7E7",
+                borderRadius: 5,
+                // zIndex: -1,
+              }}
+            ></View>
+            {/* think框 */}
             <View
               style={{
                 position: "absolute",
                 height: 20,
-                top: 0,
-                left: ((contentWidth - 125) / 4) * data.effort - 22,
+                top: -2,
+                left: ((contentWidth - rpadding) / 4) * data.effort - 22,
                 alignItems: "center",
               }}
             >
@@ -524,16 +573,6 @@ function SportBlockRight({
               ></View>
             </View>
           </View>
-          <View style={{ height: 30, flexDirection: "row", paddingTop: 7 }}>
-            <FlatList
-              data={tags}
-              horizontal={true}
-              showsHorizontalScrollIndicator={false}
-              renderItem={({ item, index }) => (
-                <SolidTag text={item} key={index} style={{ marginRight: 5 }} />
-              )}
-            />
-          </View>
         </View>
       </View>
       <View
@@ -561,7 +600,7 @@ function SportBlockRight({
         </Text>
         <Text
           style={{
-            color: "#131315",
+            color: unChoseColor,
             fontSize: 15,
             display: data.content === "" ? "none" : "flex",
           }}
@@ -624,25 +663,25 @@ function SolidTag({
     <View
       style={[
         {
-          height: 23,
+          height: 27,
           borderWidth: 1,
-          borderColor: "#FFCC8E",
+          borderColor: "#ff960b",
           borderRadius: 5,
           justifyContent: "center",
           alignItems: "center",
-          padding: 2,
+          paddingHorizontal: 5,
         },
         style,
       ]}
     >
       <Text
         style={{
-          color: "#131315",
+          color: BrandColor,
           textAlign: "center",
           textAlignVertical: "center",
         }}
       >
-        {text}
+        {"# " + text + " #"}
       </Text>
     </View>
   );

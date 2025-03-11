@@ -19,12 +19,23 @@ import {
   IconButton,
   Snackbar,
 } from "react-native-paper";
+import Animated, {
+  withRepeat,
+  withSequence,
+  withTiming,
+} from "react-native-reanimated";
 import { router, useLocalSearchParams } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import React, { useState, useContext } from "react";
+import React, {
+  useState,
+  useContext,
+  useEffect,
+  useCallback,
+  useRef,
+} from "react";
 
 import sportArr from "@/consts/sportType";
-import BackIcon from "@/assets/images/addPage/back";
+// import BackIcon from "@/assets/images/addPage/back";
 import Line from "@/assets/images/addPage/line";
 
 import { insertData, addDataType, getDB } from "@/sqls/indexSql";
@@ -33,6 +44,8 @@ import { effortArr, MoodArr, thinkingStr } from "@/consts";
 import { useImmer } from "use-immer";
 
 import { MyAlertCtx } from "@/app/_layout";
+import { useSharedValue } from "react-native-reanimated";
+import ShakeView from "./ShakeView";
 
 const EmptyF = () => {};
 
@@ -47,8 +60,9 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    paddingTop: 10,
+    paddingTop: 30,
     paddingHorizontal: 16,
+    // paddingBottom: 200,
   },
   sport_container: {
     padding: 5,
@@ -123,98 +137,69 @@ export default function AddPage() {
 
   const myAlert = useContext(MyAlertCtx);
 
+  const [r, setR] = useState(false);
+
+  const cirPosiArr = [
+    contentWidth / 4,
+    (contentWidth / 4) * 2,
+    (contentWidth / 4) * 3,
+    (contentWidth / 4) * 4,
+  ];
+  const dogPosi = useSharedValue(-10);
+  useEffect(() => {
+    let v = (contentWidth / 4) * effort - 36;
+    if (effort === 4) {
+      v -= 7.5;
+    }
+    if (effort === 0) {
+      v = -10;
+    }
+    dogPosi.value = withTiming(v, { duration: 300 });
+    // 刷新，不然按钮点不了
+    setTimeout(() => {
+      setR(!r);
+    }, 301);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [contentWidth, dogPosi, effort]);
+
+  const isLocked = useRef(false);
+  const DogBlock = useCallback(() => {
+    return (
+      <Animated.View
+        style={{
+          position: "absolute",
+          left: 0,
+          transform: [{ translateX: dogPosi }],
+        }}
+      >
+        <Pressable
+          onPress={() => {
+            if (isLocked.current) return;
+
+            const s = dogPosi.value;
+            const d = { duration: 100 };
+            isLocked.current = true;
+            setTimeout(() => {
+              isLocked.current = false;
+            }, d.duration * 8);
+            dogPosi.value = withSequence(
+              withTiming(s - 5, d),
+              withRepeat(withTiming(dogPosi.value + 10, d), 4, true),
+              withTiming(s, d)
+            );
+          }}
+        >
+          <Animated.Image source={requireRunningDog} style={[styles.dogImg]} />
+        </Pressable>
+      </Animated.View>
+    );
+  }, [dogPosi]);
+
   return (
-    <View style={{ flex: 1 }}>
-      <View style={[styles.bg_container, { flexDirection: "column" }]}>
+    <>
+      <View style={{ backgroundColor: "white", flex: 1 }}>
         <SafeAreaView style={{ flex: 1 }}>
-          <View
-            style={{
-              height: 40,
-              justifyContent: "center",
-            }}
-          >
-            <View
-              style={{
-                width: 20,
-                height: 20,
-                marginLeft: 10,
-                overflow: "hidden",
-              }}
-            >
-              <TouchableRipple
-                onPress={() => {
-                  router.back();
-                }}
-                style={{}}
-              >
-                <BackIcon />
-              </TouchableRipple>
-            </View>
-          </View>
           <ScrollView style={[styles.main_container]}>
-            <View
-              style={{
-                flex: 1,
-                flexDirection: "row-reverse",
-                paddingRight: 5,
-              }}
-            >
-              <TouchableRipple
-                onPress={() => {
-                  console.log(tags, JSON.stringify(tags));
-                  if (isNaN(Number(exTime)) || Number(exTime) < 0) {
-                    myAlert("请输入合理的运动时间");
-                    return;
-                  }
-
-                  if (tagContent !== "") {
-                    myAlert("还有tag未保存");
-                    return;
-                  }
-
-                  handleSubmit(
-                    {
-                      ...getmulti(Number(exTime), new Date(date)),
-                      sportId: sportId,
-                      moodId,
-                      effort,
-                      Tags: JSON.stringify(tags),
-                      title: title.trim(),
-                      content: content.trim(),
-                      reply: thinkingStr,
-                    },
-                    myAlert
-                  );
-                }}
-                style={[
-                  styles.submit,
-                  { display: pageState === MAIN ? "flex" : "none" },
-                ]}
-                borderless={true}
-              >
-                <View
-                  style={{
-                    width: 80,
-                    height: 35,
-                    backgroundColor: "#ffa356",
-                    flexDirection: "row",
-                    justifyContent: "center",
-                    alignItems: "center",
-                  }}
-                >
-                  <Text
-                    style={{
-                      fontSize: 16,
-                      color: "white",
-                      padding: 0,
-                      lineHeight: 35,
-                    }}
-                  >
-                    完成
-                  </Text>
-                </View>
-              </TouchableRipple>
-            </View>
             <View style={{ display: pageState === MAIN ? "flex" : "none" }}>
               <MainText>请选择运动的类型</MainText>
               <ChooseSport sportId={sportId} setSportId={setSportId} />
@@ -336,30 +321,11 @@ export default function AddPage() {
                     }}
                   ></View>
                 </View>
-                <CreateCircleButton N={1} Position={contentWidth / 4 - 7.5} />
-                <CreateCircleButton
-                  N={2}
-                  Position={(contentWidth / 4) * 2 - 7.5}
-                />
-                <CreateCircleButton
-                  N={3}
-                  Position={(contentWidth / 4) * 3 - 7.5}
-                />
-                <CreateCircleButton
-                  N={4}
-                  Position={(contentWidth / 4) * 4 - 15}
-                />
-                <Image
-                  source={requireRunningDog}
-                  style={[
-                    styles.dogImg,
-                    {
-                      position: "absolute",
-                      left: -10,
-                      display: effort === 0 ? "flex" : "none",
-                    },
-                  ]}
-                />
+                <CreateCircleButton N={1} Position={cirPosiArr[0] - 7.5} />
+                <CreateCircleButton N={2} Position={cirPosiArr[1] - 7.5} />
+                <CreateCircleButton N={3} Position={cirPosiArr[2] - 7.5} />
+                <CreateCircleButton N={4} Position={cirPosiArr[3] - 15} />
+                <DogBlock />
               </View>
               <EffortHint Effort={effort} />
             </View>
@@ -378,13 +344,6 @@ export default function AddPage() {
               >
                 关键词
               </MainText>
-              <View style={{ display: pageState === TAG ? "flex" : "none" }}>
-                <IconButton
-                  icon={"chevron-down"}
-                  size={20}
-                  onPress={() => setPageState(MAIN)}
-                />
-              </View>
             </View>
             <Pressable
               onPress={() => {
@@ -422,7 +381,7 @@ export default function AddPage() {
                 {tags.map((v, k) => {
                   return (
                     <ColorfulTag
-                      Message={v}
+                      Message={"# " + v + " #"}
                       Color="#ff960b"
                       isChosen={false}
                       key={k}
@@ -526,7 +485,7 @@ export default function AddPage() {
                 multiline={true}
                 placeholder="用一段话描述一下今天的辛苦付出吧！"
                 style={{
-                  minHeight: pageState === CONTENT ? 400 : 100,
+                  minHeight: pageState === CONTENT ? 400 : 200,
                   // flex: 1,
                   textAlignVertical: "top",
                   fontSize: 15,
@@ -541,6 +500,69 @@ export default function AddPage() {
                 onFocus={() => setPageState(CONTENT)}
               ></TextInput>
             </View>
+            <TouchableRipple
+              style={{
+                display: pageState === MAIN ? "flex" : "none",
+                overflow: "hidden",
+                backgroundColor: "#FFA356",
+                marginBottom: 50,
+                height: 35,
+                alignItems: "center",
+                justifyContent: "center",
+                borderRadius: 10,
+              }}
+              borderless={true}
+              onPress={() => {
+                console.log(tags, JSON.stringify(tags));
+                if (isNaN(Number(exTime)) || Number(exTime) < 0) {
+                  myAlert("请输入合理的运动时间");
+                  return;
+                }
+
+                if (tagContent !== "") {
+                  myAlert("还有tag未保存");
+                  return;
+                }
+
+                handleSubmit(
+                  {
+                    ...getmulti(Number(exTime), new Date(date)),
+                    sportId: sportId,
+                    moodId,
+                    effort,
+                    Tags: JSON.stringify(tags),
+                    title: title.trim(),
+                    content: content.trim(),
+                    reply: thinkingStr,
+                  },
+                  myAlert
+                );
+              }}
+            >
+              <Text style={{ color: "white", textAlign: "center" }}>完成</Text>
+            </TouchableRipple>
+            <TouchableRipple
+              style={{
+                display:
+                  pageState === CONTENT || pageState === TAG ? "flex" : "none",
+                overflow: "hidden",
+                backgroundColor: "#FFA356",
+                marginBottom: 50,
+                height: 35,
+                alignItems: "center",
+                justifyContent: "center",
+                borderRadius: 10,
+                marginTop: 20,
+              }}
+              borderless={true}
+              onPress={() => {
+                setPageState(MAIN);
+              }}
+            >
+              <Text style={{ color: "white", textAlign: "center" }}>
+                返回并保存
+              </Text>
+            </TouchableRipple>
           </ScrollView>
         </SafeAreaView>
       </View>
@@ -562,7 +584,7 @@ export default function AddPage() {
           请输入合理的运动时间
         </Snackbar>
       </Portal>
-    </View>
+    </>
   );
 
   function CreateCircleButton({
@@ -572,32 +594,28 @@ export default function AddPage() {
     N: number;
     Position: number;
   }) {
-    if (effort === n) {
-      return (
-        <Image
-          source={requireRunningDog}
-          style={[styles.dogImg, { top: -28, left: p - 22 }]}
-        />
-      );
-    } else {
-      return (
-        <View
-          style={[
-            {
-              position: "absolute",
-              top: 0,
-            },
-            {
-              left: p,
-            },
-          ]}
+    return (
+      <View
+        style={[
+          {
+            position: "absolute",
+            top: 0,
+          },
+          {
+            left: p,
+          },
+        ]}
+      >
+        <Pressable
+          onPress={() => {
+            setEffort(n);
+          }}
+          hitSlop={20}
         >
-          <Pressable onPress={() => setEffort(n)} hitSlop={20}>
-            <Icon source="circle" size={15} color="white"></Icon>
-          </Pressable>
-        </View>
-      );
-    }
+          <Icon source="circle" size={15} color="white"></Icon>
+        </Pressable>
+      </View>
+    );
   }
 }
 
@@ -689,7 +707,14 @@ function MoodContainer({
 }) {
   return (
     <View style={{ flex: 1, alignItems: "center" }}>
-      <Pressable onPress={() => setMoodId(ImoodId)}>
+      <ShakeView
+        onPress={() => setMoodId(ImoodId)}
+        xRange={2}
+        xTimes={2}
+        yRange={2}
+        yTimes={2}
+        duration={100}
+      >
         <View
           style={{
             height: 85,
@@ -715,7 +740,7 @@ function MoodContainer({
             }
           })()}
         </View>
-      </Pressable>
+      </ShakeView>
       <Text style={{ textAlign: "center", fontSize: 15 }}>
         {MoodArr[ImoodId].descirption}
       </Text>
