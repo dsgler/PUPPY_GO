@@ -1,4 +1,4 @@
-import { View, Text, Pressable } from "react-native";
+import { Text, Pressable } from "react-native";
 import { ChooseSport } from "@/components/addPage/addPage";
 import AntIcon from "react-native-vector-icons/AntDesign";
 import Animated from "react-native-reanimated";

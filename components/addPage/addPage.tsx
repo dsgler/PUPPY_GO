@@ -2,7 +2,6 @@ import {
   View,
   StyleSheet,
   ScrollView,
-  FlatList,
   Pressable,
   TextInput,
   GestureResponderEvent,
@@ -39,7 +38,7 @@ import sportArr from "@/consts/sportType";
 import Line from "@/assets/images/addPage/line";
 
 import { insertData, addDataType, getDB } from "@/sqls/indexSql";
-import { getmulti } from "@/utility/datetool";
+import { dateNumberToDate, getmulti } from "@/utility/datetool";
 import { effortArr, MoodArr, thinkingStr } from "@/consts";
 import { useImmer } from "use-immer";
 
@@ -98,9 +97,12 @@ export default function AddPage() {
     date: string;
   }>();
 
-  let date = Number(dateStr);
-  if (isNaN(date) || date < 1577808000000 || date > 33134716800000) {
+  let dateNumber = Number(dateStr);
+  let date: number;
+  if (isNaN(dateNumber) || dateNumber > 30250101 || dateNumber < 20000101) {
     date = Date.now();
+  } else {
+    date = dateNumberToDate(dateNumber).getTime();
   }
 
   const [sportId, setSportId] = useState(-1);
@@ -202,7 +204,9 @@ export default function AddPage() {
           <ScrollView style={[styles.main_container]}>
             <View style={{ display: pageState === MAIN ? "flex" : "none" }}>
               <MainText>请选择运动的类型</MainText>
-              <ChooseSport sportId={sportId} setSportId={setSportId} />
+              <Animated.View>
+                <ChooseSport sportId={sportId} setSportId={setSportId} />
+              </Animated.View>
               <MainText>请选择运动的时长</MainText>
               <View
                 style={{
@@ -627,20 +631,22 @@ export function ChooseSport({
   setSportId: React.Dispatch<React.SetStateAction<number>>;
 }) {
   return (
-    <FlatList
-      style={{ paddingVertical: 10 }}
+    <ScrollView
       horizontal={true}
-      data={sportArr}
-      renderItem={({ item, index }) => (
+      overScrollMode="never"
+      bounces={false}
+      style={{ paddingVertical: 10 }}
+    >
+      {sportArr.map((item, key) => (
         <ColorfulTag
           Message={item.sportName}
           Color={item.color}
           isChosen={sportId === item.id}
           onPress={() => setSportId(item.id)}
+          key={key}
         />
-      )}
-      showsHorizontalScrollIndicator={false}
-    />
+      ))}
+    </ScrollView>
   );
 }
 
@@ -872,5 +878,6 @@ async function handleSubmit(
   let db = await getDB();
   await insertData(db, data);
   console.log("插入成功");
-  router.dismissTo("/(tabs)");
+  // router.dismissTo("/(tabs)");
+  router.back();
 }

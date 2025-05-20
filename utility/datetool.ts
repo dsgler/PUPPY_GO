@@ -68,7 +68,7 @@ export function getDateNumber(t: number | Date) {
 export function dateNumberToDate(t: number) {
   return new Date(
     Math.floor(t / 10000),
-    Math.floor((t / 100) % 100),
+    Math.floor((t / 100) % 100) - 1,
     Math.floor(t % 100)
   );
 }
