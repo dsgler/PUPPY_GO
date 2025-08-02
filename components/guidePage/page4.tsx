@@ -4,15 +4,16 @@ import { Styles } from "./public";
 import { TouchableRipple } from "react-native-paper";
 import { router } from "expo-router";
 import DotGroup from "./dotGroup";
-import { SpotlightPosiCtx } from "@/app/_layout";
 import { useContext } from "react";
+import { useUIStore } from "@/store/alertStore";
+import { produce } from "immer";
 
 export default function Page4({
   style,
 }: {
   style?: StyleProp<AnimatedStyle<StyleProp<ViewStyle>>>;
 }) {
-  const [, setsptl] = useContext(SpotlightPosiCtx);
+  const setsptl=useUIStore(s=>s.updateSpotlight)
 
   return (
     <Animated.View style={[{ flex: 1, overflow: "hidden" }, style]}>
@@ -79,9 +80,9 @@ export default function Page4({
           borderless={true}
           onPress={() => {
             router.dismissTo("/(tabs)");
-            setsptl((v) => {
+            setsptl(produce(useUIStore.getState().spotlight,(v) => {
               v.guideStep = 1;
-            });
+            }));
           }}
         >
           <Text style={{ color: "white", fontSize: 16 }}>立即体验</Text>

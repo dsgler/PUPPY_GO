@@ -11,7 +11,7 @@ import AntIcon from "react-native-vector-icons/AntDesign";
 import { useContext, useEffect, useRef } from "react";
 import { TouchableRipple } from "react-native-paper";
 
-import { SpotlightPosiCtx } from "@/app/_layout";
+import { useUIStore } from "@/store/alertStore";
 
 export function AddGroup({
   onPress,
@@ -23,10 +23,11 @@ export function AddGroup({
     | undefined;
   style?: StyleProp<ViewStyle>;
 }) {
-  const [sptl, setsptl] = useContext(SpotlightPosiCtx);
+  const updateSpotlight = useUIStore((state) => state.updateSpotlight);
+  const spotlight = useUIStore((state) => state.spotlight);
   const myRef = useRef<View>(null);
   useEffect(() => {
-    if (sptl.guideStep === 3) {
+    if (spotlight.guideStep === 3) {
       setTimeout(() => {
         myRef.current?.measure((x, y, width, height, pageX, pageY) => {
           const o = {
@@ -37,11 +38,11 @@ export function AddGroup({
             guideStep: 3,
           };
           console.log(o);
-          setsptl(o);
+          updateSpotlight(o);
         });
       }, 50);
     }
-  }, [setsptl, sptl.guideStep]);
+  }, [updateSpotlight, spotlight.guideStep]);
 
   return (
     <TouchableRipple

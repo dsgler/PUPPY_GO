@@ -10,10 +10,10 @@ import { ImmerHook } from "use-immer";
 import { getGapTimeString } from "@/utility/datetool";
 import { frequencyType, targetRow } from "@/sqls/targetSql2";
 import sportArr from "@/consts/sportType";
-import { defaultError } from "@/app/_layout";
 import * as consts_frequency from "@/consts/frequency";
 import { BrandColor } from "@/consts/tabs";
 import { StyleSheet } from "react-native";
+import { defaultError } from "@/consts/defaultError";
 
 export function getDescription(v: {
   sportId: number;

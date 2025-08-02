@@ -14,7 +14,7 @@ import {
 import { SQLiteDatabase, useSQLiteContext } from "expo-sqlite";
 
 import * as frequencyConsts from "@/consts/frequency";
-import { MyAlertCtx } from "@/app/_layout";
+import { useUIStore } from "@/store/alertStore";
 
 export default function LoadingView({
   StepState: [, setStep],
@@ -23,7 +23,8 @@ export default function LoadingView({
 }) {
   const [InfoObj, updateInfoObj] = useContext(InfoObjStateCtx);
   const db = useSQLiteContext();
-  const myAlert = useContext(MyAlertCtx);
+  const myAlert = useUIStore(s=>s.showAlert);
+
 
   useEffect(() => {
     let sick = "";

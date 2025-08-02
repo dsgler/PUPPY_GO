@@ -1,4 +1,4 @@
-import { SpotlightPosiCtx } from "@/app/_layout";
+import { useUIStore } from "@/store/alertStore";
 import { useContext, useRef, useEffect } from "react";
 import { View, StyleSheet, Image, Text, Pressable } from "react-native";
 import { AddTargetStates } from "./public";
@@ -11,10 +11,11 @@ export function EmptyDog({
     afterClear?: (AddTargetStates: AddTargetStates) => void
   ) => void;
 }) {
-  const [sptl, setsptl] = useContext(SpotlightPosiCtx);
+  const updateSpotlight = useUIStore((state) => state.updateSpotlight);
+  const spotlight = useUIStore((state) => state.spotlight);
   const myRef = useRef<View>(null);
   useEffect(() => {
-    if (sptl.guideStep === 4) {
+    if (spotlight.guideStep === 4) {
       myRef.current?.measure((x, y, width, height, pageX, pageY) => {
         const o = {
           x: pageX - 5,
@@ -24,10 +25,10 @@ export function EmptyDog({
           guideStep: 4,
         };
         console.log(o);
-        setsptl(o);
+        updateSpotlight(o);
       });
     }
-  }, [setsptl, sptl.guideStep]);
+  }, [updateSpotlight, spotlight.guideStep]);
 
   return (
     <View

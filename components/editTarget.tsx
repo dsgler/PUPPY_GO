@@ -31,13 +31,13 @@ import {
 } from "./public/CustomeMonthBlock";
 import * as consts_frequency from "@/consts/frequency";
 import { Updater, useImmer } from "use-immer";
-import { MyAlertCtx, MyConfirmCtx, MyHintCtx } from "@/app/_layout";
 
 import { repeatList } from "@/consts/repeatList";
 import Animated from "react-native-reanimated";
 import { BrandColor } from "@/consts/tabs";
 import { router, useLocalSearchParams } from "expo-router";
 import { myFadeIn, myFadeOut, myLayoutTransition } from "@/consts/anime";
+import { useUIStore } from "@/store/alertStore";
 
 const bgYellow = "#FEE6CE";
 const bgRed = "#FECECE";
@@ -107,9 +107,9 @@ export default function Page() {
     [groups]
   );
 
-  const myHint = useContext(MyHintCtx);
-  const myConfirm = useContext(MyConfirmCtx);
-  const myAlert = useContext(MyAlertCtx);
+  const myHint = useUIStore(s=>s.showHint);
+  const myConfirm = useUIStore(s=>s.showConfirm);
+  const myAlert = useUIStore(s=>s.showAlert);
 
   useEffect(() => {
     getTarget(db, targetId)
@@ -380,7 +380,7 @@ export default function Page() {
   );
 }
 function Header() {
-  const myConfirm = useContext(MyConfirmCtx);
+  const myConfirm = useUIStore(s=>s.showConfirm);
   return (
     <View
       style={{

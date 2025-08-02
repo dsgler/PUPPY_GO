@@ -10,12 +10,13 @@ import RightHalfIcon from "@/assets/images/Footer/rightHalf";
 import RightedIcon from "@/assets/images/Footer/righted";
 import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { useState, useEffect, useContext, useRef } from "react";
-import { SpotlightPosiCtx } from "@/app/_layout";
 import AntIcon from "react-native-vector-icons/AntDesign";
+import { useUIStore } from "@/store/alertStore";
 
 export default function Footer({ props }: { props: BottomTabBarProps }) {
   // console.log("footer渲染");
-  const [sptl, setsptl] = useContext(SpotlightPosiCtx);
+  const sptl = useUIStore(s=>s.spotlight);
+    const setsptl=useUIStore(s=>s.updateSpotlight)
   const myRef = useRef<View>(null);
   useEffect(() => {
     if (sptl.guideStep === 1) {

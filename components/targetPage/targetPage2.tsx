@@ -27,7 +27,7 @@ import {
   targetRow,
 } from "@/sqls/targetSql2";
 import sportArr from "@/consts/sportType";
-import { MyAlertCtx, MyConfirmCtx, MyHintCtx } from "@/app/_layout";
+import { useUIStore } from "@/store/alertStore";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { WeekGroup } from "./WeekGroup";
 import { MonthGroup } from "./MonthGroup";
@@ -77,8 +77,8 @@ export default function Page() {
   const [modalType, setModalType] = useState(0);
   const [isEmpty, setIsEmpty] = useState(false);
 
-  const myAlert = useContext(MyAlertCtx);
-  const myConfirm = useContext(MyConfirmCtx);
+  const showAlert = useUIStore((state) => state.showAlert);
+  const showConfirm = useUIStore((state) => state.showConfirm);
   const [menuobj, setMenuobj] = useImmer<menuObjType>({
     x: 0,
     y: 0,
@@ -90,12 +90,12 @@ export default function Page() {
 
   const RefreshFn = useCallback(() => {
     showData(db, durationType, new Date(), setDataComponent, setIsEmpty).catch(
-      myAlert
+      showAlert
     );
     setMenuobj((v) => {
       v.visibility = false;
     });
-  }, [db, durationType, myAlert, setMenuobj]);
+  }, [db, durationType, showAlert, setMenuobj]);
 
   useEffect(RefreshFn, [RefreshFn]);
 
@@ -264,15 +264,15 @@ export default function Page() {
                 height: 34,
               }}
               onPress={() => {
-                myConfirm("确定删除吗？", () => {
+                showConfirm("确定删除吗？", () => {
                   if (menuobj.targetId !== -1) {
                     deleteTarget(db, menuobj.targetId)
                       .then(RefreshFn)
-                      .catch(myAlert);
+                      .catch(showAlert);
                   } else if (menuobj.groupId !== -1) {
                     deleteGroup(db, menuobj.groupId)
                       .then(RefreshFn)
-                      .catch(myAlert);
+                      .catch(showAlert);
                   }
                 });
               }}
@@ -329,9 +329,9 @@ function ModalComponent0({
   console.log(menuobj);
   const [groupName, setGroupName] = useState(menuobj.groupName);
   const db = useSQLiteContext();
-  const myAlert = useContext(MyAlertCtx);
+  const showAlert = useUIStore((state) => state.showAlert);
+  const showHint = useUIStore((state) => state.showHint);
   const RefreshFn = useContext(RefreshFnCtx);
-  const myHint = useContext(MyHintCtx);
 
   const isAdd = menuobj.groupId === -1;
 
@@ -364,25 +364,25 @@ function ModalComponent0({
           onPress={() => {
             let t = groupName.trim();
             if (t === "") {
-              myAlert("请输入groupName");
+              showAlert("请输入groupName");
               return;
             }
             if (isAdd) {
               addGroupOrGetGroupId(db, t)
                 .then(() => {
-                  myHint("添加成功");
+                  showHint("添加成功");
                   setInsertModalV(false);
                   RefreshFn();
                 })
-                .catch(myAlert);
+                .catch(showAlert);
             } else {
               changeGroupName(db, menuobj.groupId, t)
                 .then(() => {
-                  myHint("修改成功");
+                  showHint("修改成功");
                   setInsertModalV(false);
                   RefreshFn();
                 })
-                .catch(myAlert);
+                .catch(showAlert);
             }
           }}
         />

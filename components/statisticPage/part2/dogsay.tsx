@@ -4,7 +4,7 @@ import { View, Text, Image } from "react-native";
 import { apiKey, baseURL, model } from "@/consts/key";
 import OpenAI from "@/utility/Openai";
 import { isUseAI } from "@/consts/propmts";
-import { MyAlertCtx } from "@/app/_layout";
+import { useUIStore } from "@/store/alertStore";
 
 export function DogsayRow({
   message,
@@ -52,21 +52,21 @@ export function DogsayGroup({
   SystemPrompt: string;
 }) {
   const [raw, setRaw] = useState("");
-  const myAlert = useContext(MyAlertCtx);
+  const showAlert = useUIStore((state) => state.showAlert);
 
   useEffect(() => {
     const es = askForReply({
       reqMessage: reqStr,
       setRaw,
       SystemPrompt,
-      onError: myAlert,
-    }).catch(myAlert);
+      onError: showAlert,
+    }).catch(showAlert);
     return () => {
       es.then((v) => {
         v?.close();
       });
     };
-  }, [SystemPrompt, myAlert, reqStr]);
+  }, [SystemPrompt, showAlert, reqStr]);
 
   let isLeft = false;
   const filteredArr = getArr(raw).map((v, k) => {

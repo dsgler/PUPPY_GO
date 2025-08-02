@@ -20,7 +20,7 @@ import { useContext } from "react";
 
 import { useSQLiteContext } from "expo-sqlite";
 import { cancelCheck, deleteTarget, setCheck } from "@/sqls/targetSql2";
-import { MyAlertCtx, MyConfirmCtx } from "@/app/_layout";
+import { useUIStore } from "@/store/alertStore";
 import { router } from "expo-router";
 import { RefreshFnCtx, myLayoutTransition } from "./public";
 
@@ -61,9 +61,9 @@ export function TaskItemRow({
   }));
 
   const db = useSQLiteContext();
-  const myAlert = useContext(MyAlertCtx);
+  const showAlert = useUIStore((state) => state.showAlert);
+  const showConfirm = useUIStore((state) => state.showConfirm);
   const RefreshFn = useContext(RefreshFnCtx);
-  const myConfirm = useContext(MyConfirmCtx);
   return (
     <Animated.View
       style={style}
@@ -91,9 +91,9 @@ export function TaskItemRow({
             <Pressable
               onPress={() => {
                 if (isFinished) {
-                  cancelCheck(db, targetId).catch(myAlert).then(RefreshFn);
+                  cancelCheck(db, targetId).catch(showAlert).then(RefreshFn);
                 } else {
-                  setCheck(db, targetId).catch(myAlert).then(RefreshFn);
+                  setCheck(db, targetId).catch(showAlert).then(RefreshFn);
                 }
               }}
             >
@@ -151,8 +151,8 @@ export function TaskItemRow({
         <Pressable
           style={{ marginRight: 16 }}
           onPress={() => {
-            myConfirm("确定删除吗？", () => {
-              deleteTarget(db, targetId).then(RefreshFn).catch(myAlert);
+            showConfirm("确定删除吗？", () => {
+              deleteTarget(db, targetId).then(RefreshFn).catch(showAlert);
             });
           }}
         >

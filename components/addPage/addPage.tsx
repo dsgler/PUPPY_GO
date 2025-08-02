@@ -42,9 +42,9 @@ import { dateNumberToDate, getmulti } from "@/utility/datetool";
 import { effortArr, MoodArr, thinkingStr } from "@/consts";
 import { useImmer } from "use-immer";
 
-import { MyAlertCtx } from "@/app/_layout";
 import { useSharedValue } from "react-native-reanimated";
 import ShakeView from "./ShakeView";
+import { useUIStore } from "@/store/alertStore";
 
 const EmptyF = () => {};
 
@@ -137,7 +137,8 @@ export default function AddPage() {
 
   console.log("add渲染,dateStr:", dateStr, "date:", date);
 
-  const myAlert = useContext(MyAlertCtx);
+    const myAlert = useUIStore(s=>s.showAlert);
+
 
   const [r, setR] = useState(false);
 

@@ -13,7 +13,7 @@ import {
   getGroups,
   groupNameRow,
 } from "@/sqls/targetSql2";
-import { MyAlertCtx, MyHintCtx } from "@/app/_layout";
+import { useUIStore } from "@/store/alertStore";
 import * as consts_frequency from "@/consts/frequency";
 import {
   CustomeMonthBlock,
@@ -32,8 +32,8 @@ export function ModalComponent1({
 }) {
   const [targetName, setTargetName] = useState("");
   const db = useSQLiteContext();
-  const myAlert = useContext(MyAlertCtx);
-  const myHint = useContext(MyHintCtx);
+  const showAlert = useUIStore((state) => state.showAlert);
+  const showHint = useUIStore((state) => state.showHint);
   const RefreshFn = useContext(RefreshFnCtx);
   const [groups, setGroups] = useState<groupNameRow[]>([]);
   const updateGroups = useCallback(() => {
@@ -41,8 +41,8 @@ export function ModalComponent1({
       .then((v) => {
         setGroups(v);
       })
-      .catch(myAlert);
-  }, [db, myAlert]);
+      .catch(showAlert);
+  }, [db, showAlert]);
   useEffect(updateGroups, [updateGroups]);
   const groupList = useMemo<ListChooseListRowType[]>(
     () => groups.map((v) => ({ name: v.groupName, Id: v.groupId })),
@@ -97,7 +97,7 @@ export function ModalComponent1({
                 alertText += "请选择分组\n";
               }
               if (alertText !== "") {
-                myAlert(alertText.trim());
+                showAlert(alertText.trim());
                 return;
               }
 
@@ -107,13 +107,13 @@ export function ModalComponent1({
                 description: t,
               })
                 .then(() => {
-                  myHint("保存成功");
+                  showHint("保存成功");
                 })
                 .then(RefreshFn)
                 .then(() => {
                   setInsertModalV(false);
                 })
-                .catch(myAlert);
+                .catch(showAlert);
             }}
           />
         </View>
@@ -229,15 +229,15 @@ export function ModalComponent1({
               TextStyle={{ fontSize: 16 }}
               onPress={() => {
                 if (text.trim() === "") {
-                  myAlert("请输入分组名");
+                  showAlert("请输入分组名");
                   return;
                 }
                 addGroupOrGetGroupId(db, text)
                   .then(() => {
-                    myHint("添加成功");
+                    showHint("添加成功");
                     return updateGroups();
                   })
-                  .catch(myAlert);
+                  .catch(showAlert);
               }}
             />
           </View>
@@ -317,7 +317,7 @@ export function ModalComponent1({
               onPress={() => {
                 let nt = Number(t);
                 if (isNaN(nt) || t.length > 3 || nt < 0) {
-                  myHint("请输入合理数字");
+                  showHint("请输入合理数字");
                   return;
                 }
                 updatedata((data) => {
@@ -402,7 +402,7 @@ export function ModalComponent1({
                   nt < 0 ||
                   Math.floor(nt) !== nt
                 ) {
-                  myHint("请输入合理整数");
+                  showHint("请输入合理整数");
                   return;
                 }
                 updatedata((data) => {

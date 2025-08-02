@@ -1,4 +1,3 @@
-import { defaultError } from "@/app/_layout";
 import { createContext } from "react";
 import { ImmerHook } from "use-immer";
 import { Pressable, StyleSheet, View } from "react-native";
@@ -6,6 +5,7 @@ import AntIcon from "react-native-vector-icons/AntDesign";
 import FeaIcon from "react-native-vector-icons/Feather";
 import { HeightAndWeight } from "@/consts/AIplanPage";
 import { planReplyType } from "@/consts/propmts";
+import { defaultError } from "@/consts/defaultError";
 
 export type InfoObjType = {
   heightRaw: string;

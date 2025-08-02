@@ -44,9 +44,9 @@ import MyScrollView from "../public/myScrollView";
 import { getDatesInWeek } from "@/utility/datetool";
 import { dayDescription } from "../../consts/dayDescription";
 import { useSQLiteContext } from "expo-sqlite";
-import { SpotlightPosiCtx } from "@/app/_layout";
 import { createTable as createTable2 } from "@/sqls/targetSql2";
 import { EmptyDog } from "./EmptyDog";
+import { useUIStore } from "@/store/alertStore";
 
 export default function Index() {
   console.log("index渲染");
@@ -96,7 +96,8 @@ function Header({
   time: number;
 }) {
   let d = new Date(time);
-  const [sptl, setsptl] = useContext(SpotlightPosiCtx);
+  const sptl = useUIStore(s=>s.spotlight);
+  const setsptl=useUIStore(s=>s.updateSpotlight)
   const myRef = useRef<View>(null);
   useEffect(() => {
     if (sptl.guideStep === 2) {
