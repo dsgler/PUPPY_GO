@@ -39,3 +39,4 @@ app-example
 
 android/
 consts/key.ts
+pnpm-lock.yaml

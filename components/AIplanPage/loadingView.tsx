@@ -52,9 +52,9 @@ export default function LoadingView({
       伤病: sick,
       希望重点加强部位: impo,
     };
-    askForPlan(db, JSON.stringify(messageObj), (retArr) => {
+    askForPlan(db, JSON.stringify(messageObj), retArr => {
       setStep(END);
-      updateInfoObj((InfoObj) => {
+      updateInfoObj(InfoObj => {
         InfoObj.retArr = retArr;
       });
     }).catch(myAlert);
@@ -110,7 +110,7 @@ async function askForPlan(
     throw Error(JSON.stringify(cp));
   }
   // 寻找[]（数组）包裹的json
-  const re = /\[.+]/gs;
+  const re = /\[[^#]+]/g;
   const reArr = Array.from(raw.matchAll(re));
   const retArr = JSON.parse(reArr[0][0]) as planReplyType;
   console.log(retArr);
