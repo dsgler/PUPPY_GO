@@ -1,7 +1,7 @@
-import Animated, { AnimatedStyle } from "react-native-reanimated";
-import { Image, View, Text, StyleProp, ViewStyle } from "react-native";
-import { Styles } from "./public";
-import DotGroup from "./dotGroup";
+import Animated, { AnimatedStyle } from 'react-native-reanimated';
+import { Image, View, Text, StyleProp, ViewStyle } from 'react-native';
+import { Styles } from './public';
+import DotGroup from './dotGroup';
 
 export default function Page3({
   style,
@@ -9,19 +9,19 @@ export default function Page3({
   style?: StyleProp<AnimatedStyle<StyleProp<ViewStyle>>>;
 }) {
   return (
-    <Animated.View style={[{ flex: 1, overflow: "hidden" }, style]}>
+    <Animated.View style={[{ flex: 1, overflow: 'hidden' }, style]}>
       <Animated.View
         style={{
           //   transform: [{ rotate: "22.32deg" }],
-          position: "absolute",
+          position: 'absolute',
           top: 220,
           left: 20,
         }}
       >
         <Animated.View
           style={{
-            backgroundColor: "#FFF285",
-            position: "absolute",
+            backgroundColor: '#FFF285',
+            position: 'absolute',
             width: 500,
             height: 136,
             top: 48,
@@ -30,7 +30,7 @@ export default function Page3({
         ></Animated.View>
         <Animated.View>
           <Image
-            source={require("@/assets/images/index/nothing.png")}
+            source={require('@/assets/images/index/nothing.png')}
             style={{ height: 232, width: 298 }}
           />
         </Animated.View>
@@ -41,12 +41,12 @@ export default function Page3({
       </View>
       <View
         style={{
-          position: "absolute",
+          position: 'absolute',
           left: 0,
           right: 0,
           bottom: 140,
-          flexDirection: "row",
-          justifyContent: "center",
+          flexDirection: 'row',
+          justifyContent: 'center',
         }}
       >
         <DotGroup id={3} />

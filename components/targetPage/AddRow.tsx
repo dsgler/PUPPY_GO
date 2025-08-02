@@ -1,17 +1,17 @@
-import { BrandColor, textColor } from "@/consts/tabs";
+import { BrandColor, textColor } from '@/consts/tabs';
 import {
   Text,
   StyleProp,
   ViewStyle,
   GestureResponderEvent,
   View,
-} from "react-native";
-import AntIcon from "react-native-vector-icons/AntDesign";
+} from 'react-native';
+import AntIcon from 'react-native-vector-icons/AntDesign';
 
-import { useContext, useEffect, useRef } from "react";
-import { TouchableRipple } from "react-native-paper";
+import { useEffect, useRef } from 'react';
+import { TouchableRipple } from 'react-native-paper';
 
-import { useUIStore } from "@/store/alertStore";
+import { useUIStore } from '@/store/alertStore';
 
 export function AddGroup({
   onPress,
@@ -49,7 +49,7 @@ export function AddGroup({
       style={{
         marginTop: 20,
         borderRadius: 10,
-        overflow: "hidden",
+        overflow: 'hidden',
       }}
       borderless={true}
       onPress={onPress}
@@ -58,16 +58,15 @@ export function AddGroup({
       <View
         style={[
           {
-            flexDirection: "row",
-            alignItems: "center",
+            flexDirection: 'row',
+            alignItems: 'center',
             height: 60,
-            backgroundColor: "#FFB52B",
+            backgroundColor: '#FFB52B',
           },
           style,
         ]}
       >
         <View style={{ width: 26, marginHorizontal: 16 }}>
-          {/* @ts-ignore */}
           <AntIcon name="plus" size={24} />
         </View>
         <Text style={{ color: textColor, fontSize: 14 }}>创建一个分组</Text>
@@ -80,7 +79,7 @@ export function AddTarget({
   onPress,
   style,
 }: {
-  onPress?: Function;
+  onPress?: Parameters<typeof TouchableRipple>[0]['onPress'];
   style?: StyleProp<ViewStyle>;
 }) {
   return (
@@ -88,23 +87,19 @@ export function AddTarget({
       style={{
         marginTop: 20,
         borderRadius: 10,
-        overflow: "hidden",
-        boxShadow: "0 4 4 rgba(0,0,0,0.1)",
+        overflow: 'hidden',
+        boxShadow: '0 4 4 rgba(0,0,0,0.1)',
       }}
       borderless={true}
-      onPress={() => {
-        if (onPress) {
-          onPress();
-        }
-      }}
+      onPress={onPress}
     >
       <View
         style={[
           {
-            flexDirection: "row",
-            alignItems: "center",
+            flexDirection: 'row',
+            alignItems: 'center',
             height: 60,
-            backgroundColor: "white",
+            backgroundColor: 'white',
           },
           style,
         ]}
@@ -113,7 +108,6 @@ export function AddTarget({
           <Text style={{ color: textColor, fontSize: 14 }}>创建一个目标</Text>
         </View>
         <View style={{ width: 26, marginHorizontal: 16 }}>
-          {/* @ts-ignore */}
           <AntIcon name="pluscircle" size={24} color={BrandColor} />
         </View>
       </View>

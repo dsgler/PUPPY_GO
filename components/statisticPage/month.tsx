@@ -1,21 +1,22 @@
-import { addDataType } from "@/sqls/indexSql";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { addDataType } from '@/sqls/indexSql';
 import {
   divideMonthIntoWeek,
   getDateNumber,
   withDate,
-} from "@/utility/datetool";
-import { useContext, useEffect, useMemo, useRef } from "react";
-import { Pressable, StyleProp, TextStyle } from "react-native";
-import { View, Text, StyleSheet } from "react-native";
-import OldPieChart, { Slice } from "react-native-pie-chart";
-import { effortArr, MoodArr } from "@/consts";
+} from '@/utility/datetool';
+import { useContext, useEffect, useMemo, useRef } from 'react';
+import { Pressable, StyleProp, TextStyle } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
+import OldPieChart, { Slice } from 'react-native-pie-chart';
+import { effortArr, MoodArr } from '@/consts';
 
-import * as echarts from "echarts/core";
-import { SkiaChart } from "@wuba/react-native-echarts";
-import sportArr from "@/consts/sportType";
-import * as pageType_consts from "./pageType";
-import { MyAlertCtx } from "@/app/_layout";
-import { ChosenDateArrCtx } from "./public";
+import * as echarts from 'echarts/core';
+import { SkiaChart } from '@wuba/react-native-echarts';
+import sportArr from '@/consts/sportType';
+import * as pageType_consts from './pageType';
+import { ChosenDateArrCtx } from './public';
+import { useUIStore } from '@/store/alertStore';
 
 const CustomeBlockStyle = StyleSheet.create({
   container: {
@@ -26,34 +27,34 @@ const CustomeBlockStyle = StyleSheet.create({
   },
   dayText: {
     fontSize: 14,
-    color: "rgba(0,0,0,0.6)",
+    color: 'rgba(0,0,0,0.6)',
     flex: 1,
-    textAlign: "center",
+    textAlign: 'center',
   },
   block: {
     height: 60,
     borderRadius: 6,
-    backgroundColor: "#E7E7E7",
-    justifyContent: "center",
-    alignItems: "center",
+    backgroundColor: '#E7E7E7',
+    justifyContent: 'center',
+    alignItems: 'center',
     flex: 1,
-    flexDirection: "row",
+    flexDirection: 'row',
   },
   chosenBlock: {
-    backgroundColor: "#FDD0A2",
+    backgroundColor: '#FDD0A2',
   },
   blockText: {
     fontSize: 16,
   },
   chosenBlockText: {
-    color: "white",
+    color: 'white',
   },
   emptyblock: {
     height: 50,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     flex: 1,
-    flexDirection: "row",
+    flexDirection: 'row',
   },
 });
 function CustomeMonthBlock({
@@ -69,7 +70,7 @@ function CustomeMonthBlock({
 }) {
   return (
     <View style={CustomeBlockStyle.container}>
-      <View style={{ flexDirection: "row", alignItems: "center", height: 25 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', height: 25 }}>
         <Text style={CustomeBlockStyle.dayText}>周一</Text>
         <Text style={CustomeBlockStyle.dayText}>周二</Text>
         <Text style={CustomeBlockStyle.dayText}>周三</Text>
@@ -80,13 +81,15 @@ function CustomeMonthBlock({
       </View>
       <View style={{ gap: 5 }}>
         {dividedArr.map((row, k) => (
-          <View key={k} style={{ flexDirection: "row", gap: 3 }}>
+          <View key={k} style={{ flexDirection: 'row', gap: 3 }}>
             {row.map((v, k) => (
               <View style={CustomeBlockStyle.emptyblock} key={k}>
                 {v && (
                   <Pressable
                     onPress={() => {
-                      setChosen && setChosen(getDateNumber(v.date));
+                      if (setChosen) {
+                        setChosen(getDateNumber(v.date));
+                      }
                     }}
                   >
                     <EchartsCircleBlock
@@ -118,19 +121,19 @@ function CircleBlock({ series, width, text, textStyle }: CircleBlockProp) {
       <OldPieChart widthAndHeight={width} series={series} cover={0.7} />
       <View
         style={{
-          position: "absolute",
+          position: 'absolute',
           left: 0,
           right: 0,
           top: 0,
           bottom: 0,
-          justifyContent: "center",
-          alignItems: "center",
-          flexDirection: "row",
+          justifyContent: 'center',
+          alignItems: 'center',
+          flexDirection: 'row',
         }}
       >
         <Text
           style={[
-            { textAlign: "center", textAlignVertical: "center" },
+            { textAlign: 'center', textAlignVertical: 'center' },
             textStyle,
           ]}
         >
@@ -153,12 +156,12 @@ function EchartsCircleBlock({
     const option = {
       series: [
         {
-          type: "pie",
+          type: 'pie',
           data: series.map((v) => ({
             value: v.value,
             itemStyle: { color: v.color },
           })),
-          radius: ["70%", "100%"],
+          radius: ['70%', '100%'],
           label: { show: false },
           silent: true,
         },
@@ -166,8 +169,8 @@ function EchartsCircleBlock({
     };
     let chart: any;
     if (skiaRef.current) {
-      chart = echarts.init(skiaRef.current, "light", {
-        renderer: "skia" as any,
+      chart = echarts.init(skiaRef.current, 'light', {
+        renderer: 'skia' as any,
         width: width,
         height: width,
       });
@@ -182,21 +185,21 @@ function EchartsCircleBlock({
       <View
         style={[
           StyleSheet.absoluteFill,
-          { justifyContent: "center", alignItems: "center" },
+          { justifyContent: 'center', alignItems: 'center' },
         ]}
       >
-        <Text style={[{ textAlign: "center" }, textStyle]}>{text}</Text>
+        <Text style={[{ textAlign: 'center' }, textStyle]}>{text}</Text>
       </View>
       {hasOuterRing && (
         <View
           style={[
             StyleSheet.absoluteFill,
-            { justifyContent: "center", alignItems: "center" },
+            { justifyContent: 'center', alignItems: 'center' },
           ]}
         >
           <OldPieChart
             widthAndHeight={42}
-            series={[{ value: 1, color: "#FF960B" }]}
+            series={[{ value: 1, color: '#FF960B' }]}
             cover={0.9}
           />
         </View>
@@ -224,7 +227,7 @@ function MoodComposer({ thisMonth, datas }: ComposerProps) {
   // 当全空时
   for (const ele of ans) {
     if (ele.series.reduce((prev, cur) => prev + cur.value, 0) === 0) {
-      ele.series.push({ value: 1, color: "#D9D9D9" });
+      ele.series.push({ value: 1, color: '#D9D9D9' });
     }
   }
 
@@ -250,7 +253,7 @@ function DurationComposer({
   // 当全空时
   for (const ele of ans) {
     if (ele.series.reduce((prev, cur) => prev + cur.value, 0) === 0) {
-      ele.series.push({ value: 1, color: "#D9D9D9" });
+      ele.series.push({ value: 1, color: '#D9D9D9' });
     }
   }
 
@@ -273,7 +276,7 @@ function EffortComposer({ thisMonth, datas }: ComposerProps) {
   // 当全空时
   for (const ele of ans) {
     if (ele.series.reduce((prev, cur) => prev + cur.value, 0) === 0) {
-      ele.series.push({ value: 1, color: "#D9D9D9" });
+      ele.series.push({ value: 1, color: '#D9D9D9' });
     }
   }
 
@@ -292,9 +295,9 @@ function TagComposer({
   const ans: (CircleBlockProp & withDate)[] = thisMonth.map((v, k) => {
     let series: Slice[];
     if (dateSet[k]) {
-      series = [{ value: 1, color: "#FFB52B" }];
+      series = [{ value: 1, color: '#FFB52B' }];
     } else {
-      series = [{ value: 1, color: "#D9D9D9" }];
+      series = [{ value: 1, color: '#D9D9D9' }];
     }
     return { text: v.getDate(), series, width: 35, date: v };
   });
@@ -313,12 +316,12 @@ export function MoodWrapper({
 }) {
   const composedArr = useMemo(
     () => MoodComposer({ thisMonth, datas }),
-    [datas, thisMonth]
+    [datas, thisMonth],
   );
 
   const dividedArr = useMemo(
     () => divideMonthIntoWeek(composedArr),
-    [composedArr]
+    [composedArr],
   );
 
   return <CustomeMonthBlock date={date} dividedArr={dividedArr} />;
@@ -335,12 +338,12 @@ export function DurationWrapper({
 }) {
   const composedArr = useMemo(
     () => DurationComposer({ thisMonth, datas }),
-    [datas, thisMonth]
+    [datas, thisMonth],
   );
 
   const dividedArr = useMemo(
     () => divideMonthIntoWeek(composedArr),
-    [composedArr]
+    [composedArr],
   );
 
   return <CustomeMonthBlock date={date} dividedArr={dividedArr} />;
@@ -357,12 +360,12 @@ export function EffortWrapper({
 }) {
   const composedArr = useMemo(
     () => EffortComposer({ thisMonth, datas }),
-    [datas, thisMonth]
+    [datas, thisMonth],
   );
 
   const dividedArr = useMemo(
     () => divideMonthIntoWeek(composedArr),
-    [composedArr]
+    [composedArr],
   );
 
   return <CustomeMonthBlock date={date} dividedArr={dividedArr} />;
@@ -379,12 +382,12 @@ export function TagWrapper({
 }) {
   const composedArr = useMemo(
     () => TagComposer({ thisMonth, datas }),
-    [datas, thisMonth]
+    [datas, thisMonth],
   );
 
   const dividedArr = useMemo(
     () => divideMonthIntoWeek(composedArr),
-    [composedArr]
+    [composedArr],
   );
   const [chosen, setChosen] = useContext(ChosenDateArrCtx);
 
@@ -409,7 +412,7 @@ export function MonthSwitcher({
   thisMonth: Date[];
   datas: addDataType[];
 }) {
-  const myAlert = useContext(MyAlertCtx);
+  const myAlert = useUIStore((s) => s.showAlert);
 
   switch (pageType) {
     case pageType_consts.MOOD:
@@ -423,6 +426,6 @@ export function MonthSwitcher({
     case pageType_consts.TAG:
       return <TagWrapper datas={datas} date={date} thisMonth={thisMonth} />;
     default:
-      myAlert("pageType不存在");
+      myAlert('pageType不存在');
   }
 }

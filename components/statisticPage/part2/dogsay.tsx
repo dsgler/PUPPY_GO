@@ -1,10 +1,8 @@
-import { getArr } from "@/utility/getByKey";
-import React, { useState, useEffect, useContext } from "react";
-import { View, Text, Image } from "react-native";
-import { apiKey, baseURL, model } from "@/consts/key";
-import OpenAI from "@/utility/Openai";
-import { isUseAI } from "@/consts/propmts";
-import { useUIStore } from "@/store/alertStore";
+import { getArr } from '@/utility/getByKey';
+import { useState, useEffect } from 'react';
+import { View, Text, Image } from 'react-native';
+import { useUIStore } from '@/store/alertStore';
+import { askForReply } from './askForReply';
 
 export function DogsayRow({
   message,
@@ -16,13 +14,13 @@ export function DogsayRow({
   return (
     <View
       style={{
-        flexDirection: isLeft ? "row" : "row-reverse",
+        flexDirection: isLeft ? 'row' : 'row-reverse',
         marginHorizontal: 16,
-        alignItems: "center",
+        alignItems: 'center',
       }}
     >
       <Image
-        source={require("@/assets/images/statisticPage/leftHead.png")}
+        source={require('@/assets/images/statisticPage/leftHead.png')}
         style={{
           width: 77,
           height: 77,
@@ -32,11 +30,11 @@ export function DogsayRow({
       <View
         style={{
           borderRadius: 10,
-          backgroundColor: "#FFF1B0",
+          backgroundColor: '#FFF1B0',
           flex: 1,
           paddingVertical: 10,
           paddingHorizontal: 20,
-          flexDirection: "row",
+          flexDirection: 'row',
         }}
       >
         <Text style={{ fontSize: 14, flex: 1 }}>{message}</Text>
@@ -51,7 +49,7 @@ export function DogsayGroup({
   reqStr: string;
   SystemPrompt: string;
 }) {
-  const [raw, setRaw] = useState("");
+  const [raw, setRaw] = useState('');
   const showAlert = useUIStore((state) => state.showAlert);
 
   useEffect(() => {
@@ -79,63 +77,4 @@ export function DogsayGroup({
   } else {
     return <View style={{ gap: 10 }}>{filteredArr}</View>;
   }
-}
-export async function askForReply({
-  reqMessage,
-  setRaw,
-  SystemPrompt,
-  onError,
-}: {
-  reqMessage: string;
-  SystemPrompt: string;
-  setRaw: React.Dispatch<React.SetStateAction<string>>;
-  onError: (err: Error) => void;
-}) {
-  if (!isUseAI) {
-    return;
-  }
-
-  const aiclient = new OpenAI({
-    apiKey: apiKey,
-    baseURL: baseURL,
-  });
-
-  console.log("发送请求");
-
-  let fullAnswer = "";
-  // 保存用于close
-  const es = aiclient.chat.completions.stream(
-    {
-      model: model,
-      messages: [
-        { role: "system", content: SystemPrompt },
-        { role: "user", content: reqMessage },
-      ],
-      // max_tokens: 256,
-      temperature: 0.6,
-    },
-    (data) => {
-      const c = data.choices[0].delta.content;
-      if (c) {
-        fullAnswer += c;
-        //   fullAnswer = fullAnswer.replaceAll("\n", "");
-        setRaw(fullAnswer + "_");
-      }
-    },
-    {
-      onError: onError,
-      onOpen: () => {
-        console.log("SSE connection for completion opened."); // Handle when the connection is opened
-        setRaw("(思考中)_");
-      },
-      onDone: () => {
-        console.log("done", fullAnswer);
-        // fullAnswer = fullAnswer.replace(/<think>[^<]+<\/think>/, "");
-        // setReply(fullAnswer);
-        // updateReply(db, data.id!, fullAnswer);
-      },
-    }
-  );
-
-  return es;
 }

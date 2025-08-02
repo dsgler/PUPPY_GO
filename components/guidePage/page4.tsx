@@ -1,33 +1,33 @@
-import Animated, { AnimatedStyle } from "react-native-reanimated";
-import { Image, View, Text, StyleProp, ViewStyle } from "react-native";
-import { Styles } from "./public";
-import { TouchableRipple } from "react-native-paper";
-import { router } from "expo-router";
-import DotGroup from "./dotGroup";
-import { useContext } from "react";
-import { useUIStore } from "@/store/alertStore";
-import { produce } from "immer";
+import Animated, { AnimatedStyle } from 'react-native-reanimated';
+import { Image, View, Text, StyleProp, ViewStyle } from 'react-native';
+import { Styles } from './public';
+import { TouchableRipple } from 'react-native-paper';
+import { router } from 'expo-router';
+import DotGroup from './dotGroup';
+import { useContext } from 'react';
+import { useUIStore } from '@/store/alertStore';
+import { produce } from 'immer';
 
 export default function Page4({
   style,
 }: {
   style?: StyleProp<AnimatedStyle<StyleProp<ViewStyle>>>;
 }) {
-  const setsptl=useUIStore(s=>s.updateSpotlight)
+  const setsptl = useUIStore((s) => s.updateSpotlight);
 
   return (
-    <Animated.View style={[{ flex: 1, overflow: "hidden" }, style]}>
+    <Animated.View style={[{ flex: 1, overflow: 'hidden' }, style]}>
       <Animated.View
         style={{
-          position: "absolute",
+          position: 'absolute',
           top: 204,
           left: 0,
         }}
       >
         <Animated.View
           style={{
-            backgroundColor: "#FFF285",
-            position: "absolute",
+            backgroundColor: '#FFF285',
+            position: 'absolute',
             width: 500,
             height: 136,
             top: 64,
@@ -36,7 +36,7 @@ export default function Page4({
         ></Animated.View>
         <Animated.View>
           <Image
-            source={require("@/assets/images/guidePage/proud.png")}
+            source={require('@/assets/images/guidePage/proud.png')}
             style={{ height: 232, width: 298 }}
           />
         </Animated.View>
@@ -47,45 +47,47 @@ export default function Page4({
       </View>
       <View
         style={{
-          position: "absolute",
+          position: 'absolute',
           left: 0,
           right: 0,
           bottom: 140,
-          flexDirection: "row",
-          justifyContent: "center",
+          flexDirection: 'row',
+          justifyContent: 'center',
         }}
       >
         <DotGroup id={4} />
       </View>
       <View
         style={{
-          position: "absolute",
+          position: 'absolute',
           left: 0,
           right: 0,
           bottom: 80,
-          alignItems: "center",
+          alignItems: 'center',
         }}
       >
         <TouchableRipple
           style={{
-            flexDirection: "row",
+            flexDirection: 'row',
             width: 90,
             height: 33,
-            justifyContent: "center",
-            alignItems: "center",
-            backgroundColor: "#FF960B",
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: '#FF960B',
             borderRadius: 15,
-            overflow: "hidden",
+            overflow: 'hidden',
           }}
           borderless={true}
           onPress={() => {
-            router.dismissTo("/(tabs)");
-            setsptl(produce(useUIStore.getState().spotlight,(v) => {
-              v.guideStep = 1;
-            }));
+            router.dismissTo('/(tabs)');
+            setsptl(
+              produce(useUIStore.getState().spotlight, (v) => {
+                v.guideStep = 1;
+              }),
+            );
           }}
         >
-          <Text style={{ color: "white", fontSize: 16 }}>立即体验</Text>
+          <Text style={{ color: 'white', fontSize: 16 }}>立即体验</Text>
         </TouchableRipple>
       </View>
     </Animated.View>

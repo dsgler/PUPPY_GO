@@ -7,49 +7,46 @@ import {
   Pressable,
   FlatList,
   ScrollView,
-} from "react-native";
-import { router, useFocusEffect } from "expo-router";
+} from 'react-native';
+import { router, useFocusEffect } from 'expo-router';
 import React, {
   useState,
   useCallback,
   useMemo,
   useEffect,
-  useContext,
   useRef,
-} from "react";
-import { SafeAreaView } from "react-native-safe-area-context";
-import CalIcon from "@/assets/images/index/calendar";
-import { BrandColor, unChoseColor } from "@/consts/tabs";
-import AiPlan from "./AiPlan";
+} from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import CalIcon from '@/assets/images/index/calendar';
+import { BrandColor, unChoseColor } from '@/consts/tabs';
+import AiPlan from './AiPlan';
 
 import {
   addDataType,
   askForReply,
   checkIsFirstRun,
   createTable as createTable1,
-  GetDataByDate,
-  getDB,
-} from "../../sqls/indexSql";
+} from '../../sqls/indexSql';
 import {
   getDateNumber,
   getTimeString,
   getGapTimeString,
-} from "@/utility/datetool";
-import { Icon } from "react-native-paper";
-import Svg, { Line } from "react-native-svg";
+} from '@/utility/datetool';
+import { Icon } from 'react-native-paper';
+import Svg, { Line } from 'react-native-svg';
 
-import sportArr from "@/consts/sportType";
-import { effortArr, MoodArr, thinkingStr } from "@/consts";
-import MyScrollView from "../public/myScrollView";
-import { getDatesInWeek } from "@/utility/datetool";
-import { dayDescription } from "../../consts/dayDescription";
-import { useSQLiteContext } from "expo-sqlite";
-import { createTable as createTable2 } from "@/sqls/targetSql2";
-import { EmptyDog } from "./EmptyDog";
-import { useUIStore } from "@/store/alertStore";
+import sportArr from '@/consts/sportType';
+import { effortArr, MoodArr, thinkingStr } from '@/consts';
+import MyScrollView from '../public/myScrollView';
+import { getDatesInWeek } from '@/utility/datetool';
+import { dayDescription } from '../../consts/dayDescription';
+import { useSQLiteContext } from 'expo-sqlite';
+import { createTable as createTable2 } from '@/sqls/targetSql2';
+import { useUIStore } from '@/store/alertStore';
+import { showData } from './showData';
 
 export default function Index() {
-  console.log("index渲染");
+  console.log('index渲染');
 
   const [showT, setShowT] = useState(Date.now());
   const [dataComponent, setDataComponent] = useState<React.ReactNode>();
@@ -63,13 +60,13 @@ export default function Index() {
           console.log(111);
           createTable1(db);
           createTable2(db);
-          router.push("/guidePage");
+          router.push('/guidePage');
         } else {
-          console.log("focus渲染");
+          console.log('focus渲染');
           showData(setDataComponent, showT);
         }
       });
-    }, [db, showT])
+    }, [db, showT]),
   );
 
   return (
@@ -95,9 +92,9 @@ function Header({
   style?: StyleProp<ViewStyle>;
   time: number;
 }) {
-  let d = new Date(time);
-  const sptl = useUIStore(s=>s.spotlight);
-  const setsptl=useUIStore(s=>s.updateSpotlight)
+  const d = new Date(time);
+  const sptl = useUIStore((s) => s.spotlight);
+  const setsptl = useUIStore((s) => s.updateSpotlight);
   const myRef = useRef<View>(null);
   useEffect(() => {
     if (sptl.guideStep === 2) {
@@ -120,9 +117,9 @@ function Header({
       style={[
         {
           height: 50,
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
         },
         style,
       ]}
@@ -132,7 +129,7 @@ function Header({
       </Text>
       <Pressable
         onPress={() => {
-          router.push("/statistic");
+          router.push('/statistic');
         }}
         ref={myRef}
       >
@@ -151,12 +148,12 @@ function WeekCalendar({
   showT: number;
   setShowT: React.Dispatch<React.SetStateAction<number>>;
 }) {
-  let d = new Date();
+  const d = new Date();
 
-  let dateArr = getDatesInWeek(d);
+  const dateArr = getDatesInWeek(d);
 
   return (
-    <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
       {dateArr.map((date, index) => (
         <WeekCalendarCap
           key={index}
@@ -196,10 +193,10 @@ function WeekCalendarCap({
         style={{
           height: 60,
           width: 34,
-          backgroundColor: isChosen ? "#FFF7EE" : undefined,
+          backgroundColor: isChosen ? '#FFF7EE' : undefined,
           borderRadius: 17,
-          justifyContent: "space-between",
-          alignItems: "center",
+          justifyContent: 'space-between',
+          alignItems: 'center',
           paddingTop: 5,
           paddingBottom: 3,
         }}
@@ -208,7 +205,7 @@ function WeekCalendarCap({
           style={{
             color: isChosen ? BrandColor : unChoseColor,
             fontSize: 12,
-            textAlign: "center",
+            textAlign: 'center',
           }}
         >
           {dayDescription[d.getDay()]}
@@ -218,16 +215,16 @@ function WeekCalendarCap({
             height: 30,
             aspectRatio: 1,
             backgroundColor: isChosen
-              ? "#FFCC8E"
+              ? '#FFCC8E'
               : isAfter
-              ? "#F2F2F6"
-              : "#FFF7EE",
+                ? '#F2F2F6'
+                : '#FFF7EE',
             borderRadius: 15,
-            justifyContent: "center",
-            alignItems: "center",
+            justifyContent: 'center',
+            alignItems: 'center',
           }}
         >
-          <Text style={{ color: isAfter ? unChoseColor : "#FF960B" }}>
+          <Text style={{ color: isAfter ? unChoseColor : '#FF960B' }}>
             {d.getDate()}
           </Text>
         </View>
@@ -236,58 +233,7 @@ function WeekCalendarCap({
   );
 }
 
-export async function showData(
-  setDataFace: React.Dispatch<React.SetStateAction<React.ReactNode>>,
-  t: number | Date,
-  isRaw: boolean = false
-) {
-  const db = await getDB();
-  let dateNumber: number;
-  if (typeof t === "number" && t / 100000000 < 1) {
-    dateNumber = t;
-  } else {
-    dateNumber = getDateNumber(t);
-  }
-  const ret = await GetDataByDate(db, dateNumber);
-  console.log("获得ret");
-  if (ret.length === 0) {
-    if (isRaw) {
-      setDataFace(
-        <View
-          style={{
-            alignItems: "center",
-            justifyContent: "center",
-            marginBottom: 20,
-          }}
-        >
-          <EmptyDog date={t instanceof Date ? t.getTime() : t} />
-        </View>
-      );
-    } else {
-      setDataFace(
-        <View
-          style={{
-            position: "absolute",
-            flex: 1,
-            top: 100,
-            left: 0,
-            bottom: 0,
-            right: 0,
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <EmptyDog date={t instanceof Date ? t.getTime() : t} />
-        </View>
-      );
-    }
-  } else {
-    console.log(ret);
-    setDataFace(<SportList sportArr={ret} isRaw={isRaw} />);
-  }
-}
-
-function SportList({
+export function SportList({
   sportArr,
   isRaw = false,
 }: {
@@ -305,7 +251,7 @@ function SportList({
   return (
     <View
       style={{
-        position: "absolute",
+        position: 'absolute',
         top: 0,
         left: 0,
         bottom: 0,
@@ -323,7 +269,7 @@ function SportList({
           style={{
             paddingTop: 10,
             minHeight: height - marginTop,
-            backgroundColor: "white",
+            backgroundColor: 'white',
             borderTopRightRadius: 20,
             borderTopLeftRadius: 20,
           }}
@@ -343,11 +289,11 @@ function SportBlock({ data }: { data: addDataType }) {
       style={{
         marginTop: 10,
         paddingVertical: 10,
-        backgroundColor: "white",
+        backgroundColor: 'white',
         borderRadius: 20,
         paddingRight: 15,
-        flexDirection: "row",
-        alignItems: "flex-start",
+        flexDirection: 'row',
+        alignItems: 'flex-start',
       }}
     >
       <SportBlockLeft height={contentHeight} data={data} />
@@ -367,12 +313,12 @@ function SportBlockLeft({
     <View
       style={{
         width: 40,
-        alignItems: "center",
+        alignItems: 'center',
         marginRight: 10,
         marginLeft: 10,
       }}
     >
-      <Text style={{ color: "#FF9B0B", fontSize: 15 }}>
+      <Text style={{ color: '#FF9B0B', fontSize: 15 }}>
         {getTimeString(data.timestart)}
       </Text>
       <Svg width={1} height={height}>
@@ -383,10 +329,10 @@ function SportBlockLeft({
           y2={height - 5}
           stroke="#FF9B0B"
           stroke-width="1"
-          strokeDasharray={"5,5"}
+          strokeDasharray={'5,5'}
         />
       </Svg>
-      <Text style={{ color: "#FF9B0B", fontSize: 15 }}>
+      <Text style={{ color: '#FF9B0B', fontSize: 15 }}>
         {getTimeString(data.timeend)}
       </Text>
     </View>
@@ -410,18 +356,18 @@ function SportBlockRight({
         setContentWidth(e.nativeEvent.layout.width);
         setHeight(e.nativeEvent.layout.height);
       }}
-      style={{ flex: 1, alignItems: "flex-start", marginVertical: 20 }}
+      style={{ flex: 1, alignItems: 'flex-start', marginVertical: 20 }}
     >
-      <View style={{ height: 85, flexDirection: "row" }}>
+      <View style={{ height: 85, flexDirection: 'row' }}>
         <View
           style={{
             height: 85,
             width: 115,
             borderRadius: 10,
-            backgroundColor: "#FFCC8E",
+            backgroundColor: '#FFCC8E',
             marginRight: 5,
             padding: 5,
-            justifyContent: "center",
+            justifyContent: 'center',
           }}
         >
           <ScrollView
@@ -429,7 +375,7 @@ function SportBlockRight({
             style={{ flexGrow: 0 }}
             showsHorizontalScrollIndicator={false}
           >
-            <Text style={{ color: "#131315", fontSize: 16 }}>
+            <Text style={{ color: '#131315', fontSize: 16 }}>
               {sportArr[data.sportId].emoji + sportArr[data.sportId].sportName}
             </Text>
           </ScrollView>
@@ -440,23 +386,23 @@ function SportBlockRight({
           >
             <View
               style={{
-                flexDirection: "row",
+                flexDirection: 'row',
                 height: 30,
-                alignItems: "baseline",
+                alignItems: 'baseline',
                 // marginTop: 5,
               }}
             >
               <Icon source={MoodArr[data.moodId].icon} size={20} />
-              <Text style={{ fontSize: 22, fontWeight: 500, color: "#131315" }}>
-                {" " + getGapTimeString(data.timeend - data.timestart) + " "}
+              <Text style={{ fontSize: 22, fontWeight: 500, color: '#131315' }}>
+                {' ' + getGapTimeString(data.timeend - data.timestart) + ' '}
               </Text>
-              <Text style={{ fontSize: 15, color: "#131315" }}>时长</Text>
+              <Text style={{ fontSize: 15, color: '#131315' }}>时长</Text>
             </View>
           </ScrollView>
         </View>
-        <View style={{ height: 85, flex: 1, justifyContent: "space-between" }}>
+        <View style={{ height: 85, flex: 1, justifyContent: 'space-between' }}>
           <View
-            style={{ height: 30, flexDirection: "row", paddingTop: 7, flex: 1 }}
+            style={{ height: 30, flexDirection: 'row', paddingTop: 7, flex: 1 }}
           >
             <FlatList
               data={tags}
@@ -471,7 +417,7 @@ function SportBlockRight({
           <View
             style={{
               height: 35,
-              flexDirection: "column-reverse",
+              flexDirection: 'column-reverse',
               width: contentWidth - rpadding,
             }}
           >
@@ -479,9 +425,9 @@ function SportBlockRight({
               style={{
                 height: 10,
                 borderRadius: 5,
-                overflow: "hidden",
+                overflow: 'hidden',
                 width: ((contentWidth - rpadding) / 4) * data.effort,
-                flexDirection: "row",
+                flexDirection: 'row',
                 zIndex: 1,
               }}
             >
@@ -489,32 +435,32 @@ function SportBlockRight({
                 style={{
                   height: 10,
                   width: (contentWidth - rpadding) / 4,
-                  backgroundColor: "#FFD0A9",
-                  display: data.effort >= 0 ? "flex" : "none",
+                  backgroundColor: '#FFD0A9',
+                  display: data.effort >= 0 ? 'flex' : 'none',
                 }}
               ></View>
               <View
                 style={{
                   height: 10,
                   width: (contentWidth - rpadding) / 4,
-                  backgroundColor: "#FFA772",
-                  display: data.effort >= 1 ? "flex" : "none",
+                  backgroundColor: '#FFA772',
+                  display: data.effort >= 1 ? 'flex' : 'none',
                 }}
               ></View>
               <View
                 style={{
                   height: 10,
                   width: (contentWidth - rpadding) / 4,
-                  backgroundColor: "#F27527",
-                  display: data.effort >= 2 ? "flex" : "none",
+                  backgroundColor: '#F27527',
+                  display: data.effort >= 2 ? 'flex' : 'none',
                 }}
               ></View>
               <View
                 style={{
                   height: 10,
                   width: (contentWidth - rpadding) / 4,
-                  backgroundColor: "#D25203",
-                  display: data.effort >= 3 ? "flex" : "none",
+                  backgroundColor: '#D25203',
+                  display: data.effort >= 3 ? 'flex' : 'none',
                 }}
               ></View>
             </View>
@@ -523,10 +469,10 @@ function SportBlockRight({
               style={{
                 width: contentWidth - rpadding,
                 height: 10,
-                position: "absolute",
+                position: 'absolute',
                 bottom: 0,
                 left: 0,
-                backgroundColor: "#E7E7E7",
+                backgroundColor: '#E7E7E7',
                 borderRadius: 5,
                 // zIndex: -1,
               }}
@@ -534,29 +480,29 @@ function SportBlockRight({
             {/* think框 */}
             <View
               style={{
-                position: "absolute",
+                position: 'absolute',
                 height: 20,
                 top: -2,
                 left: ((contentWidth - rpadding) / 4) * data.effort - 22,
-                alignItems: "center",
+                alignItems: 'center',
               }}
             >
               <View
                 style={{
                   width: 46,
                   height: 20,
-                  justifyContent: "center",
-                  alignItems: "center",
+                  justifyContent: 'center',
+                  alignItems: 'center',
                   borderRadius: 6,
-                  backgroundColor: "#FFB52B",
+                  backgroundColor: '#FFB52B',
                 }}
               >
                 <Text
                   style={{
-                    textAlign: "center",
-                    color: "#131315",
+                    textAlign: 'center',
+                    color: '#131315',
                     fontSize: 9,
-                    textAlignVertical: "center",
+                    textAlignVertical: 'center',
                     lineHeight: 20,
                   }}
                 >
@@ -568,7 +514,7 @@ function SportBlockRight({
                   width: 5,
                   height: 5,
                   borderRadius: 2.5,
-                  backgroundColor: "#FFB52B",
+                  backgroundColor: '#FFB52B',
                   marginTop: 2,
                 }}
               ></View>
@@ -578,23 +524,23 @@ function SportBlockRight({
       </View>
       <View
         style={{
-          backgroundColor: "#FFF7EE",
+          backgroundColor: '#FFF7EE',
           borderRadius: 5,
-          boxShadow: "0 4 4 0 rgba(0,0,0,0.1)",
+          boxShadow: '0 4 4 0 rgba(0,0,0,0.1)',
           marginTop: 10,
           paddingVertical: 15,
           paddingHorizontal: 12,
-          display: data.title === "" && data.content === "" ? "none" : "flex",
+          display: data.title === '' && data.content === '' ? 'none' : 'flex',
         }}
       >
         <Text
           style={{
-            color: "#131315",
+            color: '#131315',
             fontWeight: 600,
             fontSize: 20,
             marginBottom: 5,
             paddingBottom: 2,
-            display: data.title === "" ? "none" : "flex",
+            display: data.title === '' ? 'none' : 'flex',
           }}
         >
           {data.title}
@@ -603,18 +549,18 @@ function SportBlockRight({
           style={{
             color: unChoseColor,
             fontSize: 15,
-            display: data.content === "" ? "none" : "flex",
+            display: data.content === '' ? 'none' : 'flex',
           }}
         >
           {data.content}
         </Text>
       </View>
-      <View style={{ flexDirection: "row", marginTop: 15 }}>
+      <View style={{ flexDirection: 'row', marginTop: 15 }}>
         <View
           style={{
-            backgroundColor: "#FFF8DA",
+            backgroundColor: '#FFF8DA',
             borderRadius: 5,
-            boxShadow: "0 4 4 0 rgba(0,0,0,0.1)",
+            boxShadow: '0 4 4 0 rgba(0,0,0,0.1)',
             paddingVertical: 15,
             paddingHorizontal: 12,
             flex: 1,
@@ -624,7 +570,7 @@ function SportBlockRight({
           <ReplyStream data={data} />
         </View>
         <Image
-          source={require("@/assets/images/index/doghead.png")}
+          source={require('@/assets/images/index/doghead.png')}
           style={{ height: 40, width: 40 }}
         />
       </View>
@@ -657,7 +603,7 @@ function SolidTag({
   text,
   style,
 }: {
-  text: String;
+  text: string;
   style?: StyleProp<ViewStyle>;
 }) {
   return (
@@ -666,10 +612,10 @@ function SolidTag({
         {
           height: 27,
           borderWidth: 1,
-          borderColor: "#ff960b",
+          borderColor: '#ff960b',
           borderRadius: 5,
-          justifyContent: "center",
-          alignItems: "center",
+          justifyContent: 'center',
+          alignItems: 'center',
           paddingHorizontal: 5,
         },
         style,
@@ -678,11 +624,11 @@ function SolidTag({
       <Text
         style={{
           color: BrandColor,
-          textAlign: "center",
-          textAlignVertical: "center",
+          textAlign: 'center',
+          textAlignVertical: 'center',
         }}
       >
-        {"# " + text + " #"}
+        {'# ' + text + ' #'}
       </Text>
     </View>
   );

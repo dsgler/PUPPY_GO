@@ -1,12 +1,12 @@
-import React, { useRef } from "react";
-import { Pressable, ViewStyle } from "react-native";
+import React, { useRef } from 'react';
+import { Pressable, ViewStyle } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withRepeat,
   withSequence,
   withTiming,
-} from "react-native-reanimated";
+} from 'react-native-reanimated';
 
 export default function ShakeView({
   children,
@@ -45,23 +45,26 @@ export default function ShakeView({
           const sx = xt.value;
           const sy = yt.value;
           isLocked.current = true;
-          setTimeout(() => {
-            isLocked.current = false;
-            console.log(xt.value, 777);
-            console.log(yt.value, 777);
-          }, d.duration * Math.max(xTimes + 4, yTimes + 4));
+          setTimeout(
+            () => {
+              isLocked.current = false;
+              console.log(xt.value, 777);
+              console.log(yt.value, 777);
+            },
+            d.duration * Math.max(xTimes + 4, yTimes + 4),
+          );
           if (xTimes !== 0 && xRange !== 0) {
             xt.value = withSequence(
               withTiming(sx - xRange, d),
               withRepeat(withTiming(xt.value + xRange * 2, d), xTimes, true),
-              withTiming(sx, d)
+              withTiming(sx, d),
             );
           }
           if (yTimes !== 0 && yRange !== 0) {
             yt.value = withSequence(
               withTiming(sy - yRange, d),
               withRepeat(withTiming(xt.value + yRange * 2, d), yTimes, true),
-              withTiming(sy, d)
+              withTiming(sy, d),
             );
           }
         }}

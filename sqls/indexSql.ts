@@ -1,11 +1,11 @@
-import { effortArr, MoodArr } from "@/consts";
-import { apiKey, baseURL, model } from "@/consts/key";
-import sportArr from "@/consts/sportType";
-import { getGapTimeString } from "@/utility/datetool";
-import { getAllOnce } from "@/utility/sql";
-import * as SQLite from "expo-sqlite";
-import OpenAI from "@/utility/Openai";
-import { isUseAI, replySystemPrompt, reqStrTyp } from "@/consts/propmts";
+import { effortArr, MoodArr } from '@/consts';
+import { apiKey, baseURL, model } from '@/consts/key';
+import sportArr from '@/consts/sportType';
+import { getGapTimeString } from '@/utility/datetool';
+import { getAllOnce } from '@/utility/sql';
+import * as SQLite from 'expo-sqlite';
+import OpenAI from '@/utility/Openai';
+import { isUseAI, replySystemPrompt, reqStrTyp } from '@/consts/propmts';
 
 export type addDataType = {
   id?: number;
@@ -23,7 +23,7 @@ export type addDataType = {
 };
 
 export async function getDB() {
-  const db = SQLite.openDatabaseAsync("myDatabase.db");
+  const db = SQLite.openDatabaseAsync('myDatabase.db');
   return db;
 }
 
@@ -41,7 +41,7 @@ export async function createTable(db: SQLite.SQLiteDatabase) {
         title TEXT NOT NULL,
         content TEXT NOT NULL,
         reply TEXT NOT NULL
-      );`
+      );`,
   );
 }
 
@@ -60,7 +60,7 @@ export async function insertData(db: SQLite.SQLiteDatabase, data: addDataType) {
     content,
     reply,
   } = data;
-  let statement =
+  const statement =
     await db.prepareAsync(`INSERT INTO myTable (date, timestart, timeend, sportId, moodId, effort, Tags, title, content, reply) 
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`);
   try {
@@ -85,18 +85,18 @@ export async function insertData(db: SQLite.SQLiteDatabase, data: addDataType) {
 
 export async function GetDataByDate(
   db: SQLite.SQLiteDatabase,
-  date: number
+  date: number,
 ): Promise<addDataType[]> {
   console.log(date);
   await createTable(db);
   const statement = await db.prepareAsync(
     `SELECT * 
      FROM myTable 
-     WHERE date = ?`
+     WHERE date = ?`,
   );
   try {
     const result = await statement.executeAsync([date]);
-    let ret: addDataType[] = (await result.getAllAsync()) as addDataType[];
+    const ret: addDataType[] = (await result.getAllAsync()) as addDataType[];
     return ret;
   } catch (e) {
     console.log(e);
@@ -109,7 +109,7 @@ export async function GetDataByDate(
 export async function askForReply(
   db: SQLite.SQLiteDatabase,
   data: addDataType,
-  setReply: React.Dispatch<React.SetStateAction<string>>
+  setReply: React.Dispatch<React.SetStateAction<string>>,
 ) {
   if (!isUseAI) {
     return;
@@ -130,44 +130,44 @@ export async function askForReply(
     日记内容: data.content,
   };
   const reqStr = JSON.stringify(reqObj);
-  console.log("发送请求");
+  console.log('发送请求');
 
-  let fullAnswer = "";
+  let fullAnswer = '';
   // 保存用于close
   const es = aiclient.chat.completions.stream(
     {
       model: model,
       messages: [
-        { role: "system", content: replySystemPrompt },
-        { role: "user", content: reqStr },
+        { role: 'system', content: replySystemPrompt },
+        { role: 'user', content: reqStr },
       ],
       // max_tokens: 256,
       temperature: 0.6,
     },
     (data) => {
       const c = data.choices[0].delta.content;
-      if (c && c.trim() !== "" && c !== "\n") {
+      if (c && c.trim() !== '' && c !== '\n') {
         fullAnswer += c;
-        fullAnswer = fullAnswer.replaceAll("\n", "");
-        setReply(fullAnswer + "_");
+        fullAnswer = fullAnswer.replaceAll('\n', '');
+        setReply(fullAnswer + '_');
       }
     },
     {
       onError: (error) => {
-        console.error("SSE Error:", error); // Handle any errors here
+        console.error('SSE Error:', error); // Handle any errors here
         setReply(error);
       },
       onOpen: () => {
-        console.log("SSE connection for completion opened."); // Handle when the connection is opened
-        setReply("(思考中)_");
+        console.log('SSE connection for completion opened.'); // Handle when the connection is opened
+        setReply('(思考中)_');
       },
       onDone: () => {
-        console.log("done", fullAnswer);
-        fullAnswer = fullAnswer.replace(/<think>[^<]+<\/think>/, "");
+        console.log('done', fullAnswer);
+        fullAnswer = fullAnswer.replace(/<think>[^<]+<\/think>/, '');
         setReply(fullAnswer);
         updateReply(db, data.id!, fullAnswer);
       },
-    }
+    },
   );
 
   return es;
@@ -176,7 +176,7 @@ export async function askForReply(
 export async function updateReply(
   db: SQLite.SQLiteDatabase,
   id: number,
-  reply: string
+  reply: string,
 ) {
   return await getAllOnce(
     db,
@@ -185,7 +185,7 @@ SET
   reply = ?
 WHERE
   id = ?;`,
-    [reply, id]
+    [reply, id],
   );
 }
 
@@ -195,7 +195,7 @@ export async function checkIsFirstRun(db: SQLite.SQLiteDatabase) {
     `SELECT name 
 FROM sqlite_master 
 WHERE type='table' AND name='myTable';`,
-    []
+    [],
   );
   return ret.length === 0;
 }

@@ -1,13 +1,14 @@
-import { MoodArr } from "@/consts";
-import { addDataType } from "@/sqls/indexSql";
-import { SkiaChart } from "@wuba/react-native-echarts";
-import { useEffect, useMemo, useRef } from "react";
-import { View, Text, Image, ColorValue, StyleSheet } from "react-native";
-import * as echarts from "echarts/core";
-import AiPlan from "@/components/index/AiPlan";
-import { DogsayGroup } from "./dogsay";
-import { moodSystemPrompt } from "@/consts/propmts";
-import React from "react";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { MoodArr } from '@/consts';
+import { addDataType } from '@/sqls/indexSql';
+import { SkiaChart } from '@wuba/react-native-echarts';
+import { useEffect, useMemo, useRef } from 'react';
+import { View, Text, Image, ColorValue, StyleSheet } from 'react-native';
+import * as echarts from 'echarts/core';
+import AiPlan from '@/components/index/AiPlan';
+import { DogsayGroup } from './dogsay';
+import { moodSystemPrompt } from '@/consts/propmts';
+import React from 'react';
 
 const MoodView = ({
   datas,
@@ -19,7 +20,7 @@ const MoodView = ({
   const MybarChartDatas = useMemo(() => MybarChartDataComposer(datas), [datas]);
   const reqStr = useMemo(() => {
     const reqArr = MoodArr.map(
-      (v, k) => `${v.descirption}:${MybarChartDatas[k].value}`
+      (v, k) => `${v.descirption}:${MybarChartDatas[k].value}`,
     );
     const reqStr = JSON.stringify(reqArr);
     return reqStr;
@@ -27,8 +28,8 @@ const MoodView = ({
 
   return (
     <>
-      <View style={{ flexDirection: "row", justifyContent: "center" }}>
-        <Text style={{ fontFamily: "AaTianNiuNai", fontSize: 18 }}>
+      <View style={{ flexDirection: 'row', justifyContent: 'center' }}>
+        <Text style={{ fontFamily: 'AaTianNiuNai', fontSize: 18 }}>
           本月高频情绪
         </Text>
       </View>
@@ -59,13 +60,17 @@ function MybarChartDataComposer(datas: addDataType[]): MybarChartRow[] {
   return values;
 }
 
-const MybarChart = React.memo(({ datas }: { datas: MybarChartRow[] }) => {
+const MybarChart = React.memo(function MybarChart({
+  datas,
+}: {
+  datas: MybarChartRow[];
+}) {
   const skiaRef = useRef<any>(null);
   useEffect(() => {
     const option = {
       yAxis: {
         data: MoodArr.map((v, k) => ({
-          value: " ",
+          value: ' ',
           textStyle: {
             backgroundColor: MoodArr[k].color,
             width: 20,
@@ -76,23 +81,23 @@ const MybarChart = React.memo(({ datas }: { datas: MybarChartRow[] }) => {
         axisTick: {
           length: 0,
         },
-        type: "category",
+        type: 'category',
         inverse: true,
       },
-      xAxis: { splitLine: { lineStyle: { type: "dashed" } } },
+      xAxis: { splitLine: { lineStyle: { type: 'dashed' } } },
       label: {
         show: true,
-        color: "white",
-        position: "insideLeft",
+        color: 'white',
+        position: 'insideLeft',
       },
       series: [
         {
-          type: "bar",
+          type: 'bar',
           data: datas,
           itemStyle: {
-            color: "#91cc75",
-            shadowColor: "#91cc75",
-            borderType: "dashed",
+            color: '#91cc75',
+            shadowColor: '#91cc75',
+            borderType: 'dashed',
             opacity: 0.7,
             borderRadius: 15,
           },
@@ -101,8 +106,8 @@ const MybarChart = React.memo(({ datas }: { datas: MybarChartRow[] }) => {
     };
     let chart: any;
     if (skiaRef.current) {
-      chart = echarts.init(skiaRef.current, "light", {
-        renderer: "skia" as any,
+      chart = echarts.init(skiaRef.current, 'light', {
+        renderer: 'skia' as any,
         width: 350,
         height: 300,
       });
@@ -126,7 +131,7 @@ function MypieChart({ total, has, moodId }: MypieChartProps) {
     const option = {
       series: [
         {
-          type: "pie",
+          type: 'pie',
           silent: true,
           data: [
             {
@@ -138,18 +143,18 @@ function MypieChart({ total, has, moodId }: MypieChartProps) {
               value: total - has,
               label: { show: false },
               itemStyle: {
-                color: "transparent",
+                color: 'transparent',
               },
             },
           ],
-          radius: ["80%", "100%"],
+          radius: ['80%', '100%'],
         },
       ],
     };
     let chart: any;
     if (skiaRef.current) {
-      chart = echarts.init(skiaRef.current, "light", {
-        renderer: "skia" as any,
+      chart = echarts.init(skiaRef.current, 'light', {
+        renderer: 'skia' as any,
         width: WidthAndHeight,
         height: WidthAndHeight,
       });
@@ -166,9 +171,9 @@ function MypieChart({ total, has, moodId }: MypieChartProps) {
           style={[
             StyleSheet.absoluteFill,
             {
-              justifyContent: "center",
-              alignItems: "center",
-              flexDirection: "row",
+              justifyContent: 'center',
+              alignItems: 'center',
+              flexDirection: 'row',
             },
           ]}
         >
@@ -181,19 +186,23 @@ function MypieChart({ total, has, moodId }: MypieChartProps) {
           />
         </View>
       </View>
-      <Text style={{ textAlign: "center" }}>
+      <Text style={{ textAlign: 'center' }}>
         {Math.round((has / total) * 100)}%
       </Text>
-      <Text style={{ textAlign: "center" }}>{MoodArr[moodId].descirption}</Text>
+      <Text style={{ textAlign: 'center' }}>{MoodArr[moodId].descirption}</Text>
     </View>
   );
 }
 
-const MypieChartGroup = React.memo(({ datas }: { datas: MybarChartRow[] }) => {
+const MypieChartGroup = React.memo(function MypieChartGroup({
+  datas,
+}: {
+  datas: MybarChartRow[];
+}) {
   let total = datas.reduce((p, c) => p + c.value, 0);
   total = total || 1;
   return (
-    <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
       {datas.map((v, k) => (
         <MypieChart total={total} has={v.value} moodId={k} key={k} />
       ))}

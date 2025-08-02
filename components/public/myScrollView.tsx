@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect } from 'react';
 import Animated, {
   clamp,
   useAnimatedStyle,
@@ -6,13 +6,13 @@ import Animated, {
   withDecay,
   withSpring,
   withTiming,
-} from "react-native-reanimated";
+} from 'react-native-reanimated';
 import {
   Gesture,
   GestureDetector,
   GestureHandlerRootView,
-} from "react-native-gesture-handler";
-import { StyleProp, ViewStyle } from "react-native";
+} from 'react-native-gesture-handler';
+import { StyleProp, ViewStyle } from 'react-native';
 
 /**
  * @describe 一个marginTop可变的ScrollView，滑动时改变translate，停止时才改变marginTop
@@ -34,7 +34,7 @@ export default function MyScrollView({
   bounce?: number;
   viewHeight: number;
 }) {
-  console.log("开始渲染ScrollView");
+  console.log('开始渲染ScrollView');
 
   // 用于计算高度，contentHeight 可能多次设置才是最终值
   // const ViewHeight = useSharedValue(0);
@@ -65,7 +65,7 @@ export default function MyScrollView({
   const gestureHandler = Gesture.Pan()
     .failOffsetX([-10, 10])
     .activeOffsetY([-10, 10])
-    .onStart((e) => {
+    .onStart(() => {
       // console.log("开始滑动" + RootMarginTop.value);
       startTranslate.value = InnerTranslate.value;
     })
@@ -108,7 +108,7 @@ export default function MyScrollView({
             clamp(
               InnerTranslate.value,
               -contentHeight.value + viewHeight - RMT,
-              marginTop - RMT
+              marginTop - RMT,
             ),
             { duration: 500 },
             // 还是回调
@@ -125,9 +125,9 @@ export default function MyScrollView({
                 RootMarginTop.value = 0;
                 InnerTranslate.value = off;
               }
-            }
+            },
           );
-        }
+        },
       );
     });
 

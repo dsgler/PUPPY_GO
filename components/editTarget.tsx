@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -10,10 +10,10 @@ import {
   ViewStyle,
   ScrollView,
   FlatList,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import AntIcon from "react-native-vector-icons/AntDesign";
-import Pencil from "@/assets/images/targetPage/pencil";
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import AntIcon from 'react-native-vector-icons/AntDesign';
+import Pencil from '@/assets/images/targetPage/pencil';
 import {
   deleteTarget,
   frequencyType,
@@ -22,26 +22,26 @@ import {
   groupNameRow,
   targetRow,
   updateTarget,
-} from "@/sqls/targetSql2";
-import { useSQLiteContext } from "expo-sqlite";
-import RepeatIcon from "@/assets/images/targetPage/repeat";
+} from '@/sqls/targetSql2';
+import { useSQLiteContext } from 'expo-sqlite';
+import RepeatIcon from '@/assets/images/targetPage/repeat';
 import {
   CustomeMonthBlock,
   CustomeWeekBlock,
-} from "./public/CustomeMonthBlock";
-import * as consts_frequency from "@/consts/frequency";
-import { Updater, useImmer } from "use-immer";
+} from './public/CustomeMonthBlock';
+import * as consts_frequency from '@/consts/frequency';
+import { Updater, useImmer } from 'use-immer';
 
-import { repeatList } from "@/consts/repeatList";
-import Animated from "react-native-reanimated";
-import { BrandColor } from "@/consts/tabs";
-import { router, useLocalSearchParams } from "expo-router";
-import { myFadeIn, myFadeOut, myLayoutTransition } from "@/consts/anime";
-import { useUIStore } from "@/store/alertStore";
+import { repeatList } from '@/consts/repeatList';
+import Animated from 'react-native-reanimated';
+import { BrandColor } from '@/consts/tabs';
+import { router, useLocalSearchParams } from 'expo-router';
+import { myFadeIn, myFadeOut, myLayoutTransition } from '@/consts/anime';
+import { useUIStore } from '@/store/alertStore';
 
-const bgYellow = "#FEE6CE";
-const bgRed = "#FECECE";
-const bgBigRed = "#FF7272";
+const bgYellow = '#FEE6CE';
+const bgRed = '#FECECE';
+const bgBigRed = '#FF7272';
 
 const emptyData = {};
 
@@ -68,18 +68,17 @@ function ListChoose({
           >
             <View
               style={{
-                backgroundColor: "white",
+                backgroundColor: 'white',
                 borderRadius: 10,
                 paddingVertical: 10,
                 paddingLeft: 16,
                 paddingRight: 16,
-                flexDirection: "row",
+                flexDirection: 'row',
                 height: 45,
               }}
             >
               <Text style={{ fontSize: 16, flex: 1 }}>{v.name}</Text>
               {chosenId === v.Id ? (
-                // @ts-ignore
                 <AntIcon name="checkcircle" size={21} color={BrandColor} />
               ) : null}
             </View>
@@ -99,17 +98,17 @@ export default function Page() {
 
   const [data, updateData] = useImmer(emptyData as targetRow);
   const [frequency, updateFrequency] = useImmer<frequencyType>(
-    emptyData as frequencyType
+    emptyData as frequencyType,
   );
   const [groups, setGroups] = useState<groupNameRow[]>();
   const groupList = useMemo<ListChooseListRowType[]>(
     () => (groups ?? []).map((v) => ({ name: v.groupName, Id: v.groupId })),
-    [groups]
+    [groups],
   );
 
-  const myHint = useUIStore(s=>s.showHint);
-  const myConfirm = useUIStore(s=>s.showConfirm);
-  const myAlert = useUIStore(s=>s.showAlert);
+  const myHint = useUIStore((s) => s.showHint);
+  const myConfirm = useUIStore((s) => s.showConfirm);
+  const myAlert = useUIStore((s) => s.showAlert);
 
   useEffect(() => {
     getTarget(db, targetId)
@@ -123,7 +122,7 @@ export default function Page() {
 
   const groupName = useMemo(
     () => groups?.find((v) => v.groupId === data.groupId)?.groupName,
-    [data.groupId, groups]
+    [data.groupId, groups],
   );
   const [isFolded, setIsFolded] = useState(true);
 
@@ -131,7 +130,7 @@ export default function Page() {
     const d = new Date(data.makeTime);
     return `${d
       .toLocaleDateString()
-      .replaceAll("/", "-")} ${d.toLocaleTimeString()}`;
+      .replaceAll('/', '-')} ${d.toLocaleTimeString()}`;
   }, [data.makeTime]);
 
   if (data === emptyData) {
@@ -162,9 +161,9 @@ export default function Page() {
           >
             <View
               style={{
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
               }}
             >
               <Text style={ColoredRowStyle.content}>{groupName}</Text>
@@ -173,9 +172,8 @@ export default function Page() {
                   setIsFolded(!isFolded);
                 }}
               >
-                {/* @ts-ignore */}
                 <AntIcon
-                  name={isFolded ? "rightcircleo" : "downcircleo"}
+                  name={isFolded ? 'rightcircleo' : 'downcircleo'}
                   size={21}
                 />
               </Pressable>
@@ -203,15 +201,15 @@ export default function Page() {
           <ColoredRow
             title={<Text style={ColoredRowStyle.title}>目标时长</Text>}
             backgroundColor={bgRed}
-            style={{ alignItems: "flex-start" }}
+            style={{ alignItems: 'flex-start' }}
           >
             <View style={ColoredRowStyle.inputContainer}>
               <TextInput
                 value={data.duration.toString()}
                 onChangeText={(text) => {
-                  let t = Number(text);
+                  const t = Number(text);
                   if (isNaN(t) || text.length > 3 || t < 0) {
-                    myHint("请输入合理数字");
+                    myHint('请输入合理数字');
                     return;
                   }
                   updateData((data) => {
@@ -226,15 +224,15 @@ export default function Page() {
           <ColoredRow
             title={<Text style={ColoredRowStyle.title}>目标次数</Text>}
             backgroundColor={bgRed}
-            style={{ alignItems: "flex-start" }}
+            style={{ alignItems: 'flex-start' }}
           >
             <View style={ColoredRowStyle.inputContainer}>
               <TextInput
                 value={data.count.toString()}
                 onChangeText={(text) => {
-                  let t = Number(text);
+                  const t = Number(text);
                   if (isNaN(t) || text.length > 3 || t < 0) {
-                    myHint("请输入合理数字");
+                    myHint('请输入合理数字');
                     return;
                   }
                   updateData((data) => {
@@ -250,8 +248,8 @@ export default function Page() {
             title={
               <View
                 style={{
-                  flexDirection: "row",
-                  alignItems: "center",
+                  flexDirection: 'row',
+                  alignItems: 'center',
                 }}
               >
                 <RepeatIcon color={ColoredRowStyle.title.color} />
@@ -326,10 +324,10 @@ export default function Page() {
               style={{
                 height: 40,
                 borderRadius: 10,
-                backgroundColor: "#FFCC8E",
-                justifyContent: "center",
-                alignItems: "center",
-                flexDirection: "row",
+                backgroundColor: '#FFCC8E',
+                justifyContent: 'center',
+                alignItems: 'center',
+                flexDirection: 'row',
               }}
               onPress={() => {
                 updateTarget(db, {
@@ -337,7 +335,7 @@ export default function Page() {
                   frequency: JSON.stringify(frequency),
                 })
                   .then(() => {
-                    myHint("保存成功");
+                    myHint('保存成功');
                     setTimeout(() => {
                       router.back();
                     }, 500);
@@ -353,16 +351,16 @@ export default function Page() {
               style={{
                 height: 40,
                 borderRadius: 10,
-                backgroundColor: "#FFAFAF",
-                justifyContent: "center",
-                alignItems: "center",
-                flexDirection: "row",
+                backgroundColor: '#FFAFAF',
+                justifyContent: 'center',
+                alignItems: 'center',
+                flexDirection: 'row',
               }}
               onPress={() => {
-                myConfirm("确定删除？", () => {
+                myConfirm('确定删除？', () => {
                   deleteTarget(db, data.Id)
                     .then(() => {
-                      myHint("删除成功");
+                      myHint('删除成功');
                       setTimeout(() => {
                         router.back();
                       }, 500);
@@ -371,7 +369,7 @@ export default function Page() {
                 });
               }}
             >
-              <Text style={{ color: "#E12A2A", fontSize: 16 }}>删除</Text>
+              <Text style={{ color: '#E12A2A', fontSize: 16 }}>删除</Text>
             </Pressable>
           </Animated.View>
         </View>
@@ -380,25 +378,24 @@ export default function Page() {
   );
 }
 function Header() {
-  const myConfirm = useUIStore(s=>s.showConfirm);
+  const myConfirm = useUIStore((s) => s.showConfirm);
   return (
     <View
       style={{
-        flexDirection: "row",
-        justifyContent: "center",
+        flexDirection: 'row',
+        justifyContent: 'center',
         height: 48,
-        alignItems: "center",
+        alignItems: 'center',
       }}
     >
       <Pressable
-        style={{ position: "absolute", left: 0 }}
+        style={{ position: 'absolute', left: 0 }}
         onPress={() => {
-          myConfirm("确定不保存退出？", () => {
+          myConfirm('确定不保存退出？', () => {
             router.back();
           });
         }}
       >
-        {/* @ts-ignore */}
         <AntIcon name="leftcircle" size={34} color="#E8A838" />
       </Pressable>
       <Text style={[{ fontSize: 18 }, ColoredRowStyle.bold]}>目标详情</Text>
@@ -408,12 +405,12 @@ function Header() {
 
 const ColoredRowStyle = StyleSheet.create({
   title: {
-    color: "rgba(0,0,0,0.4)",
+    color: 'rgba(0,0,0,0.4)',
     fontSize: 14,
     lineHeight: 22,
   },
   content: {
-    color: "rgba(0,0,0,0.9)",
+    color: 'rgba(0,0,0,0.9)',
     fontSize: 16,
     lineHeight: 24,
   },
@@ -422,37 +419,37 @@ const ColoredRowStyle = StyleSheet.create({
   },
   frequencyBlock: {
     borderRadius: 5,
-    backgroundColor: "#EEEEEE",
+    backgroundColor: '#EEEEEE',
     marginHorizontal: 3,
     paddingHorizontal: 2,
     paddingVertical: 2,
   },
   frequencyBlockChosen: {
-    backgroundColor: "#FFA772",
+    backgroundColor: '#FFA772',
   },
   frequencyBlockText: {
     fontSize: 16,
     lineHeight: 24,
-    color: "rgba(0,0,0,0.26)",
+    color: 'rgba(0,0,0,0.26)',
   },
   frequencyBlockChosenText: {
-    color: "#FFFFFF",
+    color: '#FFFFFF',
   },
   inputContainer: {
-    flexDirection: "row",
+    flexDirection: 'row',
     backgroundColor: bgBigRed,
     borderRadius: 10,
     paddingHorizontal: 3,
     height: 40,
-    alignItems: "center",
+    alignItems: 'center',
   },
   inputText: {
     fontSize: 26,
     lineHeight: 30,
     width: 40,
-    color: "#FFFFFF",
-    textAlign: "right",
-    textAlignVertical: "bottom",
+    color: '#FFFFFF',
+    textAlign: 'right',
+    textAlignVertical: 'bottom',
     height: 30,
     fontWeight: 600,
     padding: 0,
@@ -460,8 +457,8 @@ const ColoredRowStyle = StyleSheet.create({
   },
   inputBesideText: {
     fontSize: 16,
-    color: "#FFFFFF",
-    alignSelf: "flex-end",
+    color: '#FFFFFF',
+    alignSelf: 'flex-end',
     marginBottom: 5,
   },
 });
@@ -486,7 +483,7 @@ function ColoredRow({
           borderRadius: 10,
           backgroundColor,
           gap: 5,
-          overflow: "hidden",
+          overflow: 'hidden',
         },
         style,
       ]}
@@ -507,14 +504,14 @@ const PencilRow = ({
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [t, setT] = useState(data.description);
-  console.log("isEditing:", isEditing);
+  console.log('isEditing:', isEditing);
 
   return (
     <View
       style={{
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
       }}
     >
       {isEditing ? (

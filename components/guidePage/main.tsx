@@ -5,22 +5,22 @@ import Animated, {
   useSharedValue,
   withDecay,
   withTiming,
-} from "react-native-reanimated";
-import Page1 from "./page1";
-import { SafeAreaView } from "react-native-safe-area-context";
-import Page2 from "./page2";
-import Page3 from "./page3";
-import Page4 from "./page4";
-import { Dimensions, StyleSheet, View } from "react-native";
+} from 'react-native-reanimated';
+import Page1 from './page1';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import Page2 from './page2';
+import Page3 from './page3';
+import Page4 from './page4';
+import { Dimensions, StyleSheet, View } from 'react-native';
 import {
   Gesture,
   GestureDetector,
   GestureHandlerRootView,
-} from "react-native-gesture-handler";
-import { useState } from "react";
+} from 'react-native-gesture-handler';
+import { useState } from 'react';
 
 export default function Page() {
-  const pageWinth = Dimensions.get("window").width;
+  const pageWinth = Dimensions.get('window').width;
 
   // 确保按钮能点（不知道为什么）
   const [r, setR] = useState(false);
@@ -45,7 +45,7 @@ export default function Page() {
       const aim = clamp(
         Math.round(t / pageWinth) * pageWinth,
         -3 * pageWinth,
-        0
+        0,
       );
       const c: [number, number] = !isForward
         ? [aim, aim + pageWinth]
@@ -64,10 +64,10 @@ export default function Page() {
           const aim = clamp(
             Math.round(t / pageWinth) * pageWinth,
             -3 * pageWinth,
-            0
+            0,
           );
           transX.value = withTiming(aim, { duration: 50 }, runOnJS(refresh));
-        }
+        },
       );
     });
 
@@ -86,7 +86,7 @@ export default function Page() {
 
   return (
     <GestureHandlerRootView>
-      <Animated.View style={{ flex: 1, backgroundColor: "white" }}>
+      <Animated.View style={{ flex: 1, backgroundColor: 'white' }}>
         <GestureDetector gesture={panGesture}>
           <SafeAreaView style={{ flex: 1 }}>
             <View style={[StyleSheet.absoluteFill]}>

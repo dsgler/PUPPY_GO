@@ -1,21 +1,21 @@
-import { BrandColor } from "@/consts/tabs";
-import { childrenRow } from "@/sqls/targetSql2";
-import { useContext, useEffect } from "react";
-import { ColorValue, Pressable, Text, View } from "react-native";
+import { BrandColor } from '@/consts/tabs';
+import { childrenRow } from '@/sqls/targetSql2';
+import { useContext, useEffect } from 'react';
+import { ColorValue, Pressable, Text, View } from 'react-native';
 import {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
-} from "react-native-reanimated";
-import Animated from "react-native-reanimated";
-import AntIcon from "react-native-vector-icons/AntDesign";
-import { Progress } from "./Progress";
-import { MenuCtx, menuObjType, getDescription } from "./public";
+} from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
+import AntIcon from 'react-native-vector-icons/AntDesign';
+import { Progress } from './Progress';
+import { MenuCtx, menuObjType, getDescription } from './public';
 
 export function MonthgroupChildRow({ data }: { data: childrenRow }) {
-  const greyColor = "#E5DDD5";
+  const greyColor = '#E5DDD5';
   const duration = 500;
-  const bgColor = useSharedValue<ColorValue>("#FFFFFF");
+  const bgColor = useSharedValue<ColorValue>('#FFFFFF');
   const bgStyle = useAnimatedStyle(() => ({
     backgroundColor: bgColor.value,
     borderRadius: 5,
@@ -23,7 +23,7 @@ export function MonthgroupChildRow({ data }: { data: childrenRow }) {
   const [menuObj, setMenu] = useContext(MenuCtx);
   useEffect(() => {
     if (!menuObj.visibility) {
-      bgColor.value = withTiming("#FFFFFF", { duration: duration });
+      bgColor.value = withTiming('#FFFFFF', { duration: duration });
     }
   }, [bgColor, menuObj.visibility]);
 
@@ -40,7 +40,7 @@ export function MonthgroupChildRow({ data }: { data: childrenRow }) {
           targetId: data.Id,
           groupId: -1,
           visibility: true,
-          groupName: "",
+          groupName: '',
         };
         setMenu(obj);
       }}
@@ -49,14 +49,14 @@ export function MonthgroupChildRow({ data }: { data: childrenRow }) {
           return;
         }
 
-        bgColor.value = withTiming("#FFFFFF", { duration: duration });
+        bgColor.value = withTiming('#FFFFFF', { duration: duration });
       }}
     >
       <Animated.View style={bgStyle}>
         <Text
           style={{
-            flexDirection: "row",
-            alignItems: "center",
+            flexDirection: 'row',
+            alignItems: 'center',
             marginTop: 10,
             minHeight: 24,
           }}
@@ -70,9 +70,9 @@ export function MonthgroupChildRow({ data }: { data: childrenRow }) {
             <View
               style={{
                 borderRadius: 999,
-                backgroundColor: "#FFF1B0",
-                justifyContent: "center",
-                alignItems: "center",
+                backgroundColor: '#FFF1B0',
+                justifyContent: 'center',
+                alignItems: 'center',
                 paddingHorizontal: 5,
                 marginLeft: 5,
                 height: 24,
@@ -83,8 +83,8 @@ export function MonthgroupChildRow({ data }: { data: childrenRow }) {
                 style={{
                   fontSize: 16,
                   lineHeight: 24,
-                  color: "#FFBC2B",
-                  textAlign: "center",
+                  color: '#FFBC2B',
+                  textAlign: 'center',
                 }}
               >
                 {data.count - data.times}
@@ -95,8 +95,8 @@ export function MonthgroupChildRow({ data }: { data: childrenRow }) {
         <View
           style={{
             height: 22,
-            flexDirection: "row",
-            alignItems: "center",
+            flexDirection: 'row',
+            alignItems: 'center',
           }}
         >
           <Progress
@@ -106,12 +106,12 @@ export function MonthgroupChildRow({ data }: { data: childrenRow }) {
             color={BrandColor}
             height={6}
             style={{ flex: 1 }}
-            achievedColor={"#2BA471"}
+            achievedColor={'#2BA471'}
           />
           <View
             style={{
               width: 36,
-              flexDirection: "row",
+              flexDirection: 'row',
             }}
           >
             <View style={{ flex: 1 }}></View>
@@ -121,13 +121,12 @@ export function MonthgroupChildRow({ data }: { data: childrenRow }) {
                   fontSize: 14,
                   lineHeight: 22,
                   width: 36,
-                  textAlign: "right",
+                  textAlign: 'right',
                 }}
               >
-                {Math.round((100 * data.times) / data.count) + "%"}
+                {Math.round((100 * data.times) / data.count) + '%'}
               </Text>
             ) : (
-              // @ts-ignore
               <AntIcon name="checkcircle" size={21} color="#2BA471" />
             )}
           </View>

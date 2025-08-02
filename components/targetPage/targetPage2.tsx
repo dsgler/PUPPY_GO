@@ -1,19 +1,26 @@
-import { BrandColor, textColor } from "@/consts/tabs";
-import { Text, Pressable, TextInput, StyleSheet, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import FeaIcon from "react-native-vector-icons/Feather";
+import { BrandColor, textColor } from '@/consts/tabs';
+import {
+  Text,
+  Pressable,
+  TextInput,
+  StyleSheet,
+  View,
+  GestureResponderEvent,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import FeaIcon from 'react-native-vector-icons/Feather';
 
-import { GestureHandlerRootView } from "react-native-gesture-handler";
-import Animated from "react-native-reanimated";
-import { useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { useImmer } from "use-immer";
-import { Modal, Portal } from "react-native-paper";
-import PressableText from "@/components/public/PressableText";
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import Animated from 'react-native-reanimated';
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { useImmer } from 'use-immer';
+import { Modal, Portal } from 'react-native-paper';
+import PressableText from '@/components/public/PressableText';
 
-import * as consts_duration from "@/consts/duration";
-import { useSQLiteContext } from "expo-sqlite";
-import * as SQLite from "expo-sqlite";
-import { getGapTimeString } from "@/utility/datetool";
+import * as consts_duration from '@/consts/duration';
+import { useSQLiteContext } from 'expo-sqlite';
+import * as SQLite from 'expo-sqlite';
+import { getGapTimeString } from '@/utility/datetool';
 import {
   addGroupOrGetGroupId,
   changeGroupName,
@@ -25,12 +32,12 @@ import {
   getProgressByMonth,
   getProgressByWeek,
   targetRow,
-} from "@/sqls/targetSql2";
-import sportArr from "@/consts/sportType";
-import { useUIStore } from "@/store/alertStore";
-import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
-import { WeekGroup } from "./WeekGroup";
-import { MonthGroup } from "./MonthGroup";
+} from '@/sqls/targetSql2';
+import sportArr from '@/consts/sportType';
+import { useUIStore } from '@/store/alertStore';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { WeekGroup } from './WeekGroup';
+import { MonthGroup } from './MonthGroup';
 import {
   menuObjType,
   AddTarget_frequencyStateDefault,
@@ -41,16 +48,16 @@ import {
   ShowAddGroupCtx,
   myLayoutTransition,
   AddTargetStates,
-} from "./public";
-import { Tip } from "./Tip";
-import { EmptyDog } from "./EmptyDog";
-import { AddTarget, AddGroup } from "./AddRow";
-import { TaskItemRow } from "./ItemTaskRow";
-import { ModalComponent1 } from "./Modal1";
-import { TopBar } from "./TopBar";
+} from './public';
+import { Tip } from './Tip';
+import { EmptyDog } from './EmptyDog';
+import { AddTarget, AddGroup } from './AddRow';
+import { TaskItemRow } from './ItemTaskRow';
+import { ModalComponent1 } from './Modal1';
+import { TopBar } from './TopBar';
 
 export default function Page() {
-  console.log("渲染targetPage");
+  console.log('渲染targetPage');
   const { durationType: durationTypeString } = useLocalSearchParams<{
     durationType: string;
   }>();
@@ -85,12 +92,12 @@ export default function Page() {
     visibility: false,
     targetId: -1,
     groupId: -1,
-    groupName: "",
+    groupName: '',
   });
 
   const RefreshFn = useCallback(() => {
     showData(db, durationType, new Date(), setDataComponent, setIsEmpty).catch(
-      showAlert
+      showAlert,
     );
     setMenuobj((v) => {
       v.visibility = false;
@@ -104,7 +111,7 @@ export default function Page() {
   const showAddGroup = useCallback(() => {
     setMenuobj((v) => {
       v.groupId = -1;
-      v.groupName = "";
+      v.groupName = '';
       v.targetId = -1;
       v.visibility = false;
     });
@@ -113,7 +120,7 @@ export default function Page() {
   }, [setMenuobj]);
 
   const AddTarget_frequencyState = useImmer<frequencyType>(
-    AddTarget_frequencyStateDefault
+    AddTarget_frequencyStateDefault,
   );
   const AddTarget_dataState = useImmer<targetRow>(AddTarget_dataStateDefault);
   const AddTargetStates: AddTargetStates = useMemo(
@@ -121,13 +128,14 @@ export default function Page() {
       frequencyState: AddTarget_frequencyState,
       dataState: AddTarget_dataState,
     }),
-    [AddTarget_dataState, AddTarget_frequencyState]
+    [AddTarget_dataState, AddTarget_frequencyState],
   );
 
   const showAddTarget = useCallback(
     (
+      e?: GestureResponderEvent,
       isClear: boolean = true,
-      afterClear?: (AddTargetStates: AddTargetStates) => void
+      afterClear?: (AddTargetStates: AddTargetStates) => void,
     ) => {
       if (isClear) {
         AddTarget_dataState[1](AddTarget_dataStateDefault);
@@ -139,7 +147,7 @@ export default function Page() {
       }
       setInsertModalV(true);
     },
-    [AddTargetStates, AddTarget_dataState, AddTarget_frequencyState]
+    [AddTargetStates, AddTarget_dataState, AddTarget_frequencyState],
   );
 
   return (
@@ -179,17 +187,17 @@ export default function Page() {
               <Modal
                 visible={insertModalV}
                 style={{
-                  justifyContent: "flex-end",
+                  justifyContent: 'flex-end',
                 }}
                 dismissable={false}
               >
                 <Animated.ScrollView
-                  keyboardShouldPersistTaps={"always"}
+                  keyboardShouldPersistTaps={'always'}
                   layout={myLayoutTransition}
                 >
                   <View
                     style={{
-                      backgroundColor: "#F4F4F4",
+                      backgroundColor: '#F4F4F4',
                       borderTopLeftRadius: 12,
                       borderTopRightRadius: 12,
                       paddingHorizontal: 20,
@@ -211,7 +219,7 @@ export default function Page() {
           style={[
             StyleSheet.absoluteFill,
             {
-              display: menuobj.visibility ? "flex" : "none",
+              display: menuobj.visibility ? 'flex' : 'none',
             },
           ]}
           onPress={() => {
@@ -220,30 +228,30 @@ export default function Page() {
         >
           <Pressable
             style={{
-              backgroundColor: "#E7E7E7",
+              backgroundColor: '#E7E7E7',
               width: 150,
-              position: "absolute",
+              position: 'absolute',
               left: menuobj.x,
               top: menuobj.y,
               borderRadius: 10,
               gap: 3,
-              overflow: "hidden",
-              boxShadow: "0 4 34 rgba(0,0,0,0.1)",
+              overflow: 'hidden',
+              boxShadow: '0 4 34 rgba(0,0,0,0.1)',
             }}
             onPress={() => {}}
           >
             <Pressable
               style={{
-                flexDirection: "row",
-                alignItems: "center",
-                backgroundColor: "white",
+                flexDirection: 'row',
+                alignItems: 'center',
+                backgroundColor: 'white',
                 paddingHorizontal: 10,
                 height: 34,
               }}
               onPress={() => {
                 if (menuobj.targetId !== -1) {
                   router.push({
-                    pathname: "/editTarget",
+                    pathname: '/editTarget',
                     params: { targetId: menuobj.targetId },
                   });
                 } else if (menuobj.groupId !== -1) {
@@ -257,14 +265,14 @@ export default function Page() {
             </Pressable>
             <Pressable
               style={{
-                flexDirection: "row",
-                alignItems: "center",
-                backgroundColor: "white",
+                flexDirection: 'row',
+                alignItems: 'center',
+                backgroundColor: 'white',
                 paddingHorizontal: 10,
                 height: 34,
               }}
               onPress={() => {
-                showConfirm("确定删除吗？", () => {
+                showConfirm('确定删除吗？', () => {
                   if (menuobj.targetId !== -1) {
                     deleteTarget(db, menuobj.targetId)
                       .then(RefreshFn)
@@ -277,11 +285,10 @@ export default function Page() {
                 });
               }}
             >
-              <Text style={{ flex: 1, color: "#F57165", fontSize: 14 }}>
+              <Text style={{ flex: 1, color: '#F57165', fontSize: 14 }}>
                 删除
               </Text>
-              {/* @ts-ignore */}
-              <FeaIcon name="trash-2" size={24} color={"#F57165"} />
+              <FeaIcon name="trash-2" size={24} color={'#F57165'} />
             </Pressable>
           </Pressable>
         </Pressable>
@@ -312,7 +319,7 @@ function ModalComponentSwitcher({
       />
     );
   } else {
-    throw Error("未知的modalType:" + modalType);
+    throw Error('未知的modalType:' + modalType);
   }
 }
 
@@ -339,9 +346,9 @@ function ModalComponent0({
     <View>
       <View
         style={{
-          flexDirection: "row",
-          justifyContent: "space-between",
-          alignItems: "baseline",
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'baseline',
         }}
       >
         <PressableText
@@ -354,7 +361,7 @@ function ModalComponent0({
           }}
         />
         <Text style={{ color: textColor, fontSize: 18 }}>
-          {isAdd ? "创建分组" : "修改分组"}
+          {isAdd ? '创建分组' : '修改分组'}
         </Text>
         <PressableText
           message="保存"
@@ -362,15 +369,15 @@ function ModalComponent0({
           highlightColor="#ffd399"
           TextStyle={{ fontSize: 16 }}
           onPress={() => {
-            let t = groupName.trim();
-            if (t === "") {
-              showAlert("请输入groupName");
+            const t = groupName.trim();
+            if (t === '') {
+              showAlert('请输入groupName');
               return;
             }
             if (isAdd) {
               addGroupOrGetGroupId(db, t)
                 .then(() => {
-                  showHint("添加成功");
+                  showHint('添加成功');
                   setInsertModalV(false);
                   RefreshFn();
                 })
@@ -378,7 +385,7 @@ function ModalComponent0({
             } else {
               changeGroupName(db, menuobj.groupId, t)
                 .then(() => {
-                  showHint("修改成功");
+                  showHint('修改成功');
                   setInsertModalV(false);
                   RefreshFn();
                 })
@@ -390,13 +397,13 @@ function ModalComponent0({
       <View
         style={{
           borderRadius: 15,
-          backgroundColor: "white",
+          backgroundColor: 'white',
           marginTop: 20,
           marginBottom: 20,
           paddingHorizontal: 10,
           paddingVertical: 3,
           height: 45,
-          justifyContent: "center",
+          justifyContent: 'center',
         }}
       >
         <TextInput
@@ -417,12 +424,12 @@ async function showData(
   durationType: number,
   d: Date,
   setDataComponent: React.Dispatch<React.SetStateAction<React.ReactNode>>,
-  setIsEmpty: React.Dispatch<React.SetStateAction<boolean>>
+  setIsEmpty: React.Dispatch<React.SetStateAction<boolean>>,
 ) {
-  console.log("showData调用");
+  console.log('showData调用');
   await createTable(db);
   if (durationType === consts_duration.DAILY) {
-    let datas = await getProgressByDay(db, d);
+    const datas = await getProgressByDay(db, d);
     if (datas.length === 0) {
       setIsEmpty(true);
       setDataComponent(null);
@@ -438,7 +445,7 @@ async function showData(
               data.sportId === -1
                 ? data.description
                 : `${sportArr[data.sportId].sportName}${getGapTimeString(
-                    data.duration
+                    data.duration,
                   )}`
             }
             isFinished={data.isFinished}
@@ -447,7 +454,7 @@ async function showData(
             style={{ marginTop: 10 }}
           />
         ))}
-      </Animated.View>
+      </Animated.View>,
     );
   } else if (durationType === consts_duration.WEEKLY) {
     const datas = await getProgressByWeek(db, d);
@@ -460,7 +467,7 @@ async function showData(
           }
           return undefined;
         })}
-      </View>
+      </View>,
     );
   } else if (durationType === consts_duration.MONTHLY) {
     const datas = await getProgressByMonth(db);
@@ -470,9 +477,9 @@ async function showData(
         {datas.map((data, key) => {
           return <MonthGroup data={data} key={key} />;
         })}
-      </View>
+      </View>,
     );
   } else {
-    throw Error("没有这个durationType类型");
+    throw Error('没有这个durationType类型');
   }
 }

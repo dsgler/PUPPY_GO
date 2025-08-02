@@ -1,15 +1,15 @@
-import AddPage from "@/components/addPage/addPage";
-import {  useEffect } from "react";
-import { BackHandler } from "react-native";
-import { router } from "expo-router";
-import { useUIStore } from "@/store/alertStore";
+import AddPage from '@/components/addPage/addPage';
+import { useEffect } from 'react';
+import { BackHandler } from 'react-native';
+import { router } from 'expo-router';
+import { useUIStore } from '@/store/alertStore';
 
 export default function Add() {
-    const showConfirm = useUIStore(s=>s.showConfirm);
-  
+  const showConfirm = useUIStore((s) => s.showConfirm);
+
   useEffect(() => {
-    const i = BackHandler.addEventListener("hardwareBackPress", () => {
-      showConfirm("确认退出吗？", router.back);
+    const i = BackHandler.addEventListener('hardwareBackPress', () => {
+      showConfirm('确认退出吗？', router.back);
       return true;
     });
 
@@ -17,5 +17,6 @@ export default function Add() {
       i.remove();
     };
   }, [showConfirm]);
+
   return <AddPage />;
 }

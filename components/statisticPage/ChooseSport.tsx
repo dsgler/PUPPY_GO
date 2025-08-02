@@ -1,9 +1,9 @@
-import { Text, Pressable } from "react-native";
-import { ChooseSport } from "@/components/addPage/addPage";
-import AntIcon from "react-native-vector-icons/AntDesign";
-import Animated from "react-native-reanimated";
-import { useState } from "react";
-import { myFadeIn, myFadeOut, myLayoutTransition } from "@/consts/anime";
+import { Text, Pressable } from 'react-native';
+import { ChooseSport } from '@/components/addPage/addPage';
+import AntIcon from 'react-native-vector-icons/AntDesign';
+import Animated from 'react-native-reanimated';
+import { useState } from 'react';
+import { myFadeIn, myFadeOut, myLayoutTransition } from '@/consts/anime';
 
 export default function F({
   sportId,
@@ -19,25 +19,24 @@ export default function F({
       <Animated.View
         layout={myLayoutTransition}
         style={{
-          backgroundColor: "rgba(255,255,255,0.5)",
-          alignSelf: "flex-start",
+          backgroundColor: 'rgba(255,255,255,0.5)',
+          alignSelf: 'flex-start',
           paddingVertical: 10,
           paddingHorizontal: 10,
           borderRadius: 20,
         }}
       >
         <Pressable
-          style={{ flexDirection: "row", alignItems: "center" }}
+          style={{ flexDirection: 'row', alignItems: 'center' }}
           onPress={() => {
             setSportId(-1);
             setIsOpen(!isOpen);
           }}
         >
-          <Text style={{ color: "#828287", fontSize: 14, marginRight: 5 }}>
+          <Text style={{ color: '#828287', fontSize: 14, marginRight: 5 }}>
             全部运动
           </Text>
-          {/* @ts-ignore */}
-          <AntIcon name="caretdown" color={"#828287"} size={14} />
+          <AntIcon name="caretdown" color={'#828287'} size={14} />
         </Pressable>
       </Animated.View>
       {isOpen && (

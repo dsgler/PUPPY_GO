@@ -1,7 +1,8 @@
-import { BrandColor } from "@/consts/tabs";
-import { useContext } from "react";
-import { View, Text, TextInput } from "react-native";
-import { InfoObjStateCtx, ViewStyle } from "./public";
+import { BrandColor } from '@/consts/tabs';
+import { useContext } from 'react';
+import { View, Text, TextInput } from 'react-native';
+import { InfoObjStateCtx } from './public';
+import { ViewStyle } from './ViewStyle';
 
 export function HeightAndWeightView() {
   const [InfoObj, updateInfoObj] = useContext(InfoObjStateCtx);

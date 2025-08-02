@@ -4,17 +4,17 @@ export function getKey(jsonStr: string, key: string) {
   let posi = 0;
   const keyStrart = jsonStr.indexOf(key, posi);
   if (keyStrart === -1) {
-    return "";
+    return '';
   }
   posi = keyStrart + key.length;
 
-  const bracketStart = jsonStr.indexOf("{", posi);
+  const bracketStart = jsonStr.indexOf('{', posi);
   if (bracketStart === -1) {
-    return "";
+    return '';
   }
 
   posi = bracketStart + 1;
-  const bracketEnd = jsonStr.indexOf("}", posi);
+  const bracketEnd = jsonStr.indexOf('}', posi);
 
   return jsonStr.substring(posi, bracketEnd === -1 ? undefined : bracketEnd);
 }
@@ -25,11 +25,11 @@ export function getArr(rawStr: string) {
   const arr: string[] = [];
   let posi = 0;
   while (true) {
-    const startPosi = rawStr.indexOf("{", posi);
+    const startPosi = rawStr.indexOf('{', posi);
     if (startPosi === -1) {
       break;
     }
-    const endPosi = rawStr.indexOf("}", startPosi + 1);
+    const endPosi = rawStr.indexOf('}', startPosi + 1);
     if (endPosi === -1) {
       arr.push(rawStr.substring(startPosi + 1));
       break;

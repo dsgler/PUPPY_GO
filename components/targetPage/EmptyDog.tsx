@@ -1,14 +1,22 @@
-import { useUIStore } from "@/store/alertStore";
-import { useContext, useRef, useEffect } from "react";
-import { View, StyleSheet, Image, Text, Pressable } from "react-native";
-import { AddTargetStates } from "./public";
+import { useUIStore } from '@/store/alertStore';
+import { useRef, useEffect } from 'react';
+import {
+  View,
+  StyleSheet,
+  Image,
+  Text,
+  Pressable,
+  GestureResponderEvent,
+} from 'react-native';
+import { AddTargetStates } from './public';
 
 export function EmptyDog({
   showAddTarget,
 }: {
   showAddTarget: (
+    e?: GestureResponderEvent,
     isClear?: boolean,
-    afterClear?: (AddTargetStates: AddTargetStates) => void
+    afterClear?: (AddTargetStates: AddTargetStates) => void,
   ) => void;
 }) {
   const updateSpotlight = useUIStore((state) => state.updateSpotlight);
@@ -34,19 +42,19 @@ export function EmptyDog({
     <View
       style={[
         StyleSheet.absoluteFill,
-        { justifyContent: "center", alignItems: "center" },
+        { justifyContent: 'center', alignItems: 'center' },
       ]}
     >
       <Image
-        source={require("@/assets/images/targetPage/empty.png")}
+        source={require('@/assets/images/targetPage/empty.png')}
         style={{ width: 233, height: 187 }}
       />
-      <Text style={{ color: "#828287", fontSize: 14, textAlign: "center" }}>
-        {"还没有目标哦……\n先从一件小事开始吧"}
+      <Text style={{ color: '#828287', fontSize: 14, textAlign: 'center' }}>
+        {'还没有目标哦……\n先从一件小事开始吧'}
       </Text>
       <Pressable
         style={{
-          backgroundColor: "#FF960B",
+          backgroundColor: '#FF960B',
           borderRadius: 15,
           paddingHorizontal: 16,
           paddingVertical: 6,
@@ -57,7 +65,7 @@ export function EmptyDog({
         }}
         ref={myRef}
       >
-        <Text style={{ fontSize: 16, color: "#FFFFFF" }}>去添加</Text>
+        <Text style={{ fontSize: 16, color: '#FFFFFF' }}>去添加</Text>
       </Pressable>
     </View>
   );

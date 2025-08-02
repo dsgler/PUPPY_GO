@@ -1,11 +1,11 @@
-import { StyleSheet, View, Pressable, Text } from "react-native";
-import { pageTypeArr } from "./pageType";
+import { StyleSheet, View, Pressable, Text } from 'react-native';
+import { pageTypeArr } from './pageType';
 
 const ChooseIconStyle = StyleSheet.create({
   block: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     height: 28,
     borderWidth: 1,
     paddingHorizontal: 8,
@@ -25,9 +25,9 @@ export function ChooseIcon({
   return (
     <View
       style={{
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
       }}
     >
       {pageTypeArr.map((v) => (

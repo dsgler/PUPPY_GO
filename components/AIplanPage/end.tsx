@@ -1,22 +1,22 @@
-import { View, Text, Pressable, Share } from "react-native";
-import { InfoObjStateCtx, ViewStyle } from "./public";
-import { BrandColor } from "@/consts/tabs";
-import AntIcon from "react-native-vector-icons/AntDesign";
-import { useContext } from "react";
-import { router } from "expo-router";
+import { View, Text, Pressable, Share } from 'react-native';
+import { InfoObjStateCtx } from './public';
+import { ViewStyle } from './ViewStyle';
+import { BrandColor } from '@/consts/tabs';
+import AntIcon from 'react-native-vector-icons/AntDesign';
+import { useContext } from 'react';
+import { router } from 'expo-router';
 
 export default function EndView() {
   const [InfoObj] = useContext(InfoObjStateCtx);
   return (
-    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
       <View
         style={{
-          justifyContent: "center",
-          alignItems: "center",
+          justifyContent: 'center',
+          alignItems: 'center',
           transform: [{ translateY: -50 }],
         }}
       >
-        {/* @ts-ignore */}
         <AntIcon name="checkcircle" size={80} color={BrandColor} />
         <Text style={[ViewStyle.mainText, { marginVertical: 20 }]}>
           生成完毕
@@ -27,10 +27,10 @@ export default function EndView() {
       </View>
       <View
         style={{
-          position: "absolute",
+          position: 'absolute',
           bottom: 20,
-          flexDirection: "row",
-          alignItems: "center",
+          flexDirection: 'row',
+          alignItems: 'center',
           paddingHorizontal: 16,
           gap: 8,
         }}
@@ -39,13 +39,13 @@ export default function EndView() {
           style={{
             flex: 1,
             borderRadius: 6,
-            backgroundColor: "white",
+            backgroundColor: 'white',
             borderWidth: 1,
             borderColor: BrandColor,
-            flexDirection: "row",
-            alignItems: "center",
+            flexDirection: 'row',
+            alignItems: 'center',
             height: 48,
-            justifyContent: "center",
+            justifyContent: 'center',
           }}
           onPress={() => {
             Share.share({
@@ -57,15 +57,14 @@ export default function EndView() {
                         (m, k) =>
                           `${k + 1}.\n  项目名:${m.项目名}\n  训练频率:${
                             m.训练频率
-                          }\n  每月目标训练次数:${m.每月目标训练次数}\n`
+                          }\n  每月目标训练次数:${m.每月目标训练次数}\n`,
                       )
-                      .join(" \n")}`
+                      .join(' \n')}`,
                 )
-                .join("\n \n"),
+                .join('\n \n'),
             });
           }}
         >
-          {/* @ts-ignore */}
           <AntIcon name="sharealt" size={24} color={BrandColor} />
           <Text style={{ fontSize: 16, color: BrandColor }}>分享给朋友</Text>
         </Pressable>
@@ -76,16 +75,16 @@ export default function EndView() {
             backgroundColor: BrandColor,
             borderWidth: 1,
             borderColor: BrandColor,
-            flexDirection: "row",
-            alignItems: "center",
+            flexDirection: 'row',
+            alignItems: 'center',
             height: 48,
-            justifyContent: "center",
+            justifyContent: 'center',
           }}
           onPress={() => {
-            router.dismissTo("/(tabs)/targetPage");
+            router.dismissTo('/(tabs)/targetPage');
           }}
         >
-          <Text style={{ fontSize: 16, color: "white" }}>去查看</Text>
+          <Text style={{ fontSize: 16, color: 'white' }}>去查看</Text>
         </Pressable>
       </View>
     </View>

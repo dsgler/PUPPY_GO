@@ -20,9 +20,9 @@ export function AddDays(date: Date, days: number) {
  * 周日在最后
  */
 export function getDatesInWeek(d: Date): Date[] {
-  let dateArr: Date[] = Array.from({ length: 7 });
-  let t = d.getDay();
-  let off = t === 0 ? -6 : -t + 1;
+  const dateArr: Date[] = Array.from({ length: 7 });
+  const t = d.getDay();
+  const off = t === 0 ? -6 : -t + 1;
   for (let i = 0; i < 7; i++) {
     dateArr[i] = AddDays(d, off + i);
   }
@@ -30,7 +30,7 @@ export function getDatesInWeek(d: Date): Date[] {
 }
 export function getmulti(Minutes: number, timeend: Date = new Date()) {
   // month 从0开始多少有点逆天
-  let obj = {
+  const obj = {
     date:
       timeend.getFullYear() * 10000 +
       (timeend.getMonth() + 1) * 100 +
@@ -42,16 +42,16 @@ export function getmulti(Minutes: number, timeend: Date = new Date()) {
 }
 
 export function getTimeString(t: number) {
-  let d = new Date(t);
-  let hours = d.getHours().toString();
-  let minutes = d.getMinutes().toString().padStart(2, "0");
+  const d = new Date(t);
+  const hours = d.getHours().toString();
+  const minutes = d.getMinutes().toString().padStart(2, '0');
   return `${hours}:${minutes}`;
 }
 
 export function getGapTimeString(t: number, isChinese: boolean = false) {
-  let totalMinutes = Math.floor(t / 60000); // 将毫秒转换为分钟
-  let hours = Math.floor(totalMinutes / 60).toString(); // 计算小时数并补零
-  let minutes = (totalMinutes % 60).toString().padStart(2, "0"); // 计算剩余分钟数并补零
+  const totalMinutes = Math.floor(t / 60000); // 将毫秒转换为分钟
+  const hours = Math.floor(totalMinutes / 60).toString(); // 计算小时数并补零
+  const minutes = (totalMinutes % 60).toString().padStart(2, '0'); // 计算剩余分钟数并补零
 
   if (isChinese) {
     return `${hours}小时${minutes}分钟`;
@@ -61,7 +61,7 @@ export function getGapTimeString(t: number, isChinese: boolean = false) {
 }
 
 export function getDateNumber(t: number | Date) {
-  let d = new Date(t);
+  const d = new Date(t);
   return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
 }
 
@@ -69,16 +69,16 @@ export function dateNumberToDate(t: number) {
   return new Date(
     Math.floor(t / 10000),
     Math.floor((t / 100) % 100) - 1,
-    Math.floor(t % 100)
+    Math.floor(t % 100),
   );
 }
 
 export function getDatesInMonth(t: Date | number): Date[] {
   let d = new Date(t);
-  let month = d.getMonth();
+  const month = d.getMonth();
   t = d.getTime();
   t -= d.getDate() * oneDay;
-  let ret: Date[] = [];
+  const ret: Date[] = [];
   while (true) {
     t += oneDay;
     d = new Date(t);

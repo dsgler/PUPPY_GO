@@ -3,7 +3,7 @@ import { Text, View } from "react-native";
 import { TouchableRipple } from "react-native-paper";
 
 import * as consts_duration from "@/consts/duration";
-import { TopBarStyle } from "./public";
+import { TopBarStyle } from './TopBarStyle';
 
 export function TopBar({
   durationType,

@@ -9,7 +9,7 @@ import {
   StyleProp,
   TextStyle,
   ViewStyle,
-} from "react-native";
+} from 'react-native';
 import {
   Text,
   TouchableRipple,
@@ -17,34 +17,28 @@ import {
   Portal,
   IconButton,
   Snackbar,
-} from "react-native-paper";
+} from 'react-native-paper';
 import Animated, {
   withRepeat,
   withSequence,
   withTiming,
-} from "react-native-reanimated";
-import { router, useLocalSearchParams } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
-import React, {
-  useState,
-  useContext,
-  useEffect,
-  useCallback,
-  useRef,
-} from "react";
+} from 'react-native-reanimated';
+import { router, useLocalSearchParams } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 
-import sportArr from "@/consts/sportType";
+import sportArr from '@/consts/sportType';
 // import BackIcon from "@/assets/images/addPage/back";
-import Line from "@/assets/images/addPage/line";
+import Line from '@/assets/images/addPage/line';
 
-import { insertData, addDataType, getDB } from "@/sqls/indexSql";
-import { dateNumberToDate, getmulti } from "@/utility/datetool";
-import { effortArr, MoodArr, thinkingStr } from "@/consts";
-import { useImmer } from "use-immer";
+import { insertData, addDataType, getDB } from '@/sqls/indexSql';
+import { dateNumberToDate, getmulti } from '@/utility/datetool';
+import { effortArr, MoodArr, thinkingStr } from '@/consts';
+import { useImmer } from 'use-immer';
 
-import { useSharedValue } from "react-native-reanimated";
-import ShakeView from "./ShakeView";
-import { useUIStore } from "@/store/alertStore";
+import { useSharedValue } from 'react-native-reanimated';
+import ShakeView from './ShakeView';
+import { useUIStore } from '@/store/alertStore';
 
 const EmptyF = () => {};
 
@@ -52,11 +46,11 @@ const styles = StyleSheet.create({
   bg_container: {
     flex: 1,
     padding: 0,
-    backgroundColor: "#fecf94",
+    backgroundColor: '#fecf94',
   },
   main_container: {
     flex: 1,
-    backgroundColor: "white",
+    backgroundColor: 'white',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingTop: 30,
@@ -74,7 +68,7 @@ const styles = StyleSheet.create({
     padding: 5,
     borderRadius: 5,
     borderWidth: 1,
-    borderStyle: "dashed",
+    borderStyle: 'dashed',
   },
   dogImg: { width: 64, height: 37, top: -10 },
   submit: {
@@ -82,11 +76,9 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 15,
     borderBottomLeftRadius: 15,
     borderBottomRightRadius: 15,
-    overflow: "hidden",
+    overflow: 'hidden',
   },
 });
-
-export const requireRunningDog = require("@/assets/images/addPage/runningDog.png");
 
 const MAIN = 0;
 const CONTENT = 1;
@@ -97,7 +89,7 @@ export default function AddPage() {
     date: string;
   }>();
 
-  let dateNumber = Number(dateStr);
+  const dateNumber = Number(dateStr);
   let date: number;
   if (isNaN(dateNumber) || dateNumber > 30250101 || dateNumber < 20000101) {
     date = Date.now();
@@ -106,39 +98,38 @@ export default function AddPage() {
   }
 
   const [sportId, setSportId] = useState(-1);
-  const [exTime, setExTime] = useState("60");
+  const [exTime, setExTime] = useState('60');
   const [moodId, setMoodId] = useState(-1);
   const [effort, setEffort] = useState(0);
   const [contentWidth, setContentWidth] = useState(0);
   const [tags, updateTags] = useImmer<string[]>([]);
-  const [tagContent, setTagContent] = useState("");
+  const [tagContent, setTagContent] = useState('');
   const onTagContentChange = (text: string) => {
-    if (text === "") {
-      setTagContent("");
+    if (text === '') {
+      setTagContent('');
       return;
     }
     const endChar = text[text.length - 1];
-    if (endChar === " " || endChar === "\n") {
+    if (endChar === ' ' || endChar === '\n') {
       updateTags((tags) => {
         tags.push(text.trim());
       });
-      setTagContent("");
+      setTagContent('');
       return;
     }
 
     setTagContent(text);
   };
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
+  const [title, setTitle] = useState('');
+  const [content, setContent] = useState('');
 
   const [SnackbarV, setSnackbarV] = useState(false);
 
   const [pageState, setPageState] = useState(MAIN);
 
-  console.log("add渲染,dateStr:", dateStr, "date:", date);
+  console.log('add渲染,dateStr:', dateStr, 'date:', date);
 
-    const myAlert = useUIStore(s=>s.showAlert);
-
+  const myAlert = useUIStore((s) => s.showAlert);
 
   const [r, setR] = useState(false);
 
@@ -170,7 +161,7 @@ export default function AddPage() {
     return (
       <Animated.View
         style={{
-          position: "absolute",
+          position: 'absolute',
           left: 0,
           transform: [{ translateX: dogPosi }],
         }}
@@ -188,11 +179,14 @@ export default function AddPage() {
             dogPosi.value = withSequence(
               withTiming(s - 5, d),
               withRepeat(withTiming(dogPosi.value + 10, d), 4, true),
-              withTiming(s, d)
+              withTiming(s, d),
             );
           }}
         >
-          <Animated.Image source={requireRunningDog} style={[styles.dogImg]} />
+          <Animated.Image
+            source={require('@/assets/images/addPage/runningDog.png')}
+            style={[styles.dogImg]}
+          />
         </Pressable>
       </Animated.View>
     );
@@ -200,10 +194,10 @@ export default function AddPage() {
 
   return (
     <>
-      <View style={{ backgroundColor: "white", flex: 1 }}>
+      <View style={{ backgroundColor: 'white', flex: 1 }}>
         <SafeAreaView style={{ flex: 1 }}>
           <ScrollView style={[styles.main_container]}>
-            <View style={{ display: pageState === MAIN ? "flex" : "none" }}>
+            <View style={{ display: pageState === MAIN ? 'flex' : 'none' }}>
               <MainText>请选择运动的类型</MainText>
               <Animated.View>
                 <ChooseSport sportId={sportId} setSportId={setSportId} />
@@ -212,25 +206,25 @@ export default function AddPage() {
               <View
                 style={{
                   flex: 1,
-                  justifyContent: "center",
+                  justifyContent: 'center',
                 }}
               >
                 <Text
                   style={{
                     flex: 1,
-                    flexDirection: "row",
-                    justifyContent: "flex-start",
-                    alignItems: "center",
-                    textAlign: "center",
+                    flexDirection: 'row',
+                    justifyContent: 'flex-start',
+                    alignItems: 'center',
+                    textAlign: 'center',
                   }}
                 >
                   <TextInput
                     style={{
                       width: 90,
                       fontSize: 50,
-                      color: "#ffa356",
+                      color: '#ffa356',
                       padding: 0,
-                      textAlign: "right",
+                      textAlign: 'right',
                     }}
                     cursorColor="#ffa356"
                     placeholder="0"
@@ -255,7 +249,7 @@ export default function AddPage() {
               <View
                 style={{
                   flex: 1,
-                  flexDirection: "row",
+                  flexDirection: 'row',
                   marginTop: 15,
                   paddingBottom: 30,
                   // justifyContent: "space-between",
@@ -291,9 +285,9 @@ export default function AddPage() {
               >
                 <View
                   style={{
-                    flexDirection: "row",
+                    flexDirection: 'row',
                     borderRadius: 7.5,
-                    overflow: "hidden",
+                    overflow: 'hidden',
                     height: 15,
                   }}
                 >
@@ -336,15 +330,15 @@ export default function AddPage() {
             </View>
             <View
               style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
               }}
             >
               <MainText
                 style={{
                   display:
-                    pageState === MAIN || pageState === TAG ? "flex" : "none",
+                    pageState === MAIN || pageState === TAG ? 'flex' : 'none',
                 }}
               >
                 关键词
@@ -356,7 +350,7 @@ export default function AddPage() {
               }}
             >
               <HintText
-                style={{ display: pageState === MAIN ? "flex" : "none" }}
+                style={{ display: pageState === MAIN ? 'flex' : 'none' }}
               >
                 用几个简单的关键词概况一下本次运动吧
               </HintText>
@@ -364,7 +358,7 @@ export default function AddPage() {
             {pageState === TAG ? (
               <TextInput
                 style={{
-                  display: pageState === TAG ? "flex" : "none",
+                  display: pageState === TAG ? 'flex' : 'none',
                   fontSize: 15,
                   lineHeight: 26,
                 }}
@@ -374,19 +368,19 @@ export default function AddPage() {
                 autoFocus={true}
               ></TextInput>
             ) : undefined}
-            <View style={{ flex: 1, flexDirection: "row" }}>
+            <View style={{ flex: 1, flexDirection: 'row' }}>
               <View
                 style={{
-                  flexDirection: "row",
-                  flexWrap: "wrap",
+                  flexDirection: 'row',
+                  flexWrap: 'wrap',
                   display:
-                    pageState === MAIN || pageState === TAG ? "flex" : "none",
+                    pageState === MAIN || pageState === TAG ? 'flex' : 'none',
                 }}
               >
                 {tags.map((v, k) => {
                   return (
                     <ColorfulTag
-                      Message={"# " + v + " #"}
+                      Message={'# ' + v + ' #'}
                       Color="#ff960b"
                       isChosen={false}
                       key={k}
@@ -406,19 +400,19 @@ export default function AddPage() {
                     if (pageState === MAIN) {
                       setPageState(TAG);
                     } else {
-                      if (tagContent === "") {
-                        myAlert("请输入Tag");
+                      if (tagContent === '') {
+                        myAlert('请输入Tag');
                         return;
                       }
                       updateTags((tags) => {
                         tags.unshift(tagContent);
                       });
-                      setTagContent("");
+                      setTagContent('');
                     }
                   }}
                   style={{
                     marginVertical: 3,
-                    display: pageState === MAIN ? "flex" : "none",
+                    display: pageState === MAIN ? 'flex' : 'none',
                   }}
                 ></ColorfulTag>
               </View>
@@ -426,9 +420,9 @@ export default function AddPage() {
 
             <View
               style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
               }}
             >
               <MainText
@@ -436,17 +430,17 @@ export default function AddPage() {
                   marginVertical: 10,
                   display:
                     pageState === MAIN || pageState === CONTENT
-                      ? "flex"
-                      : "none",
+                      ? 'flex'
+                      : 'none',
                 }}
               >
                 运动日记
               </MainText>
               <View
-                style={{ display: pageState === CONTENT ? "flex" : "none" }}
+                style={{ display: pageState === CONTENT ? 'flex' : 'none' }}
               >
                 <IconButton
-                  icon={"chevron-down"}
+                  icon={'chevron-down'}
                   size={20}
                   onPress={() => setPageState(MAIN)}
                 />
@@ -458,13 +452,13 @@ export default function AddPage() {
                 borderTopRightRadius: 15,
                 borderBottomLeftRadius: 15,
                 borderBottomRightRadius: 15,
-                backgroundColor: "#f5f5f5",
+                backgroundColor: '#f5f5f5',
                 marginHorizontal: 10,
                 paddingHorizontal: 10,
                 paddingVertical: 5,
                 marginBottom: 20,
                 display:
-                  pageState === MAIN || pageState === CONTENT ? "flex" : "none",
+                  pageState === MAIN || pageState === CONTENT ? 'flex' : 'none',
               }}
             >
               <TextInput
@@ -475,13 +469,13 @@ export default function AddPage() {
                   fontSize: 22,
                   paddingVertical: 5,
                   fontWeight: 600,
-                  display: pageState === MAIN ? "flex" : "none",
+                  display: pageState === MAIN ? 'flex' : 'none',
                 }}
               />
               <View
                 style={{
-                  alignSelf: "center",
-                  display: pageState === MAIN ? "flex" : "none",
+                  alignSelf: 'center',
+                  display: pageState === MAIN ? 'flex' : 'none',
                 }}
               >
                 <Line length={contentWidth - 50} />
@@ -492,13 +486,13 @@ export default function AddPage() {
                 style={{
                   minHeight: pageState === CONTENT ? 400 : 200,
                   // flex: 1,
-                  textAlignVertical: "top",
+                  textAlignVertical: 'top',
                   fontSize: 15,
                   marginTop: 10,
                   display:
                     pageState === MAIN || pageState === CONTENT
-                      ? "flex"
-                      : "none",
+                      ? 'flex'
+                      : 'none',
                 }}
                 value={content}
                 onChangeText={(t) => setContent(t)}
@@ -507,25 +501,25 @@ export default function AddPage() {
             </View>
             <TouchableRipple
               style={{
-                display: pageState === MAIN ? "flex" : "none",
-                overflow: "hidden",
-                backgroundColor: "#FFA356",
+                display: pageState === MAIN ? 'flex' : 'none',
+                overflow: 'hidden',
+                backgroundColor: '#FFA356',
                 marginBottom: 50,
                 height: 35,
-                alignItems: "center",
-                justifyContent: "center",
+                alignItems: 'center',
+                justifyContent: 'center',
                 borderRadius: 10,
               }}
               borderless={true}
               onPress={() => {
                 console.log(tags, JSON.stringify(tags));
                 if (isNaN(Number(exTime)) || Number(exTime) < 0) {
-                  myAlert("请输入合理的运动时间");
+                  myAlert('请输入合理的运动时间');
                   return;
                 }
 
-                if (tagContent !== "") {
-                  myAlert("还有tag未保存");
+                if (tagContent !== '') {
+                  myAlert('还有tag未保存');
                   return;
                 }
 
@@ -540,22 +534,22 @@ export default function AddPage() {
                     content: content.trim(),
                     reply: thinkingStr,
                   },
-                  myAlert
+                  myAlert,
                 );
               }}
             >
-              <Text style={{ color: "white", textAlign: "center" }}>完成</Text>
+              <Text style={{ color: 'white', textAlign: 'center' }}>完成</Text>
             </TouchableRipple>
             <TouchableRipple
               style={{
                 display:
-                  pageState === CONTENT || pageState === TAG ? "flex" : "none",
-                overflow: "hidden",
-                backgroundColor: "#FFA356",
+                  pageState === CONTENT || pageState === TAG ? 'flex' : 'none',
+                overflow: 'hidden',
+                backgroundColor: '#FFA356',
                 marginBottom: 50,
                 height: 35,
-                alignItems: "center",
-                justifyContent: "center",
+                alignItems: 'center',
+                justifyContent: 'center',
                 borderRadius: 10,
                 marginTop: 20,
               }}
@@ -564,7 +558,7 @@ export default function AddPage() {
                 setPageState(MAIN);
               }}
             >
-              <Text style={{ color: "white", textAlign: "center" }}>
+              <Text style={{ color: 'white', textAlign: 'center' }}>
                 返回并保存
               </Text>
             </TouchableRipple>
@@ -578,7 +572,7 @@ export default function AddPage() {
             setSnackbarV(false);
           }}
           action={{
-            label: "确定",
+            label: '确定',
             onPress: () => {
               // Do something
               setSnackbarV(false);
@@ -603,7 +597,7 @@ export default function AddPage() {
       <View
         style={[
           {
-            position: "absolute",
+            position: 'absolute',
             top: 0,
           },
           {
@@ -666,7 +660,7 @@ function MainText({
         {
           fontWeight: 700,
           fontSize: 20,
-          textAlign: isCenter ? "center" : undefined,
+          textAlign: isCenter ? 'center' : undefined,
           marginTop: 10,
         },
         style,
@@ -691,8 +685,8 @@ function HintText({
       style={[
         {
           fontSize: 15,
-          color: "grey",
-          textAlign: isCenter ? "center" : undefined,
+          color: 'grey',
+          textAlign: isCenter ? 'center' : undefined,
           marginVertical: 5,
         },
         style,
@@ -713,7 +707,7 @@ function MoodContainer({
   setMoodId: React.Dispatch<React.SetStateAction<number>>;
 }) {
   return (
-    <View style={{ flex: 1, alignItems: "center" }}>
+    <View style={{ flex: 1, alignItems: 'center' }}>
       <ShakeView
         onPress={() => setMoodId(ImoodId)}
         xRange={2}
@@ -725,8 +719,8 @@ function MoodContainer({
         <View
           style={{
             height: 85,
-            justifyContent: "center",
-            alignItems: "center",
+            justifyContent: 'center',
+            alignItems: 'center',
           }}
         >
           {(() => {
@@ -748,7 +742,7 @@ function MoodContainer({
           })()}
         </View>
       </ShakeView>
-      <Text style={{ textAlign: "center", fontSize: 15 }}>
+      <Text style={{ textAlign: 'center', fontSize: 15 }}>
         {MoodArr[ImoodId].descirption}
       </Text>
     </View>
@@ -775,7 +769,7 @@ function ColorfulTag({
       <TouchableRipple
         onPress={onPress}
         style={[
-          { marginHorizontal: 8, borderRadius: 5, overflow: "hidden" },
+          { marginHorizontal: 8, borderRadius: 5, overflow: 'hidden' },
           style,
         ]}
         borderless={true}
@@ -788,10 +782,10 @@ function ColorfulTag({
               paddingHorizontal: 5,
               borderRadius: 5,
               borderWidth: 1,
-              borderStyle: "dashed",
+              borderStyle: 'dashed',
               borderColor: Color,
               height: 30,
-              justifyContent: "center",
+              justifyContent: 'center',
             },
           ]}
         >
@@ -799,7 +793,7 @@ function ColorfulTag({
             style={{
               color: Color,
               fontSize: 14,
-              textAlignVertical: "center",
+              textAlignVertical: 'center',
             }}
           >
             {Message}
@@ -811,7 +805,7 @@ function ColorfulTag({
     return (
       <TouchableRipple
         onPress={() => {}}
-        style={{ marginHorizontal: 8, borderRadius: 5, overflow: "hidden" }}
+        style={{ marginHorizontal: 8, borderRadius: 5, overflow: 'hidden' }}
         borderless={true}
       >
         <View
@@ -821,13 +815,13 @@ function ColorfulTag({
             backgroundColor: Color,
             borderRadius: 5,
             height: 30,
-            justifyContent: "center",
+            justifyContent: 'center',
           }}
         >
           <Text
             style={{
-              color: "black",
-              textAlignVertical: "center",
+              color: 'black',
+              textAlignVertical: 'center',
             }}
           >
             {Message}
@@ -849,22 +843,22 @@ function EffortHint({ Effort }: { Effort: number }) {
 
 async function handleSubmit(
   data: addDataType,
-  myAlert: (message: string) => void
+  myAlert: (message: string) => void,
 ) {
   if (isNaN(data.timestart) || data.timestart >= data.timeend) {
-    myAlert("请输入合理的运动时间");
+    myAlert('请输入合理的运动时间');
     return;
   }
   if (data.sportId === -1) {
-    myAlert("请选择运动类型");
+    myAlert('请选择运动类型');
     return;
   }
   if (data.moodId === -1) {
-    myAlert("请选择心情");
+    myAlert('请选择心情');
     return;
   }
   if (data.effort === 0) {
-    myAlert("请选择耗力");
+    myAlert('请选择耗力');
     return;
   }
   // if (data.title === "") {
@@ -876,9 +870,9 @@ async function handleSubmit(
   //   return;
   // }
 
-  let db = await getDB();
+  const db = await getDB();
   await insertData(db, data);
-  console.log("插入成功");
+  console.log('插入成功');
   // router.dismissTo("/(tabs)");
   router.back();
 }

@@ -1,9 +1,10 @@
-import { View, Text, TextInput } from "react-native";
-import { InfoObjStateCtx, ViewStyle } from "./public";
-import { BodyImproveArr } from "@/consts/AIplanPage";
-import { useContext } from "react";
-import { BrandColor } from "@/consts/tabs";
-import { ChooseRow } from "./public";
+import { View, Text, TextInput } from 'react-native';
+import { InfoObjStateCtx } from './public';
+import { ViewStyle } from './ViewStyle';
+import { BodyImproveArr } from '@/consts/AIplanPage';
+import { useContext } from 'react';
+import { BrandColor } from '@/consts/tabs';
+import { ChooseRow } from './ChooseRow';
 
 export default function BodyImproveView() {
   const [InfoObj, updateInfoObj] = useContext(InfoObjStateCtx);
@@ -18,9 +19,11 @@ export default function BodyImproveView() {
           isChosen={InfoObj.bodyImprove.chosen.has(v.id)}
           toggleIsChosen={() => {
             updateInfoObj((InfoObj) => {
-              InfoObj.bodyImprove.chosen.has(v.id)
-                ? InfoObj.bodyImprove.chosen.delete(v.id)
-                : InfoObj.bodyImprove.chosen.add(v.id);
+              if (InfoObj.bodyImprove.chosen.has(v.id)) {
+                InfoObj.bodyImprove.chosen.delete(v.id);
+              } else {
+                InfoObj.bodyImprove.chosen.add(v.id);
+              }
             });
           }}
           key={v.id}

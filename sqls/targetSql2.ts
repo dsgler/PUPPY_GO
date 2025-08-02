@@ -1,13 +1,13 @@
-import * as SQLite from "expo-sqlite";
-import * as consts_frequency from "@/consts/frequency";
+import * as SQLite from 'expo-sqlite';
+import * as consts_frequency from '@/consts/frequency';
 import {
   getDateNumber,
   getDatesInMonth,
   getDatesInWeek,
   isSameDay,
   isWeekday,
-} from "@/utility/datetool";
-import { getAllOnce } from "@/utility/sql";
+} from '@/utility/datetool';
+import { getAllOnce } from '@/utility/sql';
 
 export type targetRow = {
   Id: number;
@@ -35,13 +35,13 @@ export async function createTable(db: SQLite.SQLiteDatabase) {
     `CREATE TABLE IF NOT EXISTS groupName (
         groupId INTEGER PRIMARY KEY AUTOINCREMENT,
         groupName TEXT UNIQUE NOT NULL
-    );`
+    );`,
   );
   await db.execAsync(
     `CREATE TABLE IF NOT EXISTS targetCheck (
         date INTEGER NOT NULL,
         targetId INTEGER NOT NULL
-    );`
+    );`,
   );
 
   await db.execAsync(
@@ -56,7 +56,7 @@ export async function createTable(db: SQLite.SQLiteDatabase) {
       sportId INTEGER NOT NULL,
       endTime INTEGER NOT NULL
     );
-  `
+  `,
   );
 }
 
@@ -71,7 +71,7 @@ export async function addTarget(
     frequency,
     sportId,
     endTime,
-  }: targetRow
+  }: targetRow,
 ) {
   await createTable(db);
 
@@ -96,7 +96,7 @@ export async function addTarget(
       frequency,
       sportId,
       endTime,
-    ]
+    ],
   );
 }
 export async function getTarget(db: SQLite.SQLiteDatabase, Id: number) {
@@ -105,7 +105,7 @@ export async function getTarget(db: SQLite.SQLiteDatabase, Id: number) {
   ])) as targetRow[];
 
   if (ret.length === 0) {
-    throw Error("未查询到Target");
+    throw Error('未查询到Target');
   }
 
   return ret[0];
@@ -123,7 +123,7 @@ export async function updateTarget(
     frequency,
     sportId,
     endTime,
-  }: targetRow
+  }: targetRow,
 ) {
   await getAllOnce(
     db,
@@ -138,7 +138,7 @@ export async function updateTarget(
       sportId,
       endTime,
       Id,
-    ]
+    ],
   );
 }
 
@@ -149,15 +149,15 @@ export async function deleteTarget(db: SQLite.SQLiteDatabase, Id: number) {
 export async function getTargetsByDay(db: SQLite.SQLiteDatabase, d: Date) {
   await createTable(db);
 
-  let rows = (await getAllOnce(
+  const rows = (await getAllOnce(
     db,
     `SELECT * FROM targetRow;`,
-    []
+    [],
   )) as targetRow[];
-  let ret: targetRow[] = [];
+  const ret: targetRow[] = [];
 
-  for (let ele of rows) {
-    let frequency = JSON.parse(ele.frequency) as frequencyType;
+  for (const ele of rows) {
+    const frequency = JSON.parse(ele.frequency) as frequencyType;
     switch (frequency.typeId) {
       case consts_frequency.DAILY:
         ret.push(ele);
@@ -183,7 +183,7 @@ export async function getTargetsByDay(db: SQLite.SQLiteDatabase, d: Date) {
         }
         break;
       case consts_frequency.COSTUM_DAY:
-        for (let day of frequency.content) {
+        for (const day of frequency.content) {
           if (isSameDay(d, new Date(day))) {
             ret.push(ele);
             break;
@@ -202,20 +202,20 @@ export async function getTargetsByDay(db: SQLite.SQLiteDatabase, d: Date) {
 export async function getTargetsByWeek(db: SQLite.SQLiteDatabase, d: Date) {
   await createTable(db);
 
-  let rows = (await getAllOnce(
+  const rows = (await getAllOnce(
     db,
     `SELECT * FROM targetRow;`,
-    []
+    [],
   )) as targetRow[];
-  let ret: targetRow[][] = Array.from({ length: 7 }, () => []);
+  const ret: targetRow[][] = Array.from({ length: 7 }, () => []);
 
-  let thisWeek = getDatesInWeek(d);
+  const thisWeek = getDatesInWeek(d);
 
-  for (let ele of rows) {
-    let frequency = JSON.parse(ele.frequency) as frequencyType;
+  for (const ele of rows) {
+    const frequency = JSON.parse(ele.frequency) as frequencyType;
     switch (frequency.typeId) {
       case consts_frequency.DAILY:
-        for (let weekRows of ret) {
+        for (const weekRows of ret) {
           weekRows.push(ele);
         }
         break;
@@ -245,7 +245,7 @@ export async function getTargetsByWeek(db: SQLite.SQLiteDatabase, d: Date) {
         }
         break;
       case consts_frequency.COSTUM_DAY:
-        for (let day of frequency.content) {
+        for (const day of frequency.content) {
           for (let i = 0; i < 7; i++) {
             if (isSameDay(new Date(day), thisWeek[i])) {
               ret[i].push(ele);
@@ -262,17 +262,17 @@ export async function getTargetsByWeek(db: SQLite.SQLiteDatabase, d: Date) {
 type getProgressByDayRetRow = targetRow & { isFinished: boolean };
 export async function getProgressByDay(
   db: SQLite.SQLiteDatabase,
-  d: Date
+  d: Date,
 ): Promise<getProgressByDayRetRow[]> {
   await createTable(db);
 
-  let date = getDateNumber(d);
-  let src = (await getAllOnce(db, `SELECT * FROM targetCheck WHERE date=?;`, [
+  const date = getDateNumber(d);
+  const src = (await getAllOnce(db, `SELECT * FROM targetCheck WHERE date=?;`, [
     date,
   ])) as targetCheckRow[];
 
-  let targets = await getTargetsByDay(db, d);
-  let ret: getProgressByDayRetRow[] = targets.map((target) => {
+  const targets = await getTargetsByDay(db, d);
+  const ret: getProgressByDayRetRow[] = targets.map((target) => {
     const retRow: getProgressByDayRetRow = { ...target, isFinished: false };
     for (const ele of src) {
       if (ele.targetId === retRow.Id) {
@@ -292,11 +292,11 @@ export type getProgressByWeekRetRow = {
 export async function getProgressByWeek(db: SQLite.SQLiteDatabase, d: Date) {
   await createTable(db);
 
-  let dates = getDatesInWeek(d);
-  let ret: getProgressByWeekRetRow[] = Array.from({ length: dates.length });
+  const dates = getDatesInWeek(d);
+  const ret: getProgressByWeekRetRow[] = Array.from({ length: dates.length });
   for (let i = 0; i < dates.length; i++) {
-    let r = await getProgressByDay(db, dates[i]);
-    let finished = r.reduce((pre, cur) => {
+    const r = await getProgressByDay(db, dates[i]);
+    const finished = r.reduce((pre, cur) => {
       if (cur.isFinished) {
         return pre + 1;
       }
@@ -321,7 +321,7 @@ export async function getGroups(db: SQLite.SQLiteDatabase) {
   return (await getAllOnce(
     db,
     `SELECT * FROM groupName;`,
-    []
+    [],
   )) as groupNameRow[];
 }
 
@@ -330,30 +330,30 @@ export type childrenRow = targetRow & { times: number };
 export async function getProgressByMonth(db: SQLite.SQLiteDatabase) {
   await createTable(db);
 
-  let d = new Date();
-  let groups = await getGroups(db);
-  let targets = (await getAllOnce(
+  const d = new Date();
+  const groups = await getGroups(db);
+  const targets = (await getAllOnce(
     db,
     `SELECT * FROM targetRow;`,
-    []
+    [],
   )) as targetRow[];
 
-  let thisMonth = getDatesInMonth(d).map((v) => getDateNumber(v));
-  let checks = (await getAllOnce(
+  const thisMonth = getDatesInMonth(d).map((v) => getDateNumber(v));
+  const checks = (await getAllOnce(
     db,
     `SELECT * FROM targetCheck WHERE date>=? AND date<=?;`,
-    [thisMonth[0], thisMonth[thisMonth.length - 1]]
+    [thisMonth[0], thisMonth[thisMonth.length - 1]],
   )) as targetCheckRow[];
 
-  let ret: getProgressByMonthRetRow[] = groups.map((v) => ({
+  const ret: getProgressByMonthRetRow[] = groups.map((v) => ({
     ...v,
     progress: 0,
     children: [],
   }));
-  let chi: childrenRow[] = targets.map((v) => ({ ...v, times: 0 }));
-  for (let checkRow of checks) {
-    let typeId = checkRow.targetId;
-    for (let ele of chi) {
+  const chi: childrenRow[] = targets.map((v) => ({ ...v, times: 0 }));
+  for (const checkRow of checks) {
+    const typeId = checkRow.targetId;
+    for (const ele of chi) {
       if (ele.Id === typeId) {
         ele.times++;
       }
@@ -384,14 +384,14 @@ export async function getProgressByMonth(db: SQLite.SQLiteDatabase) {
 export async function setCheck(
   db: SQLite.SQLiteDatabase,
   targetId: number,
-  date: number = getDateNumber(Date.now())
+  date: number = getDateNumber(Date.now()),
 ) {
   await createTable(db);
 
-  let ret = await getAllOnce(
+  const ret = await getAllOnce(
     db,
     `SELECT * FROM targetCheck WHERE date=? AND targetId=?;`,
-    [date, targetId]
+    [date, targetId],
   );
   if (ret.length !== 0) {
     console.log(ret);
@@ -400,14 +400,14 @@ export async function setCheck(
   await getAllOnce(
     db,
     `INSERT INTO targetCheck (date,targetId) VALUES (?,?);`,
-    [date, targetId]
+    [date, targetId],
   );
 }
 
 export async function cancelCheck(
   db: SQLite.SQLiteDatabase,
   targetId: number,
-  date: number = getDateNumber(Date.now())
+  date: number = getDateNumber(Date.now()),
 ) {
   await getAllOnce(db, `DELETE FROM targetCheck WHERE date=? AND targetId=?;`, [
     date,
@@ -417,7 +417,7 @@ export async function cancelCheck(
 
 export async function addGroupOrGetGroupId(
   db: SQLite.SQLiteDatabase,
-  groupName: string
+  groupName: string,
 ): Promise<number> {
   await createTable(db);
 
@@ -439,7 +439,7 @@ FROM
   groupName
 WHERE
   groupName = ?;`,
-    [groupName]
+    [groupName],
   )) as groupNameRow[];
 }
 
@@ -453,11 +453,11 @@ export async function deleteGroup(db: SQLite.SQLiteDatabase, groupId: number) {
   const children = (await getAllOnce(
     db,
     `SELECT * FROM targetRow WHERE groupId=?;`,
-    [groupId]
+    [groupId],
   )) as targetRow[];
   console.log(children, groupId, 333);
   if (children.length !== 0) {
-    throw Error("请先删除组内的目标再删除组");
+    throw Error('请先删除组内的目标再删除组');
   }
 
   return await getAllOnce(db, `DELETE FROM groupName WHERE groupId=?;`, [
@@ -468,11 +468,11 @@ export async function deleteGroup(db: SQLite.SQLiteDatabase, groupId: number) {
 export async function changeGroupName(
   db: SQLite.SQLiteDatabase,
   groupId: number,
-  newName: string
+  newName: string,
 ) {
   return await getAllOnce(
     db,
     `UPDATE groupName SET groupName=? WHERE groupId=?;`,
-    [newName, groupId]
+    [newName, groupId],
   );
 }

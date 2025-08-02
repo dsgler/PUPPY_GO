@@ -3,17 +3,16 @@ import {
   FadeIn,
   FadeOut,
   LinearTransition,
-} from "react-native-reanimated";
-import { createContext } from "react";
-import { ImmerHook } from "use-immer";
+} from 'react-native-reanimated';
+import { createContext } from 'react';
+import { ImmerHook } from 'use-immer';
 
-import { getGapTimeString } from "@/utility/datetool";
-import { frequencyType, targetRow } from "@/sqls/targetSql2";
-import sportArr from "@/consts/sportType";
-import * as consts_frequency from "@/consts/frequency";
-import { BrandColor } from "@/consts/tabs";
-import { StyleSheet } from "react-native";
-import { defaultError } from "@/consts/defaultError";
+import { getGapTimeString } from '@/utility/datetool';
+import { frequencyType, targetRow } from '@/sqls/targetSql2';
+import sportArr from '@/consts/sportType';
+import * as consts_frequency from '@/consts/frequency';
+import { defaultError } from '@/consts/defaultError';
+import { GestureResponderEvent } from 'react-native';
 
 export function getDescription(v: {
   sportId: number;
@@ -34,7 +33,7 @@ export const MenuCtx = createContext<
     visibility: false,
     targetId: -1,
     groupId: -1,
-    groupName: "",
+    groupName: '',
   },
   defaultError,
 ]);
@@ -49,14 +48,15 @@ export type menuObjType = {
 };
 
 export const RefreshFnCtx = createContext<() => void>(() => {
-  throw Error("不应获取默认值");
+  throw Error('不应获取默认值');
 });
 
 export const ShowAddTargetCtx =
   createContext<
     (
+      e?: GestureResponderEvent,
       isClear?: boolean,
-      afterClear?: (AddTargetStates: AddTargetStates) => void
+      afterClear?: (AddTargetStates: AddTargetStates) => void,
     ) => void
   >(defaultError);
 export const ShowAddGroupCtx = createContext<() => void>(defaultError);
@@ -71,66 +71,17 @@ export const AddTarget_frequencyStateDefault = {
 export const AddTarget_dataStateDefault = {
   Id: -1,
   groupId: -1,
-  description: "",
+  description: '',
   makeTime: -1,
   duration: 0,
   count: 0,
-  frequency: "",
+  frequency: '',
   sportId: -1,
   endTime: -1,
 };
 
 export const myFadeIn = FadeIn.duration(300).easing(Easing.inOut(Easing.quad));
 export const myFadeOut = FadeOut.duration(300).easing(
-  Easing.inOut(Easing.quad)
+  Easing.inOut(Easing.quad),
 );
 export const myLayoutTransition = LinearTransition.duration(300);
-export const TopBarStyle = StyleSheet.create({
-  container: {
-    backgroundColor: "white",
-    flexDirection: "row",
-    borderRadius: 25,
-    alignItems: "center",
-    boxShadow:
-      "0 6 30 rgba(0,0,0,0.05),0 16 24 rgba(0,0,0,0.04),0 8 10 rgba(0,0,0,0.08)",
-    marginTop: 10,
-    marginBottom: 30,
-  },
-  left: {
-    height: 40,
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    marginLeft: 10,
-    marginRight: 5,
-    marginVertical: 5,
-    borderRadius: 20,
-  },
-  middle: {
-    height: 40,
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    marginHorizontal: 5,
-    marginVertical: 5,
-    borderRadius: 20,
-  },
-  right: {
-    height: 40,
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 10,
-    marginLeft: 5,
-    marginVertical: 5,
-    borderRadius: 20,
-  },
-  chosen: {
-    backgroundColor: "#FFE7CA",
-    borderRadius: 20,
-  },
-  chosenText: { fontSize: 16, textAlign: "center", color: BrandColor },
-  unchosen: {},
-  unchosenText: { fontSize: 16, textAlign: "center" },
-  TouchableRipple: { flex: 1, borderRadius: 20 },
-});

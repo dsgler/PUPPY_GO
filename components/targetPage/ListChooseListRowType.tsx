@@ -1,6 +1,6 @@
-import { BrandColor } from "@/consts/tabs";
-import { View, Pressable, Text } from "react-native";
-import AntIcon from "react-native-vector-icons/AntDesign";
+import { BrandColor } from '@/consts/tabs';
+import { View, Pressable, Text } from 'react-native';
+import AntIcon from 'react-native-vector-icons/AntDesign';
 
 export type ListChooseListRowType = { name: string; Id: number };
 export function ListChoose({
@@ -25,18 +25,17 @@ export function ListChoose({
           >
             <View
               style={{
-                backgroundColor: "white",
+                backgroundColor: 'white',
                 borderRadius: 10,
                 paddingVertical: 10,
                 paddingLeft: 16,
                 paddingRight: 16,
-                flexDirection: "row",
+                flexDirection: 'row',
                 height: 45,
               }}
             >
               <Text style={{ fontSize: 16, flex: 1 }}>{v.name}</Text>
               {chosenId === v.Id ? (
-                // @ts-ignore
                 <AntIcon name="checkcircle" size={21} color={BrandColor} />
               ) : null}
             </View>

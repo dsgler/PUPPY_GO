@@ -1,1 +1,3 @@
-export const defaultError=()=>{throw Error("不应为默认值")}
+export const defaultError = () => {
+  throw Error('不应为默认值');
+};

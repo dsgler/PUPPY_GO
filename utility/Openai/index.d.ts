@@ -1,8 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   OpenAI as OpenAINode,
   type ClientOptions as ClientOptionsNode,
-} from "openai";
-import EventSource from "react-native-sse";
+} from 'openai';
+import EventSource from 'react-native-sse';
 export type onError = (error: any) => void;
 export type onOpen = () => void;
 export type onDone = () => void;
@@ -72,13 +73,13 @@ export declare class OpenAI {
     assistants: {
       list: () => Promise<Beta.Assistant[]>;
       create: (
-        body: Beta.Assistants.AssistantCreateParams
+        body: Beta.Assistants.AssistantCreateParams,
       ) => Promise<Beta.Assistant>;
       del: (assistantId: string) => Promise<Beta.AssistantDeleted>;
       retrieve: (assistantId: string) => Promise<Beta.Assistant>;
       update: (
         assistantId: string,
-        body: Beta.Assistants.AssistantCreateParams
+        body: Beta.Assistants.AssistantCreateParams,
       ) => Promise<Beta.Assistant>;
     };
     threads: {
@@ -86,24 +87,24 @@ export declare class OpenAI {
       retrieve: (threadId: string) => Promise<Beta.Thread>;
       update: (
         threadId: string,
-        body: Beta.ThreadUpdateParams
+        body: Beta.ThreadUpdateParams,
       ) => Promise<Beta.Thread>;
       del: (threadId: string) => Promise<Beta.ThreadDeleted>;
       createAndRunPoll: (
-        body: Beta.ThreadCreateAndRunParamsNonStreaming
+        body: Beta.ThreadCreateAndRunParamsNonStreaming,
       ) => Promise<Beta.Threads.Run>;
       messages: {
         list: (
           threadId: string,
-          query?: Beta.Threads.Messages.MessageListParams
+          query?: Beta.Threads.Messages.MessageListParams,
         ) => Promise<Beta.Threads.Message[]>;
         del: (
           threadId: string,
-          messageId: string
+          messageId: string,
         ) => Promise<Beta.Threads.Messages.MessageDeleted>;
         create: (
           threadId: string,
-          body: Beta.Threads.Messages.MessageCreateParams
+          body: Beta.Threads.Messages.MessageCreateParams,
         ) => Promise<Beta.Threads.Message>;
       };
       runs: {
@@ -111,7 +112,7 @@ export declare class OpenAI {
           threadId: string,
           body: Beta.Threads.Runs.RunCreateParamsNonStreaming,
           onData: onThreadRunData,
-          callbacks: onEvents
+          callbacks: onEvents,
         ) => void;
       };
     };
@@ -129,7 +130,7 @@ export declare class OpenAI {
        * @returns {Promise<ChatCompletion>}
        */
       create: (
-        body: ChatCompletionCreateParamsNonStreaming
+        body: ChatCompletionCreateParamsNonStreaming,
       ) => Promise<ChatCompletion>;
       /**
        * Create a chat completion stream using the OpenAI API.
@@ -141,7 +142,7 @@ export declare class OpenAI {
       stream: (
         params: ChatCompletionCreateParamsNonStreaming,
         onData: onChatCompletionChunkData,
-        callbacks: onEvents
+        callbacks: onEvents,
       ) => EventSource<never>;
     };
   };

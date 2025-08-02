@@ -1,25 +1,25 @@
-import { View, Text, ScrollView } from "react-native";
-import { useImmer } from "use-immer";
-import { useState } from "react";
+import { View, Text, ScrollView } from 'react-native';
+import { useImmer } from 'use-immer';
+import { useState } from 'react';
 import {
   HeightAndWeight,
   SICK,
   BodyImprove,
   LOADING,
   END,
-} from "@/consts/AIplanPage";
-import { HeightAndWeightView } from "./HeightAndWeightView";
-import { Footer } from "./Footer";
-import SickView from "./sickView";
-import BodyImproveView from "./BodyImproveView";
-import { InfoObjType, InfoObjDefault, InfoObjStateCtx } from "./public";
-import LoadingView from "./loadingView";
-import EndView from "./end";
+} from '@/consts/AIplanPage';
+import { HeightAndWeightView } from './HeightAndWeightView';
+import { Footer } from './Footer';
+import SickView from './sickView';
+import BodyImproveView from './BodyImproveView';
+import { InfoObjType, InfoObjDefault, InfoObjStateCtx } from './public';
+import LoadingView from './loadingView';
+import EndView from './end';
 
 export default function AIplanPage() {
   const InfoObjState = useImmer<InfoObjType>(InfoObjDefault);
   const StepState = useState(HeightAndWeight);
-  console.log("AIplanPage渲染,Step:", StepState[0]);
+  console.log('AIplanPage渲染,Step:', StepState[0]);
 
   if (StepState[0] === LOADING) {
     return (
@@ -39,7 +39,7 @@ export default function AIplanPage() {
 
   return (
     <ScrollView style={{ paddingHorizontal: 16 }}>
-      <Text style={{ fontSize: 32, color: "white", paddingVertical: 15 }}>
+      <Text style={{ fontSize: 32, color: 'white', paddingVertical: 15 }}>
         智能规划
       </Text>
       <InfoObjStateCtx.Provider value={InfoObjState}>
@@ -48,7 +48,7 @@ export default function AIplanPage() {
             paddingHorizontal: 16,
             paddingVertical: 20,
             borderRadius: 12,
-            backgroundColor: "white",
+            backgroundColor: 'white',
           }}
         >
           <Switcher StepState={StepState} />
@@ -73,5 +73,5 @@ function Switcher({
     return <BodyImproveView />;
   }
 
-  throw Error("不存在的Step");
+  throw Error('不存在的Step');
 }

@@ -1,27 +1,27 @@
-import { BrandColor, textColor } from "@/consts/tabs";
-import { Text, Pressable, TextInput, StyleSheet, View } from "react-native";
+import { BrandColor, textColor } from '@/consts/tabs';
+import { Text, Pressable, TextInput, StyleSheet, View } from 'react-native';
 
-import RepeatIcon from "@/assets/images/targetPage/repeat";
+import RepeatIcon from '@/assets/images/targetPage/repeat';
 
-import { useCallback, useContext, useEffect, useMemo, useState } from "react";
-import PressableText from "@/components/public/PressableText";
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import PressableText from '@/components/public/PressableText';
 
-import { useSQLiteContext } from "expo-sqlite";
+import { useSQLiteContext } from 'expo-sqlite';
 import {
   addGroupOrGetGroupId,
   addTarget,
   getGroups,
   groupNameRow,
-} from "@/sqls/targetSql2";
-import { useUIStore } from "@/store/alertStore";
-import * as consts_frequency from "@/consts/frequency";
+} from '@/sqls/targetSql2';
+import { useUIStore } from '@/store/alertStore';
+import * as consts_frequency from '@/consts/frequency';
 import {
   CustomeMonthBlock,
   CustomeWeekBlock,
-} from "@/components/public/CustomeMonthBlock";
-import { repeatList } from "@/consts/repeatList";
-import { RefreshFnCtx, AddTargetStates } from "./public";
-import { ListChoose, ListChooseListRowType } from "./ListChooseListRowType";
+} from '@/components/public/CustomeMonthBlock';
+import { repeatList } from '@/consts/repeatList';
+import { RefreshFnCtx, AddTargetStates } from './public';
+import { ListChoose, ListChooseListRowType } from './ListChooseListRowType';
 
 export function ModalComponent1({
   setInsertModalV,
@@ -30,7 +30,7 @@ export function ModalComponent1({
   setInsertModalV: React.Dispatch<React.SetStateAction<boolean>>;
   AddTargetStates: AddTargetStates;
 }) {
-  const [targetName, setTargetName] = useState("");
+  const [targetName, setTargetName] = useState('');
   const db = useSQLiteContext();
   const showAlert = useUIStore((state) => state.showAlert);
   const showHint = useUIStore((state) => state.showHint);
@@ -46,7 +46,7 @@ export function ModalComponent1({
   useEffect(updateGroups, [updateGroups]);
   const groupList = useMemo<ListChooseListRowType[]>(
     () => groups.map((v) => ({ name: v.groupName, Id: v.groupId })),
-    [groups]
+    [groups],
   );
   const {
     frequencyState: [frequency, updateFrequency],
@@ -66,9 +66,9 @@ export function ModalComponent1({
       <View>
         <View
           style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "baseline",
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'baseline',
             marginBottom: 10,
           }}
         >
@@ -88,15 +88,15 @@ export function ModalComponent1({
             highlightColor="#ffd399"
             TextStyle={{ fontSize: 16 }}
             onPress={() => {
-              let t = targetName.trim();
-              let alertText = "";
-              if (t === "") {
-                alertText += "请输入名称\n";
+              const t = targetName.trim();
+              let alertText = '';
+              if (t === '') {
+                alertText += '请输入名称\n';
               }
               if (data.groupId === -1) {
-                alertText += "请选择分组\n";
+                alertText += '请选择分组\n';
               }
-              if (alertText !== "") {
+              if (alertText !== '') {
                 showAlert(alertText.trim());
                 return;
               }
@@ -107,7 +107,7 @@ export function ModalComponent1({
                 description: t,
               })
                 .then(() => {
-                  showHint("保存成功");
+                  showHint('保存成功');
                 })
                 .then(RefreshFn)
                 .then(() => {
@@ -136,23 +136,23 @@ export function ModalComponent1({
             <Text
               style={{
                 fontSize: 16,
-                color: data.groupId === -1 ? "#666666" : "black",
+                color: data.groupId === -1 ? '#666666' : 'black',
               }}
             >
               {data.groupId === -1
-                ? "请选择分组"
+                ? '请选择分组'
                 : groups.find((v) => v.groupId === data.groupId)?.groupName}
             </Text>
           </View>
         </Pressable>
-        <View style={{ flexDirection: "row", gap: 5, marginBottom: 10 }}>
+        <View style={{ flexDirection: 'row', gap: 5, marginBottom: 10 }}>
           <Pressable
             onPress={() => {
               setPageType(REPEAT);
             }}
             style={[
               ModalComponent1Style.block,
-              { flexDirection: "row", alignItems: "center" },
+              { flexDirection: 'row', alignItems: 'center' },
             ]}
           >
             <RepeatIcon />
@@ -179,11 +179,11 @@ export function ModalComponent1({
     );
   } else if (pageType === CHOOSE_GROUP) {
     const CHOOSE_GROUPF = () => {
-      const [text, setText] = useState("");
+      const [text, setText] = useState('');
 
       return (
         <View>
-          <View style={{ flexDirection: "row" }}>
+          <View style={{ flexDirection: 'row' }}>
             <PressableText
               message="返回"
               color={BrandColor}
@@ -205,13 +205,13 @@ export function ModalComponent1({
           />
           <View
             style={{
-              backgroundColor: "white",
+              backgroundColor: 'white',
               borderRadius: 10,
               // paddingVertical: 10,
               paddingLeft: 16,
               paddingRight: 16,
-              flexDirection: "row",
-              alignItems: "center",
+              flexDirection: 'row',
+              alignItems: 'center',
               height: 45,
             }}
           >
@@ -228,13 +228,13 @@ export function ModalComponent1({
               highlightColor="#ffd399"
               TextStyle={{ fontSize: 16 }}
               onPress={() => {
-                if (text.trim() === "") {
-                  showAlert("请输入分组名");
+                if (text.trim() === '') {
+                  showAlert('请输入分组名');
                   return;
                 }
                 addGroupOrGetGroupId(db, text)
                   .then(() => {
-                    showHint("添加成功");
+                    showHint('添加成功');
                     return updateGroups();
                   })
                   .catch(showAlert);
@@ -248,7 +248,7 @@ export function ModalComponent1({
   } else if (pageType === REPEAT) {
     return (
       <View>
-        <View style={{ flexDirection: "row" }}>
+        <View style={{ flexDirection: 'row' }}>
           <PressableText
             message="返回"
             color={BrandColor}
@@ -293,12 +293,12 @@ export function ModalComponent1({
     );
   } else if (pageType === DURATION) {
     const DURATIONF = () => {
-      const [t, setT] = useState(data.duration ? data.duration.toString() : "");
+      const [t, setT] = useState(data.duration ? data.duration.toString() : '');
 
       return (
         <View>
           <View
-            style={{ flexDirection: "row", justifyContent: "space-between" }}
+            style={{ flexDirection: 'row', justifyContent: 'space-between' }}
           >
             <PressableText
               message="返回"
@@ -315,9 +315,9 @@ export function ModalComponent1({
               highlightColor="#ffd399"
               TextStyle={{ fontSize: 16 }}
               onPress={() => {
-                let nt = Number(t);
+                const nt = Number(t);
                 if (isNaN(nt) || t.length > 3 || nt < 0) {
-                  showHint("请输入合理数字");
+                  showHint('请输入合理数字');
                   return;
                 }
                 updatedata((data) => {
@@ -332,9 +332,9 @@ export function ModalComponent1({
             style={[
               ModalComponent1Style.row,
               {
-                flexDirection: "row",
-                justifyContent: "center",
-                alignItems: "center",
+                flexDirection: 'row',
+                justifyContent: 'center',
+                alignItems: 'center',
                 height: undefined,
               },
             ]}
@@ -342,9 +342,9 @@ export function ModalComponent1({
             <View
               style={{
                 height: 56,
-                flexDirection: "row",
-                justifyContent: "center",
-                alignItems: "flex-end",
+                flexDirection: 'row',
+                justifyContent: 'center',
+                alignItems: 'flex-end',
                 marginVertical: 10,
               }}
             >
@@ -352,10 +352,10 @@ export function ModalComponent1({
                 style={{
                   width: 90,
                   fontSize: 50,
-                  color: "#ffa356",
+                  color: '#ffa356',
                   padding: 0,
-                  textAlign: "right",
-                  textDecorationLine: "underline",
+                  textAlign: 'right',
+                  textDecorationLine: 'underline',
                 }}
                 cursorColor="#ffa356"
                 placeholder="0"
@@ -373,12 +373,12 @@ export function ModalComponent1({
     return <DURATIONF />;
   } else if (pageType === COUNT) {
     const COUNTF = () => {
-      const [t, setT] = useState(data.count ? data.count.toString() : "");
+      const [t, setT] = useState(data.count ? data.count.toString() : '');
 
       return (
         <View>
           <View
-            style={{ flexDirection: "row", justifyContent: "space-between" }}
+            style={{ flexDirection: 'row', justifyContent: 'space-between' }}
           >
             <PressableText
               message="返回"
@@ -395,14 +395,14 @@ export function ModalComponent1({
               highlightColor="#ffd399"
               TextStyle={{ fontSize: 16 }}
               onPress={() => {
-                let nt = Number(t);
+                const nt = Number(t);
                 if (
                   isNaN(nt) ||
                   t.length > 3 ||
                   nt < 0 ||
                   Math.floor(nt) !== nt
                 ) {
-                  showHint("请输入合理整数");
+                  showHint('请输入合理整数');
                   return;
                 }
                 updatedata((data) => {
@@ -416,9 +416,9 @@ export function ModalComponent1({
             style={[
               ModalComponent1Style.row,
               {
-                flexDirection: "row",
-                justifyContent: "center",
-                alignItems: "center",
+                flexDirection: 'row',
+                justifyContent: 'center',
+                alignItems: 'center',
                 height: undefined,
               },
             ]}
@@ -426,9 +426,9 @@ export function ModalComponent1({
             <View
               style={{
                 height: 56,
-                flexDirection: "row",
-                justifyContent: "center",
-                alignItems: "flex-end",
+                flexDirection: 'row',
+                justifyContent: 'center',
+                alignItems: 'flex-end',
                 marginVertical: 10,
               }}
             >
@@ -436,10 +436,10 @@ export function ModalComponent1({
                 style={{
                   width: 90,
                   fontSize: 50,
-                  color: "#ffa356",
+                  color: '#ffa356',
                   padding: 0,
-                  textAlign: "right",
-                  textDecorationLine: "underline",
+                  textAlign: 'right',
+                  textDecorationLine: 'underline',
                 }}
                 cursorColor="#ffa356"
                 placeholder="0"
@@ -457,26 +457,26 @@ export function ModalComponent1({
 
     return <COUNTF />;
   } else {
-    throw RangeError(pageType + "不是有意义的pageType");
+    throw RangeError(pageType + '不是有意义的pageType');
   }
 }
 
 const ModalComponent1Style = StyleSheet.create({
   row: {
     borderRadius: 15,
-    backgroundColor: "white",
+    backgroundColor: 'white',
     marginVertical: 10,
     paddingHorizontal: 15,
     paddingVertical: 3,
     height: 45,
-    justifyContent: "center",
+    justifyContent: 'center',
   },
   block: {
     height: 24,
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     borderRadius: 5,
-    backgroundColor: "white",
+    backgroundColor: 'white',
     paddingHorizontal: 3,
   },
 });

@@ -1,6 +1,6 @@
-import EventSource from "react-native-sse";
-import * as FileSystem from "expo-file-system";
-import { OpenAI as OpenAINode } from "openai";
+import EventSource from 'react-native-sse';
+import * as FileSystem from 'expo-file-system';
+import { OpenAI as OpenAINode } from 'openai';
 export class OpenAI {
   apiKey;
   baseURL;
@@ -53,8 +53,8 @@ export class OpenAI {
             onData,
             callbacks,
             {
-              "OpenAI-Beta": "assistants=v2",
-            }
+              'OpenAI-Beta': 'assistants=v2',
+            },
           ),
       },
     },
@@ -84,7 +84,7 @@ export class OpenAI {
           `${this.baseURL}/chat/completions`,
           params,
           onData,
-          callbacks
+          callbacks,
         ),
     },
   };
@@ -105,13 +105,13 @@ export class OpenAI {
           headers: {
             Authorization: `Bearer ${this.apiKey}`,
           },
-          httpMethod: "POST",
-          fieldName: "file",
+          httpMethod: 'POST',
+          fieldName: 'file',
           uploadType: FileSystem.FileSystemUploadType.MULTIPART,
           parameters: {
             purpose: purpose,
           },
-        }
+        },
       );
       const responseData = JSON.parse(response.body);
       return responseData;
@@ -137,21 +137,23 @@ export class OpenAI {
     const requestBody = { ...params, stream: true };
     const eventSource = new EventSource(url, {
       headers: {
-        Authorization: `Bearer ${this.apiKey}`,
-        "Content-Type": "application/json",
+        'Authorization': `Bearer ${this.apiKey}`,
+        'Content-Type': 'application/json',
         ...headers,
       },
-      method: "POST",
+      method: 'POST',
       body: JSON.stringify(requestBody),
     });
-    eventSource.addEventListener("message", (event) => {
-      if (event.data && event.data !== "[DONE]") {
+    eventSource.addEventListener('message', (event) => {
+      if (event.data && event.data !== '[DONE]') {
         try {
           const data = JSON.parse(event.data);
           onData(data);
         } catch (error) {
           onError?.(
-            new Error(`JSON Parse on ${event.data} with error ${error.message}`)
+            new Error(
+              `JSON Parse on ${event.data} with error ${error.message}`,
+            ),
           );
           eventSource.close(); // Disconnect the EventSource
         }
@@ -160,11 +162,11 @@ export class OpenAI {
         eventSource.close(); // Disconnect the EventSource
       }
     });
-    eventSource.addEventListener("error", (error) => {
+    eventSource.addEventListener('error', (error) => {
       onError?.(error);
       eventSource.close(); // Disconnect the EventSource
     });
-    eventSource.addEventListener("open", () => {
+    eventSource.addEventListener('open', () => {
       onOpen?.();
     });
     return eventSource;

@@ -145,7 +145,7 @@ export type planReplyType = {
   组名: string;
   训练项目: {
     项目名: string;
-    训练频率: "每天" | "周中" | "周末" | string;
+    训练频率: '每天' | '周中' | '周末' | string;
     每月目标训练次数: number;
   }[];
 }[];

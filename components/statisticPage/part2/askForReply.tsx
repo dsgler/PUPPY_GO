@@ -1,16 +1,23 @@
-import OpenAI from '@/utility/Openai';
 import { apiKey, baseURL, model } from '@/consts/key';
-import * as SQLite from 'expo-sqlite';
+import { isUseAI } from '@/consts/propmts';
+import OpenAI from '@/utility/Openai';
+import React from 'react';
 
 export async function askForReply({
-  db,
-  systemPrompt = '',
   reqMessage,
+  setRaw,
+  SystemPrompt,
+  onError,
 }: {
-  db: SQLite.SQLiteDatabase;
-  systemPrompt?: string;
   reqMessage: string;
+  SystemPrompt: string;
+  setRaw: React.Dispatch<React.SetStateAction<string>>;
+  onError: (err: Error) => void;
 }) {
+  if (!isUseAI) {
+    return;
+  }
+
   const aiclient = new OpenAI({
     apiKey: apiKey,
     baseURL: baseURL,
@@ -24,7 +31,7 @@ export async function askForReply({
     {
       model: model,
       messages: [
-        { role: 'system', content: systemPrompt },
+        { role: 'system', content: SystemPrompt },
         { role: 'user', content: reqMessage },
       ],
       // max_tokens: 256,
@@ -32,25 +39,21 @@ export async function askForReply({
     },
     (data) => {
       const c = data.choices[0].delta.content;
-      console.log(c);
       if (c) {
         fullAnswer += c;
         //   fullAnswer = fullAnswer.replaceAll("\n", "");
-        // setReply(fullAnswer + "_");
+        setRaw(fullAnswer + '_');
       }
     },
     {
-      onError: (error) => {
-        console.error('SSE Error:', error); // Handle any errors here
-        // setReply(error);
-      },
+      onError: onError,
       onOpen: () => {
         console.log('SSE connection for completion opened.'); // Handle when the connection is opened
-        // setReply("(思考中)_");
+        setRaw('(思考中)_');
       },
       onDone: () => {
         console.log('done', fullAnswer);
-        fullAnswer = fullAnswer.replace(/<think>[^<]+<\/think>/, '');
+        // fullAnswer = fullAnswer.replace(/<think>[^<]+<\/think>/, "");
         // setReply(fullAnswer);
         // updateReply(db, data.id!, fullAnswer);
       },

@@ -1,29 +1,29 @@
-import { BrandColor } from "@/consts/tabs";
-import { getProgressByMonthRetRow } from "@/sqls/targetSql2";
-import { useState, useContext, useEffect } from "react";
-import { ColorValue, View, Pressable, Text } from "react-native";
+import { BrandColor } from '@/consts/tabs';
+import { getProgressByMonthRetRow } from '@/sqls/targetSql2';
+import { useState, useContext, useEffect } from 'react';
+import { ColorValue, View, Pressable, Text } from 'react-native';
 import {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
-} from "react-native-reanimated";
-import Animated from "react-native-reanimated";
-import AntIcon from "react-native-vector-icons/AntDesign";
-import { Progress } from "./Progress";
-import { MonthgroupChildRow } from "./MonthgroupChildRow";
+} from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
+import AntIcon from 'react-native-vector-icons/AntDesign';
+import { Progress } from './Progress';
+import { MonthgroupChildRow } from './MonthgroupChildRow';
 import {
   MenuCtx,
   ShowAddTargetCtx,
   myLayoutTransition,
   menuObjType,
   myFadeIn,
-} from "./public";
+} from './public';
 
 export function MonthGroup({ data }: { data: getProgressByMonthRetRow }) {
   const [isFolded, setIsFolded] = useState(false);
-  const greyColor = "#E5DDD5";
+  const greyColor = '#E5DDD5';
   const duration = 500;
-  const bgColor = useSharedValue<ColorValue>("#FFFFFF");
+  const bgColor = useSharedValue<ColorValue>('#FFFFFF');
   const bgStyle = useAnimatedStyle(() => ({
     backgroundColor: bgColor.value,
     borderRadius: 5,
@@ -31,7 +31,7 @@ export function MonthGroup({ data }: { data: getProgressByMonthRetRow }) {
   const [menuObj, setMenu] = useContext(MenuCtx);
   useEffect(() => {
     if (!menuObj.visibility) {
-      bgColor.value = withTiming("#FFFFFF", { duration: duration });
+      bgColor.value = withTiming('#FFFFFF', { duration: duration });
     }
   }, [bgColor, menuObj.visibility]);
   const showAddTarget = useContext(ShowAddTargetCtx);
@@ -39,7 +39,7 @@ export function MonthGroup({ data }: { data: getProgressByMonthRetRow }) {
   return (
     <Animated.View
       style={{
-        backgroundColor: "white",
+        backgroundColor: 'white',
         borderRadius: 10,
         marginTop: 10,
         paddingHorizontal: 10,
@@ -48,8 +48,8 @@ export function MonthGroup({ data }: { data: getProgressByMonthRetRow }) {
     >
       <View
         style={{
-          flexDirection: "row",
-          alignItems: "center",
+          flexDirection: 'row',
+          alignItems: 'center',
           marginVertical: 10,
         }}
       >
@@ -74,7 +74,7 @@ export function MonthGroup({ data }: { data: getProgressByMonthRetRow }) {
               return;
             }
 
-            bgColor.value = withTiming("#FFFFFF", { duration: duration });
+            bgColor.value = withTiming('#FFFFFF', { duration: duration });
           }}
           style={{ flex: 1 }}
         >
@@ -87,17 +87,16 @@ export function MonthGroup({ data }: { data: getProgressByMonthRetRow }) {
             setIsFolded(!isFolded);
           }}
         >
-          {/* @ts-ignore */}
-          <AntIcon name={isFolded ? "rightcircleo" : "downcircleo"} size={21} />
+          <AntIcon name={isFolded ? 'rightcircleo' : 'downcircleo'} size={21} />
         </Pressable>
       </View>
       <View
         style={{
           height: 1,
-          backgroundColor: "#e7e7e7",
+          backgroundColor: '#e7e7e7',
         }}
       ></View>
-      <View style={{ flexDirection: "row", marginVertical: 10 }}>
+      <View style={{ flexDirection: 'row', marginVertical: 10 }}>
         <Progress
           isShowText={true}
           total={100}
@@ -107,7 +106,7 @@ export function MonthGroup({ data }: { data: getProgressByMonthRetRow }) {
         <Pressable
           style={{ marginLeft: 10 }}
           onPress={() => {
-            showAddTarget(true, (AddTargetStates) => {
+            showAddTarget(undefined, true, (AddTargetStates) => {
               const {
                 dataState: [, updatedata],
               } = AddTargetStates;
@@ -117,7 +116,6 @@ export function MonthGroup({ data }: { data: getProgressByMonthRetRow }) {
             });
           }}
         >
-          {/* @ts-ignore */}
           <AntIcon name="pluscircle" size={21} color={BrandColor} />
         </Pressable>
       </View>

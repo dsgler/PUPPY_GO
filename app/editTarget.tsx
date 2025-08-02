@@ -1,4 +1,4 @@
-import Page from "@/components/editTarget";
+import Page from '@/components/editTarget';
 
 export default function App() {
   return <Page />;

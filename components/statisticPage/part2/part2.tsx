@@ -1,15 +1,15 @@
-import { StyleSheet, View } from "react-native";
-import MyScrollView from "../../public/myScrollView";
-import React, { useEffect, useRef, useState } from "react";
+import { StyleSheet, View } from 'react-native';
+import MyScrollView from '../../public/myScrollView';
+import React, { useEffect, useRef, useState } from 'react';
 
-import { addDataType } from "@/sqls/indexSql";
-import * as pageType_consts from "../pageType";
-import MoodView from "./Mood";
-import DurationView from "./duration";
-import EffortView from "./effort";
-import TagView from "./tag";
-import { EmptyDog } from "@/components/index/EmptyDog";
-import { getDateNumber } from "@/utility/datetool";
+import { addDataType } from '@/sqls/indexSql';
+import * as pageType_consts from '../pageType';
+import MoodView from './Mood';
+import DurationView from './duration';
+import EffortView from './effort';
+import TagView from './tag';
+import { EmptyDog } from '@/components/index/EmptyDog';
+import { getDateNumber } from '@/utility/datetool';
 
 function Page({
   upperHeight,
@@ -24,7 +24,7 @@ function Page({
 }) {
   const [fullHeight, setFullHeight] = useState(10);
   const [width, setWidth] = useState(0);
-  console.log("part2渲染");
+  console.log('part2渲染');
 
   return (
     <View
@@ -43,7 +43,7 @@ function Page({
           style={{
             paddingTop: 10,
             minHeight: fullHeight - upperHeight,
-            backgroundColor: "white",
+            backgroundColor: 'white',
             borderTopRightRadius: 20,
             borderTopLeftRadius: 20,
           }}
@@ -89,8 +89,8 @@ function Switcher({
     return (
       <View
         style={{
-          alignItems: "center",
-          justifyContent: "center",
+          alignItems: 'center',
+          justifyContent: 'center',
           marginBottom: 20,
         }}
       >
@@ -104,7 +104,7 @@ function Switcher({
       {hasShown.current.has(pageType_consts.MOOD) && (
         <View
           style={{
-            display: pageType === pageType_consts.MOOD ? "flex" : "none",
+            display: pageType === pageType_consts.MOOD ? 'flex' : 'none',
           }}
         >
           <MoodView datas={datas} />
@@ -113,7 +113,7 @@ function Switcher({
       {hasShown.current.has(pageType_consts.DURATION) && (
         <View
           style={{
-            display: pageType === pageType_consts.DURATION ? "flex" : "none",
+            display: pageType === pageType_consts.DURATION ? 'flex' : 'none',
           }}
         >
           <DurationView datas={datas} thisMonth={thisMonth} width={width} />
@@ -122,7 +122,7 @@ function Switcher({
       {hasShown.current.has(pageType_consts.EFFORT) && (
         <View
           style={{
-            display: pageType === pageType_consts.EFFORT ? "flex" : "none",
+            display: pageType === pageType_consts.EFFORT ? 'flex' : 'none',
           }}
         >
           <EffortView datas={datas} width={width} />
@@ -131,7 +131,7 @@ function Switcher({
       {hasShown.current.has(pageType_consts.TAG) && (
         <View
           style={{
-            display: pageType === pageType_consts.TAG ? "flex" : "none",
+            display: pageType === pageType_consts.TAG ? 'flex' : 'none',
           }}
         >
           <TagView />

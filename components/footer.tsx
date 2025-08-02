@@ -1,22 +1,26 @@
-import { router } from "expo-router";
-import { View, Pressable } from "react-native";
-import { Surface } from "react-native-paper";
+import { router } from 'expo-router';
+import { View, Pressable } from 'react-native';
+import { Surface } from 'react-native-paper';
 // import AddIcon from "@/assets/images/Footer/add";
-import LeftIcon from "@/assets/images/Footer/left";
-import LeftHalfIcon from "@/assets/images/Footer/leftHalf";
-import LeftedIcon from "@/assets/images/Footer/lefted";
-import RightIcon from "@/assets/images/Footer/right";
-import RightHalfIcon from "@/assets/images/Footer/rightHalf";
-import RightedIcon from "@/assets/images/Footer/righted";
-import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
-import { useState, useEffect, useContext, useRef } from "react";
-import AntIcon from "react-native-vector-icons/AntDesign";
-import { useUIStore } from "@/store/alertStore";
+import LeftIcon from '@/assets/images/Footer/left';
+import LeftHalfIcon from '@/assets/images/Footer/leftHalf';
+import LeftedIcon from '@/assets/images/Footer/lefted';
+import RightIcon from '@/assets/images/Footer/right';
+import RightHalfIcon from '@/assets/images/Footer/rightHalf';
+import RightedIcon from '@/assets/images/Footer/righted';
+import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import { useState, useEffect, useRef } from 'react';
+import AntIcon from 'react-native-vector-icons/AntDesign';
+import { useUIStore } from '@/store/alertStore';
 
-export default function Footer({ props }: { props: BottomTabBarProps }) {
+export default function Footer({
+  props: TabBarProps,
+}: {
+  props: BottomTabBarProps;
+}) {
   // console.log("footer渲染");
-  const sptl = useUIStore(s=>s.spotlight);
-    const setsptl=useUIStore(s=>s.updateSpotlight)
+  const sptl = useUIStore((s) => s.spotlight);
+  const setsptl = useUIStore((s) => s.updateSpotlight);
   const myRef = useRef<View>(null);
   useEffect(() => {
     if (sptl.guideStep === 1) {
@@ -34,25 +38,25 @@ export default function Footer({ props }: { props: BottomTabBarProps }) {
     }
   }, [setsptl, sptl.guideStep]);
 
-  let indexMap = new Map<string, number>();
-  for (let i = 0; i < props.state.routes.length; i++) {
-    indexMap.set(props.state.routes[i].name, i);
+  const indexMap = new Map<string, number>();
+  for (let i = 0; i < TabBarProps.state.routes.length; i++) {
+    indexMap.set(TabBarProps.state.routes[i].name, i);
   }
 
-  let i = indexMap.get("index")!;
-  let isLeftFocused = props.state.index === i;
-  let indexRoute = props.state.routes[i];
+  let i = indexMap.get('index')!;
+  const isLeftFocused = TabBarProps.state.index === i;
+  const indexRoute = TabBarProps.state.routes[i];
 
-  i = indexMap.get("targetPage")!;
-  let isRightFocused = props.state.index === i;
-  let TargetPageRoute = props.state.routes[i];
+  i = indexMap.get('targetPage')!;
+  const isRightFocused = TabBarProps.state.index === i;
+  const TargetPageRoute = TabBarProps.state.routes[i];
 
-  let [LeftPlaceholder, setLeftPlaceholder] = useState(
-    isLeftFocused ? <LeftedIcon /> : <LeftIcon />
+  const [LeftPlaceholder, setLeftPlaceholder] = useState(
+    isLeftFocused ? <LeftedIcon /> : <LeftIcon />,
   );
 
-  let [RightPlaceholder, setRightPlaceholder] = useState(
-    isRightFocused ? <RightedIcon /> : <RightIcon />
+  const [RightPlaceholder, setRightPlaceholder] = useState(
+    isRightFocused ? <RightedIcon /> : <RightIcon />,
   );
 
   const [isLeftAnimating, setIsLeftAnimating] = useState(false);
@@ -78,15 +82,15 @@ export default function Footer({ props }: { props: BottomTabBarProps }) {
   return (
     <Surface elevation={5}>
       <View
-        style={{ flexDirection: "row", height: 70, backgroundColor: "white" }}
+        style={{ flexDirection: 'row', height: 70, backgroundColor: 'white' }}
       >
         <View
-          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+          style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
         >
           <Pressable
             onPress={() => {
-              const event = props.navigation.emit({
-                type: "tabPress",
+              const event = TabBarProps.navigation.emit({
+                type: 'tabPress',
                 target: indexRoute.key,
                 canPreventDefault: true,
               });
@@ -94,16 +98,19 @@ export default function Footer({ props }: { props: BottomTabBarProps }) {
               if (!isLeftFocused && !event.defaultPrevented) {
                 setLeftPlaceholder(<LeftHalfIcon />);
                 setIsLeftAnimating(true);
-                props.navigation.navigate(indexRoute.name, indexRoute.params);
+                TabBarProps.navigation.navigate(
+                  indexRoute.name,
+                  indexRoute.params,
+                );
                 setTimeout(() => {
                   setIsLeftAnimating(false);
                 }, AnimateTime);
               }
             }}
             onLongPress={() => {
-              props.navigation.emit({
-                type: "tabLongPress",
-                target: props.state.routes[indexMap.get("index")!].key,
+              TabBarProps.navigation.emit({
+                type: 'tabLongPress',
+                target: TabBarProps.state.routes[indexMap.get('index')!].key,
               });
             }}
           >
@@ -112,26 +119,24 @@ export default function Footer({ props }: { props: BottomTabBarProps }) {
         </View>
 
         <View
-          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+          style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
         >
           <Pressable
             onPress={() => {
-              router.push("/addPage");
+              router.push('/addPage');
             }}
             ref={myRef}
           >
-            {/* <AddIcon /> */}
-            {/* @ts-ignore */}
             <AntIcon name="pluscircle" size={56} color="#FFB52B" />
           </Pressable>
         </View>
         <View
-          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+          style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
         >
           <Pressable
             onPress={() => {
-              const event = props.navigation.emit({
-                type: "tabPress",
+              const event = TabBarProps.navigation.emit({
+                type: 'tabPress',
                 target: TargetPageRoute.key,
                 canPreventDefault: true,
               });
@@ -139,9 +144,9 @@ export default function Footer({ props }: { props: BottomTabBarProps }) {
               if (!isRightFocused && !event.defaultPrevented) {
                 setRightPlaceholder(<RightHalfIcon />);
                 setIsRightAnimating(true);
-                props.navigation.navigate(
+                TabBarProps.navigation.navigate(
                   TargetPageRoute.name,
-                  TargetPageRoute.params
+                  TargetPageRoute.params,
                 );
                 setTimeout(() => {
                   setIsRightAnimating(false);
@@ -149,8 +154,8 @@ export default function Footer({ props }: { props: BottomTabBarProps }) {
               }
             }}
             onLongPress={() => {
-              props.navigation.emit({
-                type: "tabLongPress",
+              TabBarProps.navigation.emit({
+                type: 'tabLongPress',
                 target: TargetPageRoute.key,
               });
             }}

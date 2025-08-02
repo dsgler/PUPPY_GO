@@ -23,6 +23,11 @@ export default defineConfig([
         ...globals.browser,
       },
     },
+    settings: {
+      react: {
+        version: 'detect', // 自动检测 React 版本
+      },
+    },
   },
   // eslintPluginPrettier，prettier交给eslint处理，防止打架
   // 需要安装eslint-config-prettier和eslint-plugin-prettier
@@ -42,9 +47,11 @@ export default defineConfig([
   // 我比较喜欢的配置
   {
     rules: {
-      'no-unused-vars': 'warn',
+      'no-unused-vars': 'off',
       '@typescript-eslint/no-unused-vars': 'warn',
       'prettier/prettier': 'warn',
+      '@typescript-eslint/no-require-imports': 'off',
+      'react/react-in-jsx-scope': 'off',
     },
   },
 ]);

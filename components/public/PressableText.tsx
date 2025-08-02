@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState } from 'react';
 import {
   ColorValue,
   Pressable,
   StyleProp,
   Text,
   TextStyle,
-} from "react-native";
+} from 'react-native';
 
 export default function PressableText({
   message,

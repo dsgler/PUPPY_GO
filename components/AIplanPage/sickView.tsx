@@ -1,5 +1,7 @@
 import { View, Text, TextInput } from "react-native";
-import { ChooseRow, InfoObjStateCtx, ViewStyle } from "./public";
+import { InfoObjStateCtx } from "./public";
+import { ViewStyle } from './ViewStyle';
+import { ChooseRow } from './ChooseRow';
 import { sickArr } from "@/consts/AIplanPage";
 import { useContext } from "react";
 import { BrandColor } from "@/consts/tabs";

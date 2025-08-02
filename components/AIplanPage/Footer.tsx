@@ -1,20 +1,20 @@
-import { BrandColor } from "@/consts/tabs";
-import { useContext } from "react";
-import { StyleSheet, View, Pressable, Text } from "react-native";
-import { checkValid } from "./public";
-import { InfoObjStateCtx } from "./public";
-import { useUIStore } from "@/store/alertStore";
+import { BrandColor } from '@/consts/tabs';
+import { useContext } from 'react';
+import { StyleSheet, View, Pressable, Text } from 'react-native';
+import { checkValid } from './public';
+import { InfoObjStateCtx } from './public';
+import { useUIStore } from '@/store/alertStore';
 // import { END } from "@/consts/AIplanPage";
 
 const FooterStyle = StyleSheet.create({
   block: {
     borderRadius: 10,
     backgroundColor: BrandColor,
-    flexDirection: "row",
+    flexDirection: 'row',
     paddingHorizontal: 8,
     paddingVertical: 5,
   },
-  Text: { color: "white", fontSize: 16 },
+  Text: { color: 'white', fontSize: 16 },
 });
 export function Footer({
   StepState: [Step, setStep],
@@ -23,12 +23,12 @@ export function Footer({
 }) {
   const isStart = Step <= 0;
   // const isEnd = Step >= END;
-    const myAlert = useUIStore(s=>s.showAlert);
+  const myAlert = useUIStore((s) => s.showAlert);
 
   const [InfoObj] = useContext(InfoObjStateCtx);
 
   return (
-    <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
       <Pressable
         style={[FooterStyle.block, { opacity: isStart ? 0 : 1 }]}
         onPress={() => {
@@ -42,14 +42,14 @@ export function Footer({
         style={[FooterStyle.block]}
         onPress={() => {
           const ret = checkValid(Step, InfoObj);
-          if (ret !== "") {
+          if (ret !== '') {
             myAlert(ret);
             return;
           }
           setStep((x) => x + 1);
         }}
       >
-        <Text style={FooterStyle.Text}>{Step === 2 ? "完成" : "下一步"}</Text>
+        <Text style={FooterStyle.Text}>{Step === 2 ? '完成' : '下一步'}</Text>
       </Pressable>
     </View>
   );
